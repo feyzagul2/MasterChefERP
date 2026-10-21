@@ -1,0 +1,867 @@
+@model MasterChefTakip.ViewModels.OrderIndexViewModel
+@using MasterChefTakip.ViewModels
+
+@{
+    ViewData["Title"] = "WhatsApp Siparişleri";
+
+    string FieldValue(string key, object? fallback)
+    {
+        if (ViewData.ModelState.TryGetValue(key, out var entry))
+            return entry.AttemptedValue ?? "";
+
+        return fallback?.ToString() ?? "";
+    }
+}
+
+<style>
+    .orders-page {
+        width: 100%;
+        max-width: 1000px;
+        min-width: 0;
+        margin-inline: auto;
+        color: #18365f;
+        overflow-wrap: anywhere;
+    }
+
+    .orders-page h1 {
+        margin: 0 0 6px;
+        font-size: 25px;
+    }
+
+    .order-note {
+        color: #64748b;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .order-panel {
+        margin: 16px 0;
+        border: 1px solid #d3ddec;
+        border-radius: 10px;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    .order-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px 16px;
+        background: #f7f9fc;
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .order-heading h2 {
+        margin: 0;
+        font-size: 16px;
+    }
+
+    .order-body {
+        padding: 16px;
+    }
+
+    .order-fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .order-wide {
+        grid-column: 1 / -1;
+    }
+
+    .orders-page label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 13px;
+    }
+
+    .orders-page input,
+    .orders-page select,
+    .orders-page textarea {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        padding: 10px;
+        border: 1px solid #d3ddec;
+        border-radius: 7px;
+        background: #fff;
+        color: #18365f;
+        font: inherit;
+    }
+
+    .order-row {
+        margin-top: 14px;
+        padding: 12px;
+        border: 1px solid #e0e7f0;
+        border-radius: 8px;
+    }
+
+    .order-row-fields {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 110px 110px 110px auto;
+        align-items: end;
+        gap: 10px;
+    }
+
+    .order-row-fields > div {
+        min-width: 0;
+    }
+
+    .order-calculation {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 6px;
+        background: #f0f5fb;
+        font-size: 13px;
+    }
+
+    .order-calculation.invalid {
+        background: #fff0f0;
+        color: #b42318;
+    }
+
+    .order-actions {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+    }
+
+    .orders-page .btn {
+        min-height: 44px;
+        font-size: 13px;
+        white-space: normal;
+    }
+
+    .orders-page .btn-primary {
+        background: #18365f;
+        border-color: #18365f;
+    }
+
+    .order-record {
+        margin-top: 12px;
+        padding: 14px;
+        border: 1px solid #dce4ef;
+        border-radius: 8px;
+    }
+
+    .order-record-top,
+    .order-product-line {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .order-product-line {
+        padding: 10px 0;
+        border-bottom: 1px solid #edf1f6;
+    }
+
+    .orders-page summary {
+        cursor: pointer;
+        font-weight: 600;
+        margin: 12px 0;
+    }
+
+    .orders-page .field-validation-error {
+        display: block;
+        margin-top: 5px;
+        color: #b42318;
+        font-size: 13px;
+    }
+
+    @@media (max-width: 700px) {
+        .order-fields,
+        .order-row-fields {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .order-body {
+            padding: 12px;
+        }
+
+        .orders-page input,
+        .orders-page select,
+        .orders-page textarea {
+            font-size: 16px;
+        }
+
+        .order-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="orders-page">
+    <h1>WhatsApp Siparişleri</h1>
+
+    <p class="order-note">
+        Müşterinin istediği ürünleri kaydedin.
+        Sipariş kaydı stok değiştirmez.
+    </p>
+
+    <details class="order-panel">
+        <summary class="order-heading">
+            Bu sayfa nasıl kullanılır?
+        </summary>
+
+        <div class="order-body order-note">
+            <ol>
+                <li>Müşteri ve teslimat bilgilerini girin.</li>
+                <li>Ürünü seçin; miktarı Adet veya Koli olarak girin.</li>
+                <li>Gösterilen toplam ürün adedini kontrol edin.</li>
+                <li>Siparişi kaydedin.</li>
+                <li>
+                    Gönderim hazırlanırken listeden
+                    “Sevkiyat oluştur” düğmesine basın.
+                    Stok, sevkiyat onaylandığında düşer.
+                </li>
+            </ol>
+
+            <p>
+                Örnek: Koli içi adedi 12 olan üründen
+                <strong>2 koli = 24 ürün</strong>.
+                Karışık kolideki farklı ürünleri ayrı satırlara
+                ekleyip kendi adetlerini girin.
+            </p>
+        </div>
+    </details>
+
+    @if (TempData["OrderSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">
+            @success
+        </div>
+    }
+
+    @if (TempData["OrderError"] is string error)
+    {
+        <div class="alert alert-danger" role="alert">
+            @error
+        </div>
+    }
+
+    <section class="order-panel">
+        <div class="order-heading">
+            <h2>Yeni sipariş</h2>
+        </div>
+
+        <form asp-controller="Orders"
+              asp-action="Create"
+              method="post"
+              id="orderForm"
+              class="order-body">
+
+            <input asp-for="Form.RequestId" type="hidden" />
+
+            <div asp-validation-summary="All"
+                 class="text-danger"
+                 role="alert"></div>
+
+            <div class="order-fields">
+                <div>
+                    <label asp-for="Form.CustomerName">
+                        Müşteri
+                    </label>
+
+                    <input asp-for="Form.CustomerName"
+                           maxlength="200"
+                           required />
+
+                    <span asp-validation-for="Form.CustomerName"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Form.Phone">
+                        Telefon (isteğe bağlı)
+                    </label>
+
+                    <input asp-for="Form.Phone"
+                           type="tel"
+                           maxlength="50" />
+                </div>
+
+                <div class="order-wide">
+                    <label asp-for="Form.DeliveryAddress">
+                        Teslimat adresi
+                    </label>
+
+                    <textarea asp-for="Form.DeliveryAddress"
+                              rows="2"
+                              maxlength="500"
+                              required></textarea>
+
+                    <span asp-validation-for="Form.DeliveryAddress"></span>
+                </div>
+            </div>
+
+            <details>
+                <summary>Sipariş notu ekle</summary>
+
+                <label asp-for="Form.Notes">Not</label>
+
+                <textarea asp-for="Form.Notes"
+                          rows="2"
+                          maxlength="500"></textarea>
+            </details>
+
+            <div id="orderRows">
+                @for (var index = 0;
+                      index < Model.Form.Rows.Count;
+                      index++)
+                {
+                    var row = Model.Form.Rows[index];
+                    var key = $"Form.Rows[{index}]";
+
+                    var productValue = FieldValue(
+                        $"{key}.ProductId",
+                        row.ProductId);
+
+                    var typeValue = FieldValue(
+                        $"{key}.QuantityType",
+                        (int)row.QuantityType);
+
+                    <div class="order-row">
+                        <div class="order-row-fields">
+                            <div>
+                                <label>Ürün / çeşit</label>
+
+                                <select name="@(key + ".ProductId")"
+                                        data-field="ProductId"
+                                        required>
+
+                                    <option value="">Ürün seçin</option>
+
+                                    @foreach (var product in Model.Products)
+                                    {
+                                        <option value="@product.Id"
+                                                data-capacity="@product.DefaultUnitsPerBox"
+                                                selected="@(productValue == product.Id.ToString())">
+
+                                            @product.Name
+                                            — @product.Code
+                                            — @product.PackagingType
+                                        </option>
+                                    }
+                                </select>
+
+                                @Html.ValidationMessage(
+                                    $"{key}.ProductId")
+                            </div>
+
+                            <div>
+                                <label>Miktar türü</label>
+
+                                <select name="@(key + ".QuantityType")"
+                                        data-field="QuantityType"
+                                        required>
+
+                                    <option value="1"
+                                            selected="@(typeValue == "1" || typeValue == "Unit")">
+                                        Adet
+                                    </option>
+
+                                    <option value="2"
+                                            selected="@(typeValue == "2" || typeValue == "Box")">
+                                        Koli
+                                    </option>
+                                </select>
+
+                                @Html.ValidationMessage(
+                                    $"{key}.QuantityType")
+                            </div>
+
+                            <div>
+                                <label>Miktar</label>
+
+                                <input name="@(key + ".Quantity")"
+                                       data-field="Quantity"
+                                       value="@FieldValue(key + ".Quantity", row.Quantity)"
+                                       type="number"
+                                       min="1"
+                                       max="2147483647"
+                                       step="1"
+                                       required />
+
+                                @Html.ValidationMessage(
+                                    $"{key}.Quantity")
+                            </div>
+                            <div data-capacity-field>
+                            <label>Koli içi adet</label>
+
+                            <input name="@(key + ".UnitsPerBox")"
+                                data-field="UnitsPerBox"
+                                value="@FieldValue(key + ".UnitsPerBox", row.UnitsPerBox)"
+                                type="number"
+                                min="1"
+                                max="2147483647"
+                                step="1" />
+
+                            @Html.ValidationMessage(
+                                $"{key}.UnitsPerBox")
+                            </div>
+                            <button type="button"
+                                    class="btn btn-outline-danger"
+                                    data-remove-order-row>
+                                Kaldır
+                            </button>
+                        </div>
+
+                        <div class="order-calculation"
+                             data-order-calculation
+                             aria-live="polite"></div>
+                    </div>
+                }
+            </div>
+
+            <p class="order-note">
+                Koli seçimi aynı üründen oluşan tam koli içindir.
+                Karışık kolide her ürünü ayrı satırda,
+                Adet seçerek girin.
+            </p>
+
+            <div class="order-actions">
+                <button type="button"
+                        id="addOrderRow"
+                        class="btn btn-outline-secondary">
+                    + Ürün ekle
+                </button>
+
+                <button type="submit"
+                        id="saveOrder"
+                        class="btn btn-primary"
+                        disabled="@(Model.Products.Count == 0)">
+                    Siparişi kaydet
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="order-panel">
+        <div class="order-heading">
+            <h2>Sipariş listesi</h2>
+            <span>@Model.Orders.Count kayıt</span>
+        </div>
+
+        <div class="order-body">
+            @if (Model.Orders.Count == 0)
+            {
+                <p class="order-note">
+                    Henüz sipariş bulunmuyor.
+                </p>
+            }
+
+            @foreach (var record in Model.Orders)
+            {
+                var order = record.Order;
+                var total = order.Items.Sum(i => (long)i.Quantity);
+
+                <article class="order-record">
+                    <div class="order-record-top">
+                        <div>
+                            <strong>@order.CustomerName</strong>
+
+                            <div class="order-note">
+                                @order.Items.Count ürün çeşidi
+                                · @total toplam ürün adedi
+                            </div>
+
+                            <div class="order-note">
+                                @order.CreatedAtUtc.AddHours(3).ToString("dd.MM.yyyy HH:mm")
+                            </div>
+                        </div>
+
+                        <span class="order-note">
+                            @record.StatusLabel
+                        </span>
+                    </div>
+
+                    <details>
+                        <summary>
+                            Ürünler ve teslimat bilgileri
+                        </summary>
+
+                        <p class="order-note">
+                            Sipariş: @order.Number
+                            <br />
+                            Telefon: @(order.Phone ?? "—")
+                            <br />
+                            Adres: @order.DeliveryAddress
+                        </p>
+
+                        @if (!string.IsNullOrWhiteSpace(order.Notes))
+                        {
+                            <p class="order-note">
+                                Not: @order.Notes
+                            </p>
+                        }
+
+                        @foreach (var item in order.Items.OrderBy(i => i.Id))
+                        {
+                            <div class="order-product-line">
+                                <div>
+                                    <strong>@item.ProductName</strong>
+                                    <div class="order-note">
+                                        @item.ProductCode
+                                    </div>
+                                </div>
+
+                                <div>
+                            @foreach (var entry in item.QuantityEntries.OrderBy(e => e.Id))
+                            {
+                                <div class="order-note">
+                                    @if (entry.QuantityType == 2)
+                                    {
+                                        <span>
+                                            @entry.EnteredQuantity koli
+                                            × @entry.UnitsPerBox ürün
+                                            = @entry.TotalUnits ürün
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span>@entry.EnteredQuantity adet</span>
+                                    }
+                                </div>
+                            }
+
+                            <strong>Toplam: @item.Quantity ürün adedi</strong>
+                        </div>
+                            </div>
+                        }
+                    </details>
+
+                    <div class="order-actions">
+                        @if (record.ShipmentId is int shipmentId)
+                        {
+                            <a asp-controller="Shipments"
+                               asp-action="Index"
+                               asp-route-shipmentId="@shipmentId"
+                               class="btn btn-outline-secondary">
+                                Sevkiyatı aç
+                            </a>
+                        }
+                        else
+                        {
+                            <form asp-controller="Orders"
+                                  asp-action="CreateShipment"
+                                  method="post">
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@order.Id" />
+
+                                <input type="hidden"
+                                       name="concurrencyStamp"
+                                       value="@order.ConcurrencyStamp" />
+
+                                <button type="submit"
+                                        class="btn btn-primary">
+                                    Sevkiyat oluştur
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </article>
+            }
+        </div>
+    </section>
+</div>
+
+ @section Scripts {
+    <script>
+        (() => {
+            const form = document.getElementById("orderForm");
+            const rows = document.getElementById("orderRows");
+            const add = document.getElementById("addOrderRow");
+            const save = document.getElementById("saveOrder");
+            const first = rows?.querySelector(".order-row");
+
+            if (!form || !rows || !add || !save || !first)
+                return;
+
+            const template = first.cloneNode(true);
+
+            function positiveInteger(input) {
+                const raw = input.value.trim();
+                const value = Number(raw);
+
+                return raw !== "" &&
+                    Number.isSafeInteger(value) &&
+                    value >= 1 &&
+                    value <= 2147483647
+                        ? value
+                        : null;
+            }
+
+            function initializeRow(row, isNew = false) {
+                const product = row.querySelector(
+                    '[data-field="ProductId"]');
+
+                const capacity = row.querySelector(
+                    '[data-field="UnitsPerBox"]');
+
+                row.dataset.previousProduct = product.value;
+
+                // Dolu veya hatadan geri gelen değer kullanıcıya aittir.
+                capacity.dataset.manual = !isNew &&
+                    (
+                        capacity.value !== "" ||
+                        !!form.querySelector(".validation-summary-errors")
+                    )
+                        ? "true"
+                        : "false";
+
+                if (capacity.value === "" &&
+                    capacity.dataset.manual !== "true") {
+                    capacity.value =
+                        product.selectedOptions[0]?.dataset.capacity || "";
+                }
+            }
+
+            function updateRow(row) {
+                const product = row.querySelector(
+                    '[data-field="ProductId"]');
+
+                const type = row.querySelector(
+                    '[data-field="QuantityType"]');
+
+                const quantity = row.querySelector(
+                    '[data-field="Quantity"]');
+
+                const capacity = row.querySelector(
+                    '[data-field="UnitsPerBox"]');
+
+                const capacityField = row.querySelector(
+                    "[data-capacity-field]");
+
+                const message = row.querySelector(
+                    "[data-order-calculation]");
+
+                const isBox = type.value === "2";
+
+                // Burada hiçbir miktar alanının değerini değiştirmiyoruz.
+                capacityField.hidden = !isBox;
+                capacity.disabled = !isBox;
+                capacity.required = isBox;
+                capacity.readOnly = false;
+
+                product.setCustomValidity("");
+                type.setCustomValidity("");
+                quantity.setCustomValidity("");
+                capacity.setCustomValidity("");
+
+                message.classList.remove("invalid");
+
+                if (!product.value) {
+                    message.textContent =
+                        "Ürün seçin; toplam burada gösterilecek.";
+                    return;
+                }
+
+                if (type.value !== "1" && type.value !== "2") {
+                    type.setCustomValidity("Adet veya koli seçin.");
+                    message.textContent = "Adet veya koli seçin.";
+                    message.classList.add("invalid");
+                    return;
+                }
+
+                const count = positiveInteger(quantity);
+                const perBox = isBox
+                    ? positiveInteger(capacity)
+                    : null;
+
+                if (isBox && perBox === null) {
+                    const text =
+                        "Her kolideki gerçek ürün adedini girin.";
+
+                    capacity.setCustomValidity(text);
+                    message.textContent = text;
+                    message.classList.add("invalid");
+                    return;
+                }
+
+                if (count === null) {
+                    const text = isBox
+                        ? `Koli içi ${perBox} adet. Koli sayısını girin.`
+                        : "Geri değil, sipariş edilen ürün adedini girin.";
+
+                    quantity.setCustomValidity(
+                        "Miktar 1 ile 2147483647 arasında olmalı.");
+
+                    message.textContent = text;
+                    return;
+                }
+
+                const total = isBox
+                    ? count * perBox
+                    : count;
+
+                if (!Number.isSafeInteger(total) ||
+                    total > 2147483647) {
+                    const text =
+                        "Toplam ürün adedi desteklenen sınırı aşıyor.";
+
+                    quantity.setCustomValidity(text);
+                    message.textContent = text;
+                    message.classList.add("invalid");
+                    return;
+                }
+
+                message.textContent = isBox
+                    ? `${count} koli × ${perBox} adet = ${total} ürün`
+                    : `${count} ürün adedi`;
+
+                message.textContent +=
+                    " · Sipariş kaydı stok değiştirmez.";
+            }
+
+            function reindex() {
+                const current = rows.querySelectorAll(".order-row");
+
+                current.forEach((row, index) => {
+                    row.querySelectorAll("[data-field]").forEach(field => {
+                        const fieldName = field.dataset.field;
+
+                        field.name =
+                            `Form.Rows[${index}].${fieldName}`;
+
+                        field.id =
+                            `order-${index}-${fieldName}`;
+
+                        const label =
+                            field.parentElement.querySelector("label");
+
+                        if (label)
+                            label.htmlFor = field.id;
+                    });
+
+                    row.querySelectorAll("[data-valmsg-for]")
+                        .forEach(span => {
+                            const fieldName = span
+                                .getAttribute("data-valmsg-for")
+                                .split(".")
+                                .pop();
+
+                            span.setAttribute(
+                                "data-valmsg-for",
+                                `Form.Rows[${index}].${fieldName}`);
+                        });
+
+                    row.querySelector("[data-remove-order-row]")
+                        .disabled = current.length <= 1;
+
+                    updateRow(row);
+                });
+
+                add.disabled = current.length >= 100;
+            }
+
+            rows.addEventListener("input", event => {
+                const row = event.target.closest(".order-row");
+                if (!row) return;
+
+                if (event.target.dataset.field === "UnitsPerBox")
+                    event.target.dataset.manual = "true";
+
+                updateRow(row);
+            });
+
+            rows.addEventListener("change", event => {
+                const row = event.target.closest(".order-row");
+                if (!row) return;
+
+                const product = row.querySelector(
+                    '[data-field="ProductId"]');
+
+                const capacity = row.querySelector(
+                    '[data-field="UnitsPerBox"]');
+
+                if (event.target === capacity)
+                    capacity.dataset.manual = "true";
+
+                if (event.target === product &&
+                    row.dataset.previousProduct !== product.value) {
+
+                    // Elle girilmiş değeri otomatik olarak değiştirmeyiz.
+                    if (capacity.dataset.manual !== "true") {
+                        capacity.value =
+                            product.selectedOptions[0]?.dataset.capacity || "";
+                    }
+
+                    row.dataset.previousProduct = product.value;
+                }
+
+                updateRow(row);
+            });
+
+            add.addEventListener("click", () => {
+                if (rows.querySelectorAll(".order-row").length >= 100)
+                    return;
+
+                const row = template.cloneNode(true);
+
+                row.querySelector('[data-field="ProductId"]').value = "";
+                row.querySelector('[data-field="QuantityType"]').value = "1";
+                row.querySelector('[data-field="Quantity"]').value = "";
+                row.querySelector('[data-field="UnitsPerBox"]').value = "";
+
+                row.querySelectorAll("[data-field]").forEach(field => {
+                    field.setCustomValidity("");
+                    field.classList.remove("input-validation-error");
+                });
+
+                row.querySelectorAll("[data-valmsg-for]").forEach(span => {
+                    span.textContent = "";
+                    span.classList.remove("field-validation-error");
+                    span.classList.add("field-validation-valid");
+                });
+
+                rows.appendChild(row);
+                initializeRow(row, true);
+                reindex();
+            });
+
+            rows.addEventListener("click", event => {
+                const button = event.target.closest(
+                    "[data-remove-order-row]");
+
+                if (!button ||
+                    rows.querySelectorAll(".order-row").length <= 1) {
+                    return;
+                }
+
+                button.closest(".order-row").remove();
+                reindex();
+            });
+
+            form.addEventListener("submit", event => {
+                reindex();
+
+                if (!form.reportValidity()) {
+                    event.preventDefault();
+                    return;
+                }
+
+                save.disabled = true;
+                save.textContent = "Kaydediliyor…";
+            });
+
+            window.addEventListener("pageshow", event => {
+                if (event.persisted)
+                    window.location.reload();
+            });
+
+            rows.querySelectorAll(".order-row").forEach(row => {
+                initializeRow(row);
+            });
+
+            reindex();
+        })();
+    </script>
+}

@@ -1,0 +1,157 @@
+@model MasterChefTakip.ViewModels.ReturnsIndexViewModel
+@using MasterChefTakip.Models
+@using MasterChefTakip.ViewModels
+
+@{
+    var item = (ReturnInspection)ViewData["ReturnItem"]!;
+
+    var submitted =
+        ViewData["CorrectionForm"] as CorrectReturnQuantityViewModel;
+
+    var failed = submitted?.Id == item.Id;
+
+    var editable =
+        item.Status == ReturnInspectionStatus.Waiting ||
+        item.Status == ReturnInspectionStatus.Inspecting ||
+        item.Status == ReturnInspectionStatus.WaitingForPlacement;
+
+    var form = failed
+        ? submitted!
+        : new CorrectReturnQuantityViewModel
+        {
+            Id = item.Id,
+            ConcurrencyStamp = item.ConcurrencyStamp,
+            QuantityType = 1,
+            Quantity = item.ReceivedUnits
+        };
+
+    var capacity = item.ShipmentItem.UnitsPerBox;
+
+    string Value(string key, object? fallback)
+    {
+        if (failed &&
+            ViewData.ModelState.TryGetValue(key, out var entry))
+        {
+            return entry.AttemptedValue ?? "";
+        }
+
+        return fallback?.ToString() ?? "";
+    }
+
+    var quantityType = Value(
+        "CorrectionForm.QuantityType",
+        form.QuantityType);
+
+    var prefix = $"correct-return-{item.Id}";
+}
+
+@if (editable && Model.CanInspect && item.Placements.Count == 0)
+{
+    <details class="returns-item" open="@failed">
+        <summary>Geri gelen miktar yanlış mı? Düzelt</summary>
+
+        <p class="returns-note">
+            Şu an kayıtlı miktar:
+            <strong>@item.ReceivedUnits ürün</strong>.
+            Düzeltme stok değiştirmez. Önceden girilen sağlam ve
+            hasarlı sonuçları yeniden girmeniz gerekir.
+        </p>
+
+        <form asp-controller="Returns"
+              asp-action="CorrectQuantity"
+              method="post">
+
+            <input type="hidden"
+                   name="CorrectionForm.Id"
+                   value="@item.Id" />
+
+            <input type="hidden"
+                   name="CorrectionForm.ConcurrencyStamp"
+                   value="@form.ConcurrencyStamp" />
+
+            <div class="returns-grid">
+                <div class="returns-field">
+                    <label for="@(prefix + "-type")">
+                        Miktar türü
+                    </label>
+
+                    <select id="@(prefix + "-type")"
+                            name="CorrectionForm.QuantityType"
+                            required>
+
+                        <option value="1"
+                                selected="@(quantityType == "1")">
+                            Ürün adedi
+                        </option>
+
+                        @if (capacity is > 0)
+                        {
+                            <option value="2"
+                                    selected="@(quantityType == "2")">
+                                Tam koli — koli içi @capacity ürün
+                            </option>
+                        }
+                    </select>
+
+                    @if (failed)
+                    {
+                        @Html.ValidationMessage(
+                            "CorrectionForm.QuantityType")
+                    }
+                </div>
+
+                <div class="returns-field">
+                    <label for="@(prefix + "-quantity")">
+                        Geri gelen doğru miktar
+                    </label>
+
+                    <input id="@(prefix + "-quantity")"
+                           name="CorrectionForm.Quantity"
+                           type="number"
+                           min="1"
+                           max="2147483647"
+                           step="1"
+                           value="@Value("CorrectionForm.Quantity", form.Quantity)"
+                           required />
+
+                    @if (failed)
+                    {
+                        @Html.ValidationMessage(
+                            "CorrectionForm.Quantity")
+                    }
+                </div>
+
+                <div class="returns-field returns-wide">
+                    <label for="@(prefix + "-reason")">
+                        Düzeltme nedeni
+                    </label>
+
+                    <textarea id="@(prefix + "-reason")"
+                              name="CorrectionForm.Reason"
+                              rows="2"
+                              maxlength="250"
+                              required>@Value("CorrectionForm.Reason", form.Reason)</textarea>
+
+                    @if (failed)
+                    {
+                        @Html.ValidationMessage(
+                            "CorrectionForm.Reason")
+                    }
+                </div>
+            </div>
+
+            <p class="returns-note">
+                Karışık veya eksik kolide bu üründen gerçekten
+                kaç tane geldiyse “Ürün adedi” seçerek girin.
+                Tam koli seçimi aynı üründen oluşan standart koli içindir.
+            </p>
+
+            <div class="returns-actions end">
+                <button type="submit"
+                        class="btn btn-outline-secondary">
+                    Gelen miktarı düzelt
+                </button>
+            </div>
+        </form>
+    </details>
+}

@@ -1,0 +1,694 @@
+@using MasterChefTakip.Models
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@{
+    ViewData["Title"] = "Ayarlar ve Yardım";
+
+    var requestedTopic = ViewData["HelpTopic"]?.ToString() ?? "general";
+
+    string[] topics =
+    [
+        "general",
+        "products",
+        "pallets",
+        "packaging",
+        "shipments",
+        "returns",
+        "history",
+        "reports",
+        "users"
+    ];
+
+    var selected = topics.Contains(requestedTopic)
+        ? requestedTopic
+        : "general";
+
+    var canViewUsers = (
+        await AuthorizationService.AuthorizeAsync(
+            User, null, AppPermissions.UsersView)
+    ).Succeeded;
+
+    var canManageRoles = (
+        await AuthorizationService.AuthorizeAsync(
+            User, null, AppPermissions.RolesManage)
+    ).Succeeded;
+
+    if (selected == "users" && !canViewUsers && !canManageRoles)
+        selected = "general";
+}
+
+<style>
+    .help-page {
+        width: 100%;
+        max-width: 1000px;
+        min-width: 0;
+        margin-inline: auto;
+        color: #18365f;
+        overflow-wrap: anywhere;
+    }
+
+    .help-page h1 {
+        margin: 0 0 8px;
+        font-size: 25px;
+    }
+
+    .help-description {
+        color: #64748b;
+        line-height: 1.6;
+    }
+
+    .help-search {
+        margin: 18px 0;
+    }
+
+    .help-search label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+
+    .help-search input {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        padding: 11px;
+        border: 1px solid #ccd8e8;
+        border-radius: 8px;
+        font: inherit;
+    }
+
+    .help-section {
+        margin: 12px 0;
+        border: 1px solid #d3ddec;
+        border-radius: 10px;
+        background: #fff;
+        overflow: hidden;
+        scroll-margin-top: 90px;
+    }
+
+    .help-section > summary {
+        padding: 15px 16px;
+        background: #f7f9fc;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .help-body {
+        padding: 16px;
+        line-height: 1.7;
+    }
+
+    .help-body h2 {
+        margin: 16px 0 8px;
+        font-size: 16px;
+    }
+
+    .help-body h2:first-child {
+        margin-top: 0;
+    }
+
+    .help-body ol,
+    .help-body ul {
+        padding-left: 22px;
+        margin-bottom: 12px;
+    }
+
+    .help-body li {
+        margin-bottom: 7px;
+    }
+
+    .help-example {
+        padding: 12px;
+        border-radius: 8px;
+        background: #eff5fc;
+        margin: 12px 0;
+    }
+
+    .help-stock {
+        padding: 12px;
+        border-left: 3px solid #18365f;
+        background: #f7f9fc;
+        margin: 12px 0;
+    }
+
+    .help-empty {
+        padding: 16px;
+        color: #64748b;
+    }
+
+    .help-page [hidden] {
+        display: none !important;
+    }
+
+    .help-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0;
+    }
+
+    .help-table th,
+    .help-table td {
+        padding: 10px;
+        border: 1px solid #d3ddec;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    .help-table th {
+        background: #f7f9fc;
+    }
+
+    @@media (max-width: 600px) {
+        .help-body {
+            padding: 12px;
+        }
+
+        .help-search input {
+            font-size: 16px;
+        }
+
+        .help-table th,
+        .help-table td {
+            padding: 7px;
+            font-size: 13px;
+        }
+    }
+</style>
+
+
+
+<div class="help-page">
+    <h1>Ayarlar ve Yardım</h1>
+
+    <p class="help-description">
+        MASTER CHEF Takip üretimden çıkan ürünlerin paketleme,
+        palet, stok, sevkiyat ve iade işlemleri için kullanılır.
+        Yapmak istediğiniz işlemin başlığını açın.
+    </p>
+
+    <div class="help-search">
+        <label for="help-search">Rehberde ara</label>
+
+        <input id="help-search"
+               type="search"
+               placeholder="Örneğin: koli, paketleme, palet, teslim, iade"
+               autocomplete="off" />
+    </div>
+
+    <p id="help-empty"
+       class="help-empty"
+       role="status"
+       hidden>
+        Bu kelimeye uygun açıklama bulunamadı.
+    </p>
+
+    <details id="general"
+             class="help-section"
+             open="@(selected == "general")">
+        <summary>Temel kullanım: Ürün, koli ve stok</summary>
+
+        <div class="help-body">
+            <h2>Bu programda hangi işlemler yapılır?</h2>
+
+            <p>
+                Ürün tanımları, paketleme ve stok girişi,
+                palet içerikleri, fiziksel sevkiyat,
+                teslimat takibi, iade ve hasar kayıtları tutulur.
+                Müşteri siparişlerinin yönetimi diğer CRM'de yapılır.
+            </p>
+
+            <h2>Koli sayısı ile ürün adedi farklıdır</h2>
+
+            <p>
+                Toplam ürün adedi, koli sayısı ile koli içi adedin
+                çarpılmasıyla hesaplanır. Koli içeriğini sabit kabul etmeyin.
+                Aynı ürün farklı koli kapasiteleriyle tutulabilir.
+            </p>
+
+            <div class="help-example">
+                2 koli × 6 adet = 12 ürün.
+                <br />
+                2 koli × 12 adet = 24 ürün.
+            </div>
+
+            <h2>Karışık paket</h2>
+
+            <p>
+                Aynı kutuda farklı ürünler varsa her ürünü ayrı
+                satırda gerçek ürün adediyle girin.
+                Dış paket sayısı, ürün miktarından ayrı bir bilgidir.
+            </p>
+
+            <h2>Stok ne zaman değişir?</h2>
+
+            <ul>
+                <li>Paketleme üzerinden stok girişi kaydedildiğinde artar.</li>
+                <li>Sevkiyat taslağı oluşturulunca değişmez.</li>
+                <li>Sevkiyat onaylandığında düşer.</li>
+                <li>Gönderildi veya teslim edildi kaydında tekrar düşmez.</li>
+                <li>İade ilk kaydedildiğinde değişmez.</li>
+                <li>İade kontrolü tamamlanınca yalnızca sağlam ürünler eklenir.</li>
+                <li>Depoda oluşan hasar kaydedilince düşer.</li>
+            </ul>
+        </div>
+    </details>
+
+    <details id="products"
+             class="help-section"
+             open="@(selected == "products")">
+        <summary>Ürünler</summary>
+
+        <div class="help-body">
+            <h2>Ne işe yarar?</h2>
+
+            <p>
+                Ürün adı, kodu, barkodu, ambalajı ve varsayılan
+                koli içi adet gibi tanım bilgileri burada tutulur.
+                Ürün listesi gerçek veritabanı kayıtlarından gelir.
+            </p>
+
+            <h2>Nasıl kullanılır?</h2>
+
+            <ol>
+                <li>Ürünü adı veya koduyla bulun.</li>
+                <li>Ürün kodunu, ambalajını ve barkodunu kontrol edin.</li>
+                <li>Tanım değişikliklerini yetkili kullanıcı kaydetsin.</li>
+            </ol>
+
+            <div class="help-stock">
+                Ürün tanımlamak stok oluşturmaz.
+                Ürünün varsayılan koli içi adedi, mevcut stok
+                kolilerinin kapasitesini otomatik olarak değiştirmez.
+            </div>
+        </div>
+    </details>
+
+    <details id="packaging"
+             class="help-section"
+             open="@(selected == "packaging")">
+        <summary>Paketleme ve palete stok girişi</summary>
+
+        <div class="help-body">
+            <h2>Hazırlanan ürünleri stoğa ekleme</h2>
+            <ol>
+                <li>Ürünü adı, kodu veya barkoduyla bulun ve seçin.</li>
+                <li>Ürünlerin yerleştirildiği paleti seçin.</li>
+                <li>Gerçekte hazırlanan koli sayısını ve her kolideki ürün adedini girin.</li>
+                <li>Başka ürün veya farklı koli kapasitesi için yeni satır ekleyin.</li>
+                <li>“Kontrol et ve stoğa ekle” ile kontrol ekranını açın.</li>
+                <li>Ürünleri, paletleri ve toplam miktarı kontrol edip onaylayın.</li>
+            </ol>
+            <div class="help-example">
+                4 koli × 12 adet = 48 ürün.
+                Koli sayısını ve koli içi adedi siz girersiniz.
+            </div>
+            <div class="help-stock">
+                Onaylanan kayıt stoğu artırır.
+                Aynı hazırlanan ürünleri ikinci kez kaydetmeyin.
+                Barkod okutmak miktarı belirlemez; ürünü bulmaya yardımcı olur.
+            </div>
+</div>
+    </details>
+
+    <details id="pallets"
+             class="help-section"
+             open="@(selected == "pallets")">
+        <summary>Paletler ve Barkodlar</summary>
+
+        <div class="help-body">
+            <h2>Palet içeriğini görüntüleme</h2>
+            <ol>
+                <li>Paleti listeden bulun veya barkodunu okutun.</li>
+                <li>“İçeriği aç” ile mevcut ürünleri görüntüleyin.</li>
+                <li>Kapalı koli, açık kolide kalan ürün ve bağımsız adetleri inceleyin.</li>
+                <li>Stok detayları ve işlem geçmişinden hareketleri kontrol edin.</li>
+            </ol>
+            <div class="help-example">
+                2 kapalı koli × 12 adet + açık kolide 5 adet
+                + 3 bağımsız adet = 32 ürün.
+            </div>
+            <p>
+                Aynı ürüne ait stok kayıtlarının koli içi adetleri farklı olabilir.
+                Palet numarası kalıcı kayıt numarasıdır; listede numara
+                atlaması olması tek başına hata anlamına gelmez.
+            </p>
+            <h2>Konum düzenleme ve ürün taşıma</h2>
+            <p>
+                Paletin konumunu düzenlemek, paletin bulunduğu yer bilgisini değiştirir.
+                Ürünü başka palete taşımak için kaynak stok kaydını,
+                hedef paleti ve taşınacak miktarı seçin.
+            </p>
+            <div class="help-example">
+                2 kapalı koli taşımak için koli: 2, ayrıca adet: 0 girin.
+                Yalnızca 3 ürün taşımak için koli: 0, ayrıca adet: 3 girin.
+            </div>
+            <div class="help-stock">
+                Taşıma kaynak paletten düşer ve hedef palete eklenir;
+                toplam stok değişmez. İşlem geçmişinde kaynak çıkışı
+                ve hedef girişi ayrı kayıtlarla takip edilir.
+                Yeni palet oluşturmak stok oluşturmaz.
+            </div>
+</div>
+    </details>
+
+    <details id="shipments"
+             class="help-section"
+             open="@(selected == "shipments")">
+        <summary>Sevkiyat ve teslimat</summary>
+
+        <div class="help-body">
+            <h2>Sevkiyat hazırlama</h2>
+            <ol>
+                <li>“Yeni sevkiyat” bölümünden alıcı ve teslimat bilgilerini girin.</li>
+                <li>Koli numarasını, ürünü ve çıkış yapılacak stok kaydını seçin.</li>
+                <li>Gönderilecek gerçek ürün adedini girin.</li>
+                <li>Gerekirse başka ürün veya koli için satır ekleyin.</li>
+                <li>Taslağı kaydedin; onaylamadan önce kontrol ekranını inceleyin.</li>
+                <li>Alıcı, adres, koli içerikleri ve miktarlar doğruysa onaylayın.</li>
+            </ol>
+            <h2>Karışık koli nasıl hazırlanır?</h2>
+            <p>
+                Aynı fiziksel kutudaki farklı ürünleri ayrı satırlara ekleyin
+                ve bu satırlarda aynı koli numarasını kullanın.
+                Her ürünün miktarını ayrı girin.
+                Sevkiyat kutusu sayısı ile depodaki kapalı koli sayısı farklı bilgilerdir.
+            </p>
+            <div class="help-example">
+                1. koli: A ürününden 8 adet + B ürününden 4 adet.
+                Sonuç: 1 sevkiyat kolisinde toplam 12 ürün.
+            </div>
+            <h2>Durumlar ve stok etkisi</h2>
+            <ul>
+                <li><strong>Taslak:</strong> Hazırlık kaydıdır; stok değişmez.</li>
+                <li><strong>Gönderime hazır:</strong> Onaylanmıştır; stok onay sırasında düşmüştür.</li>
+                <li><strong>Gönderildi:</strong> Kargoya veya araca teslimi kaydedilir; stok tekrar düşmez.</li>
+                <li><strong>Teslim edildi:</strong> Teslimat tamamlanır; stok tekrar değişmez.</li>
+            </ul>
+            <h2>Sevkiyatı bulma ve etiket</h2>
+            <p>
+                Listede alıcı, sevkiyat veya takip numarasıyla arayın.
+                Durum filtresiyle listeyi daraltın.
+                “İçeriği aç” üzerinden ürünleri ve yapılabilecek işlemleri görün.
+                Uzun sevkiyat kodunu numara ayrıntısından açabilirsiniz.
+            </p>
+            <p>
+                Tek kayıt için “Etiket yazdır / PDF” bağlantısını kullanın.
+                Toplu çıktı için uygun kayıtların seçim kutularını işaretleyip
+                etiket yazdırma düğmesine basın.
+                PDF gerekiyorsa yazdırma ekranından “PDF olarak kaydet” seçin.
+            </p>
+            <h2>İptal ve iade</h2>
+            <p>
+                Taslak veya gönderime hazır sevkiyatta izin verilen iptal işlemini kullanın.
+                Gönderilmiş ürün geri geldiyse İade ve Hasar bölümünden kaydedin.
+                Aynı ürün için hem iptal hem iade ile çift stok dönüşü oluşturmayın.
+            </p>
+</div>
+    </details>
+
+    <details id="returns"
+             class="help-section"
+             open="@(selected == "returns")">
+        <summary>İade ve Hasar</summary>
+
+        <div class="help-body">
+            <h2>İade nasıl kaydedilir?</h2>
+
+            <ol>
+                <li>Mevcut sevkiyatların alıcı listesinden müşteriyi seçin.</li>
+                <li>İadenin ait olduğu sevkiyatı seçin.</li>
+                <li>Gelen dış paket sayısını girin; kolisiz geldiyse 0 yazın.</li>
+                <li>Geri gelen her ürünü ayrı satıra ekleyin.</li>
+                <li>Miktarı koli veya ürün adedi olarak girin.</li>
+                <li>İade nedenini yazıp kaydedin.</li>
+                <li>Ürün satırında sağlam ve hasarlı adetleri girin.</li>
+                <li>Sağlam ürünlerin yerleştirildiği paleti seçin.</li>
+                <li>“Kontrolü tamamla ve stoğa ekle” düğmesine basın.</li>
+            </ol>
+
+            <h2>Koli olarak mı, ürün adedi olarak mı?</h2>
+
+            <p>
+                Aynı üründen oluşan tam kolilerde koli sayısını ve
+                gerçek koli içi adedi girin.
+                Eksik veya karışık pakette her ürünün gerçek adedini girin.
+                Farklı kapasitedeki kolileri ayrı satırlara ekleyebilirsiniz.
+            </p>
+
+            <div class="help-example">
+                Bir koliden 12 ürün geri geldi:
+                5 sağlam + 7 hasarlı = 12 ürün.
+                Kontrol tamamlanınca yalnızca 5 sağlam ürün stoğa eklenir.
+            </div>
+
+            <h2>Sağlamlar kapalı koli olarak yerleştirildiyse</h2>
+
+            <p>
+                Kontrol formundaki kapalı koli bölümünü açın.
+                Gerçekte kapalı olarak yerleştirilen koli sayısını
+                ve koli içi adedini girin.
+                Bu kolilere girmeyen sağlam ürünler ayrıca adet olarak kaydedilir.
+            </p>
+
+            <h2>Tamamı hasarlıysa</h2>
+
+            <p>
+                Sağlam adedi 0, hasarlı adedi geri gelen toplam kadar girin.
+                Palet seçmeniz gerekmez; kullanılabilir stok artmaz.
+            </p>
+
+            <div class="help-stock">
+                Müşteriden hasarlı dönen ürün stoktan yeniden düşülmez.
+                Çıkışı sevkiyat sırasında zaten kaydedilmiştir.
+            </div>
+
+            <h2>Miktarı yanlış kaydettim</h2>
+
+            <p>
+                Kontrol veya yerleştirme tamamlanmamış ürün satırında
+                miktar düzeltme bölümünü kullanın.
+                Doğru miktarı ve gerekçeyi girin.
+                Kontrol sonuçlarını tekrar tamamlayın.
+                Tamamlanan iadeyi yeniden oluşturarak düzeltmeyin.
+            </p>
+
+            <h2>Depoda oluşan hasar</h2>
+
+            <p>
+                Depodaki mevcut stok zarar gördüyse
+                “Depoda oluşan hasar” bölümünü kullanın.
+                Stok kaydını, hasarlı ürün adedini ve nedeni girin.
+                Bu işlem mevcut stoktan düşer.
+            </p>
+
+            <h2>Sevkiyat listede görünmüyorsa</h2>
+            <p>
+                Önce doğru müşteriyi seçtiğinizi ve ilgili sevkiyatın
+                durumunu kontrol edin. Daha önce kaydedilen iadeleri de inceleyin.
+                Sorunu çözmek için aynı sevkiyatı veya stok girişini tekrar oluşturmayın.
+            </p>
+        </div>
+    </details>
+
+    <details id="history"
+             class="help-section"
+             open="@(selected == "history")">
+        <summary>İşlem Geçmişi</summary>
+
+        <div class="help-body">
+            <h2>İşlemleri bulma</h2>
+            <ol>
+                <li>İşlem Geçmişi ekranını açın.</li>
+                <li>Tarih aralığını belirleyin; gerekirse hazır tarih kısayollarını kullanın.</li>
+                <li>Arama ve işlem kategorisiyle sonuçları daraltın.</li>
+                <li>Ayrıntıdan notları, önceki ve sonraki değerleri inceleyin.</li>
+                <li>Yetkiniz varsa ilgili palet veya sevkiyat bağlantısını açın.</li>
+            </ol>
+            <p>
+                Kendi geçmişinizi görüntüleme izni kendi işlemlerinize erişim sağlar.
+                Bütün personelin kayıtlarını görmek ayrı yetki gerektirir.
+            </p>
+            <h2>Bugün yaptıklarım</h2>
+            <p>
+                Genel Bakış ekranındaki bölüm bugünkü kendi işlemlerinizi özetler.
+                Tüm kayıtlar için geçmiş bağlantısını kullanın.
+                Bugün işlem yoksa boş durum mesajı gösterilir.
+            </p>
+            <div class="help-stock">
+                Paletler arası taşımada kaynak çıkışı ve hedef girişi
+                ayrı geçmiş kayıtlarıdır. Bu iki kayıt yeni üretim
+                veya toplam stok artışı anlamına gelmez.
+            </div>
+</div>
+    </details>
+
+    <details id="reports"
+             class="help-section"
+             open="@(selected == "reports")">
+        <summary>Raporlar</summary>
+
+        <div class="help-body">
+            <h2>Dönem seçme</h2>
+            <ol>
+                <li>Başlangıç ve bitiş tarihlerini girin veya tarih kısayollarını kullanın.</li>
+                <li>Grafiği günlük, haftalık veya aylık görünümle inceleyin.</li>
+                <li>“Raporu göster” düğmesiyle seçilen dönemi görüntüleyin.</li>
+            </ol>
+            <p>
+                Özetlerde paketlenen ürünler, sevkiyat çıkışı, sevkiyat iptali,
+                stoğa dönen iade ve depo hasar çıkışı ayrı gösterilir.
+                Tarihler Türkiye saatine göre değerlendirilir.
+            </p>
+            <h2>Güncel stok ve dönem toplamı</h2>
+            <div class="help-stock">
+                Güncel kullanılabilir stok, aktif ürün ve aktif paletlerde
+                şu an bulunan miktardır. Seçilen geçmiş tarihteki stok bakiyesi değildir.
+                Açık kolilerde kalan ürünler de bu miktara dahildir.
+            </div>
+            <h2>En çok gönderilen 10 ürün</h2>
+            <p>
+                Seçilen dönemin sevkiyat çıkışları çoktan aza sıralanır.
+                Sıra numarası, ürün adı ve gönderilen toplam adet gösterilir.
+                Ürün ve miktar ayrıntısından kod, tam koli ve ayrıca adet bilgilerini açın.
+                Daha az ürün varsa yalnızca mevcut ürünler listelenir.
+            </p>
+            <p>
+                Sevkiyat iptalleri bu sıralamadaki miktarlardan çıkarılmaz;
+                sonuç net satış veya ciro değildir.
+                Diğer stok hareketlerini ilgili ayrıntı bölümünden inceleyin.
+            </p>
+</div>
+    </details>
+
+    @if (canViewUsers || canManageRoles)
+    {
+        <details id="users"
+                 class="help-section"
+                 open="@(selected == "users")">
+            <summary>Kullanıcılar ve yetkiler</summary>
+
+            <div class="help-body">
+                <h2>Kullanıcı hesapları</h2>
+                <p>
+                    Her personel kendi hesabıyla işlem yapmalıdır.
+                    Kullanıcı listesinde arama ve durum filtresiyle hesabı bulun.
+                    Hesaba görevine uygun rolleri atayın.
+                </p>
+                <h2>Rol yetkileri</h2>
+                <ol>
+                    <li>“Roller ve yetkiler” sekmesini açın.</li>
+                    <li>İlgili rol için “Yetkileri düzenle” düğmesine basın.</li>
+                    <li>Gerekli izinleri işaretleyin; arama ve “Yalnızca seçilenler” filtresini kullanabilirsiniz.</li>
+                    <li>“Yetkileri kaydet” düğmesiyle değişiklikleri kaydedin.</li>
+                </ol>
+                <div class="help-stock">
+                    Bir role Paketleme veya Sevkiyat adını vermek tek başına yetki sağlamaz.
+                    İzinlerin seçilip kaydedilmesi gerekir.
+                    Roldeki değişiklikler o role bağlı bütün kullanıcıları etkiler.
+                </div>
+                <p>
+                    Birden fazla rolün izinleri birleşir.
+                    İşlem izni gerekli görüntüleme erişimini de sağlayabilir;
+                    başka işlemleri yapma izni sağlamaz.
+                    Kullanıcı ve rol yönetimi yalnızca yöneticiye açıktır.
+                </p>
+</div>
+        </details>
+    }
+</div>
+
+<script>
+(() => {
+    const input = document.getElementById("help-search");
+    const empty = document.getElementById("help-empty");
+    const sections = [...document.querySelectorAll(".help-section")];
+    if (!input || !empty || !sections.length) return;
+
+    const selected = @Html.Raw(
+        System.Text.Json.JsonSerializer.Serialize(selected));
+
+    const normalize = value => value
+        .toLocaleLowerCase("tr-TR")
+        .replace(/ı/g, "i")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    const texts = new Map(sections.map(section =>
+        [section, normalize(section.textContent)]));
+
+    const picker = document.createElement("div");
+    picker.className = "help-search";
+
+    const label = document.createElement("label");
+    label.htmlFor = "help-topic-picker";
+    label.textContent = "Yardım konusu";
+
+    const select = document.createElement("select");
+    select.id = "help-topic-picker";
+    select.style.cssText =
+        "width:100%;min-width:0;min-height:48px;padding:11px;" +
+        "border:1px solid #ccd8e8;border-radius:8px;" +
+        "background:white;color:#18365f;font:inherit;font-size:16px";
+
+    select.add(new Option("Yardım konusu seçin", ""));
+
+    for (const section of sections) {
+        const summary = section.querySelector("summary");
+        select.add(new Option(
+            summary?.textContent.trim() || section.id,
+            section.id
+        ));
+    }
+
+    picker.append(label, select);
+    input.parentElement.after(picker);
+
+    const status = document.createElement("p");
+    status.className = "help-description";
+    status.setAttribute("role", "status");
+    picker.after(status);
+
+    function render() {
+        const words = normalize(input.value)
+            .trim().split(/\s+/).filter(Boolean);
+
+        let count = 0;
+
+        for (const section of sections) {
+            const matches = words.length
+                ? words.every(word => texts.get(section).includes(word))
+                : section.id === select.value;
+
+            section.hidden = !matches;
+            section.open = matches;
+            if (matches) count++;
+        }
+
+        empty.hidden = !words.length || count > 0;
+        status.textContent = words.length
+            ? `${count} yardım başlığı bulundu.`
+            : select.value
+                ? ""
+                : "Listeden bir konu seçin veya rehberde arayın.";
+    }
+
+    select.addEventListener("change", () => {
+        input.value = "";
+        render();
+    });
+
+    input.addEventListener("input", () => {
+        if (input.value.trim()) select.value = "";
+        render();
+    });
+
+    // Başka bir sayfadan belirli bir yardım konusu açılmışsa koru.
+    select.value = selected !== "general" &&
+        sections.some(section => section.id === selected)
+            ? selected
+            : "";
+
+    render();
+})();
+</script>

@@ -1,0 +1,155 @@
+@model MasterChefTakip.ViewModels.CreateUserViewModel
+
+@{
+    ViewData["Title"] = "Yeni Kullanıcı";
+}
+
+<div class="page-heading">
+    <h1>Yeni kullanıcı</h1>
+    <p>Personelin giriş bilgilerini ve erişim rollerini tanımlayın.</p>
+</div>
+
+<div class="row">
+   <div class="col-12">
+        <div class="welcome-card">
+            <span class="section-label mb-4">KULLANICI BİLGİLERİ</span>
+
+            <form asp-area=""
+                  asp-controller="Users"
+                  asp-action="Create"
+                  method="post">
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3"
+                     role="alert"></div>
+
+                <div class="mb-4">
+                    <label asp-for="FullName"
+                           class="form-label fw-semibold"></label>
+                    <input asp-for="FullName"
+                           class="form-control form-control-lg"
+                           autocomplete="name"
+                           maxlength="100" />
+                    <span asp-validation-for="FullName"
+                          class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Email"
+                           class="form-label fw-semibold"></label>
+                    <input asp-for="Email"
+                           type="email"
+                           class="form-control form-control-lg"
+                           autocomplete="off"
+                           maxlength="254" />
+                    <span asp-validation-for="Email"
+                          class="text-danger small"></span>
+                    <div class="form-text">
+                        Kullanıcı giriş yaparken bu adresi kullanacak.
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Password"
+                               class="form-label fw-semibold"></label>
+                        <input asp-for="Password"
+                               type="password"
+                               value=""
+                               class="form-control form-control-lg"
+                               autocomplete="new-password"
+                               maxlength="128" />
+                        <span asp-validation-for="Password"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label asp-for="ConfirmPassword"
+                               class="form-label fw-semibold"></label>
+                        <input asp-for="ConfirmPassword"
+                               type="password"
+                               value=""
+                               class="form-control form-control-lg"
+                               autocomplete="new-password"
+                               maxlength="128" />
+                        <span asp-validation-for="ConfirmPassword"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <p class="form-text mb-0">
+                            Şifre en az 10 karakter olmalı; büyük harf,
+                            küçük harf, rakam ve özel karakter içermeli.
+                        </p>
+                    </div>
+                </div>
+
+                <fieldset class="mb-4">
+                    <legend class="h6 fw-semibold">Erişim rolleri</legend>
+                    <p class="small text-muted">
+                        Kullanıcıya atamak istediğiniz rolleri seçin.
+                        Birden fazla rol seçebilirsiniz.
+                    </p>
+
+                    @if (Model.AvailableRoles.Count == 0)
+                    {
+                        <div class="alert alert-warning">
+                            Atayabileceğiniz bir rol bulunmuyor.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row g-3">
+                            @for (var i = 0; i < Model.AvailableRoles.Count; i++)
+                            {
+                                var role = Model.AvailableRoles[i];
+                                var inputId = $"role-{i}";
+                                var isSelected =
+                                    Model.SelectedRoles?.Contains(role.Value) == true;
+
+                                <div class="col-12 col-sm-6">
+                                    <div class="border rounded-3 p-3 bg-white h-100">
+                                        <div class="form-check mb-0">
+                                            <input class="form-check-input"
+                                                   type="checkbox"
+                                                   id="@inputId"
+                                                   name="SelectedRoles"
+                                                   value="@role.Value"
+                                                   checked="@isSelected" />
+                                            <label class="form-check-label"
+                                                   for="@inputId">
+                                                @role.Text
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <span asp-validation-for="SelectedRoles"
+                          class="text-danger small d-block mt-2"></span>
+                </fieldset>
+
+                <div class="d-flex flex-wrap gap-3 border-top pt-4">
+                    <button type="submit"
+                            class="btn btn-primary btn-lg"
+                            disabled="@(Model.AvailableRoles.Count == 0)">
+                        Kullanıcı Oluştur
+                    </button>
+
+                    <a asp-area=""
+                       asp-controller="Users"
+                       asp-action="Index"
+                       class="btn btn-outline-secondary btn-lg">
+                        Listeye Dön
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

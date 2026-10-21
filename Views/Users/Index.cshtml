@@ -1,0 +1,1135 @@
+@model MasterChefTakip.ViewModels.UserManagementViewModel
+@using MasterChefTakip.Models
+@using Microsoft.AspNetCore.Authorization
+@using System.Globalization
+@using System.Security.Claims
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewData["Title"] = "Kullanıcı Yönetimi";
+
+    var showRoles = Model.CanManageRoles
+        && (Model.ShowRoleForm || !Model.CanViewUsers);
+
+    var culture = CultureInfo.GetCultureInfo("tr-TR");
+    var canEditUsers = User.IsInRole(AppRoles.Admin);
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    var editForm = ViewData["EditUserForm"]
+        as MasterChefTakip.ViewModels.EditUserViewModel;
+
+    var userStamps = ViewData["UserStamps"]
+        as Dictionary<string, string>
+        ?? new Dictionary<string, string>();
+}
+
+<style>
+    .users-management-table.has-actions th:first-child {
+        width: 32%;
+    }
+
+    .users-management-table.has-actions th:nth-child(2) {
+        width: 20%;
+    }
+
+    .users-management-table.has-actions th:nth-child(3) {
+        width: 12%;
+    }
+
+    .users-management-table.has-actions th:nth-child(4) {
+        width: 16%;
+    }
+
+    .users-management-table.has-actions th:last-child {
+        width: 20%;
+    }
+
+    .users-row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .users-row-actions form {
+        margin: 0;
+    }
+
+    .users-row-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 8px 10px;
+        border: 1px solid #d7dee8;
+        border-radius: 7px;
+        background: #ffffff;
+        color: #17243b;
+        font: inherit;
+        font-size: 12px;
+        text-decoration: none;
+    }
+
+    .users-row-button:hover {
+        background: #f1f4f8;
+        color: #111111;
+    }
+
+    .users-row-button:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+    }
+
+    .users-row-button:focus-visible {
+        outline: 2px solid #244c87;
+        outline-offset: 2px;
+    }
+
+    .users-save-button {
+        background: #111111 !important;
+        border-color: #111111 !important;
+        color: #ffffff !important;
+    }
+
+    .users-readonly-email {
+        margin: 0;
+        padding: 12px 0;
+        overflow-wrap: anywhere;
+        color: #526176;
+    }
+
+    @@media (max-width: 600px) {
+        .users-row-actions {
+            justify-content: flex-end;
+        }
+
+        .users-row-button {
+            min-height: 44px;
+        }
+    }
+</style>
+
+
+
+<div class="overview-heading">
+    <div>
+        <span class="eyebrow">YÖNETİM</span>
+        <h1>Kullanıcı Yönetimi</h1>
+        <p>Kullanıcı hesapları ve erişim rolleri tek ekranda.</p>
+    </div>
+
+    <div class="management-actions">
+        @if (Model.CanCreateUsers)
+        {
+            <a class="btn btn-primary"
+               asp-area=""
+               asp-controller="Users"
+               asp-action="Index"
+               asp-route-form="user">
+                <svg class="ui-icon" aria-hidden="true">
+                    <use href="#mc-plus" />
+                </svg>
+                Yeni kullanıcı
+            </a>
+        }
+
+        @if (Model.CanManageRoles)
+        {
+            <a class="btn btn-outline-secondary"
+               asp-area=""
+               asp-controller="Users"
+               asp-action="Index"
+               asp-route-form="role">
+                Yeni rol
+            </a>
+        }
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] is string success)
+{
+    <div class="alert alert-success" role="status">@success</div>
+}
+
+@if (TempData["RoleSuccessMessage"] is string roleSuccess)
+{
+    <div class="alert alert-success" role="status">@roleSuccess</div>
+}
+
+@if (TempData["ErrorMessage"] is string error)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+
+<ul class="nav nav-pills management-tabs"
+    role="tablist"
+    aria-label="Kullanıcı ve rol yönetimi">
+
+    @if (Model.CanViewUsers)
+    {
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(!showRoles ? "active" : "")"
+                    id="users-tab"
+                    data-bs-toggle="pill"
+                    data-bs-target="#users-panel"
+                    type="button"
+                    role="tab"
+                    aria-controls="users-panel"
+                    aria-selected="@(!showRoles ? "true" : "false")">
+                Kullanıcılar
+                <span class="tab-count">@Model.Users.Count</span>
+            </button>
+        </li>
+    }
+
+    @if (Model.CanManageRoles)
+    {
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(showRoles ? "active" : "")"
+                    id="roles-tab"
+                    data-bs-toggle="pill"
+                    data-bs-target="#roles-panel"
+                    type="button"
+                    role="tab"
+                    aria-controls="roles-panel"
+                    aria-selected="@(showRoles ? "true" : "false")">
+                Roller ve yetkiler
+                <span class="tab-count">@Model.Roles.Count</span>
+            </button>
+        </li>
+    }
+</ul>
+
+<div class="tab-content">
+    @if (Model.CanViewUsers)
+    {
+        <section class="tab-pane fade @(!showRoles ? "show active" : "")"
+                 id="users-panel"
+                 role="tabpanel"
+                 aria-labelledby="users-tab">
+
+            @if (canEditUsers && editForm is not null)
+            {
+                <section class="surface management-form"
+                         aria-labelledby="edit-user-heading">
+
+                    <div class="surface-heading">
+                        <div>
+                            <h2 id="edit-user-heading">Kullanıcıyı düzenle</h2>
+                            <p>Adını ve erişim rollerini güncelleyin.</p>
+                        </div>
+                    </div>
+
+                    <form asp-area=""
+                          asp-controller="Users"
+                          asp-action="Edit"
+                          method="post"
+                          class="management-form-body">
+
+                        @Html.ValidationSummary(
+                            true, "", new { @class = "text-danger" })
+
+                        @Html.Hidden("Edit.Id", editForm.Id)
+                        @Html.Hidden("Edit.ConcurrencyStamp", editForm.ConcurrencyStamp)
+
+                        <div class="row g-4">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" for="edit-fullname">
+                                    Ad ve soyad
+                                </label>
+
+                                @Html.TextBox(
+                                    "Edit.FullName",
+                                    editForm.FullName,
+                                    new {
+                                        @class = "form-control",
+                                        id = "edit-fullname",
+                                        required = "required",
+                                        maxlength = 100,
+                                        autocomplete = "name"
+                                    })
+
+                                @Html.ValidationMessage(
+                                    "Edit.FullName", "",
+                                    new { @class = "text-danger" })
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <span class="form-label d-block">E-posta</span>
+                                <p class="users-readonly-email">@editForm.Email</p>
+                            </div>
+                        </div>
+
+                        <fieldset class="role-fieldset">
+                            <legend class="form-label">Erişim rolleri</legend>
+
+                            <div class="permission-grid">
+                                @for (var i = 0; i < editForm.AvailableRoles.Count; i++)
+                                {
+                                    var role = editForm.AvailableRoles[i];
+
+                                    <label class="permission-choice"
+                                           for="edit-role-@i">
+                                        <input class="form-check-input"
+                                               id="edit-role-@i"
+                                               name="Edit.SelectedRoles"
+                                               type="checkbox"
+                                               value="@role.Value"
+                                               checked="@(editForm.SelectedRoles.Contains(role.Value))" />
+                                        <span>@role.Text</span>
+                                    </label>
+                                }
+                            </div>
+
+                            @Html.ValidationMessage(
+                                "Edit.SelectedRoles", "",
+                                new { @class = "text-danger" })
+                        </fieldset>
+
+                        <p class="form-text mt-3">
+                            Rol değişikliğinden sonra kullanıcı yeniden giriş yapar.
+                        </p>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary users-save-button"
+                                    type="submit">
+                                Değişiklikleri kaydet
+                            </button>
+
+                            <a class="btn btn-outline-secondary"
+                               asp-area=""
+                               asp-controller="Users"
+                               asp-action="Index">
+                                Vazgeç
+                            </a>
+                        </div>
+                    </form>
+                </section>
+            }
+
+            @if (Model.CanCreateUsers && editForm is null)
+            {
+                <details class="surface management-form"
+                         open="@Model.ShowUserForm">
+
+                    <summary>Kullanıcı bilgileri</summary>
+
+                    <form asp-area=""
+                          asp-controller="Users"
+                          asp-action="Create"
+                          method="post"
+                          class="management-form-body">
+
+                        @Html.ValidationSummary(
+                            true, "", new { @class = "text-danger" })
+
+                        <div class="row g-4">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" for="user-fullname">
+                                    Ad ve soyad
+                                </label>
+
+                                @Html.TextBox(
+                                    "FullName",
+                                    Model.UserForm.FullName,
+                                    new {
+                                        @class = "form-control",
+                                        id = "user-fullname",
+                                        required = "required",
+                                        maxlength = 100,
+                                        autocomplete = "name"
+                                    })
+
+                                @Html.ValidationMessage(
+                                    "FullName", "",
+                                    new { @class = "text-danger" })
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" for="user-email">
+                                    E-posta
+                                </label>
+
+                                @Html.TextBox(
+                                    "Email",
+                                    Model.UserForm.Email,
+                                    new {
+                                        @class = "form-control",
+                                        id = "user-email",
+                                        type = "email",
+                                        required = "required",
+                                        maxlength = 254,
+                                        autocomplete = "email"
+                                    })
+
+                                @Html.ValidationMessage(
+                                    "Email", "",
+                                    new { @class = "text-danger" })
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" for="user-password">
+                                    Şifre
+                                </label>
+
+                                @Html.Password(
+                                    "Password",
+                                    null,
+                                    new {
+                                        @class = "form-control",
+                                        id = "user-password",
+                                        required = "required",
+                                        minlength = 10,
+                                        maxlength = 128,
+                                        autocomplete = "new-password"
+                                    })
+
+                                @Html.ValidationMessage(
+                                    "Password", "",
+                                    new { @class = "text-danger" })
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" for="user-confirm">
+                                    Şifre tekrar
+                                </label>
+
+                                @Html.Password(
+                                    "ConfirmPassword",
+                                    null,
+                                    new {
+                                        @class = "form-control",
+                                        id = "user-confirm",
+                                        required = "required",
+                                        minlength = 10,
+                                        maxlength = 128,
+                                        autocomplete = "new-password"
+                                    })
+
+                                @Html.ValidationMessage(
+                                    "ConfirmPassword", "",
+                                    new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <p class="form-text mt-3">
+                            Şifre en az 10 karakter olmalı; büyük harf,
+                            küçük harf, rakam ve özel karakter içermeli.
+                        </p>
+
+                        <fieldset class="role-fieldset">
+                            <legend class="form-label">Erişim rolleri</legend>
+
+                            @if (Model.UserForm.AvailableRoles.Count == 0)
+                            {
+                                <p class="form-text">
+                                    Atayabileceğiniz bir rol bulunmuyor.
+                                </p>
+                            }
+                            else
+                            {
+                                <div class="permission-grid">
+                                    @for (var i = 0; i < Model.UserForm.AvailableRoles.Count; i++)
+                                    {
+                                        var role = Model.UserForm.AvailableRoles[i];
+
+                                        <label class="permission-choice"
+                                               for="user-role-@i">
+                                            <input class="form-check-input"
+                                                   id="user-role-@i"
+                                                   name="SelectedRoles"
+                                                   type="checkbox"
+                                                   value="@role.Value"
+                                                   checked="@(Model.UserForm.SelectedRoles.Contains(role.Value))" />
+                                            <span>@role.Text</span>
+                                        </label>
+                                    }
+                                </div>
+                            }
+
+                            @Html.ValidationMessage(
+                                "SelectedRoles", "",
+                                new { @class = "text-danger" })
+                        </fieldset>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary"
+                                    type="submit"
+                                    disabled="@(Model.UserForm.AvailableRoles.Count == 0)">
+                                Kullanıcı oluştur
+                            </button>
+
+                            <a class="btn btn-outline-secondary"
+                               asp-area=""
+                               asp-controller="Users"
+                               asp-action="Index">
+                                Vazgeç
+                            </a>
+                        </div>
+                    </form>
+                </details>
+            }
+
+            <div class="surface">
+                <div class="surface-heading">
+                    <div>
+                        <h2>Kullanıcılar</h2>
+                        <p>Sisteme tanımlanan kullanıcı hesapları.</p>
+                    </div>
+                    <span class="muted-label">@Model.Users.Count kayıt</span>
+                </div>
+
+                @if (Model.Users.Count == 0)
+                {
+                    <div class="empty-state">
+                        <p>Henüz kullanıcı kaydı bulunmuyor.</p>
+                    </div>
+                }
+                else
+                {
+                                        <div class="um-filter">
+                        <input id="um-search"
+                               type="search"
+                               placeholder="Ad, e-posta veya rol ara"
+                               aria-label="Kullanıcı ara"
+                               autocomplete="off" />
+
+                        <select id="um-status"
+                                aria-label="Kullanıcı durumu">
+                            <option value="">Bütün kullanıcılar</option>
+                            <option value="active">Aktif</option>
+                            <option value="inactive">Pasif</option>
+                        </select>
+
+                        <span id="um-count"
+                              role="status"
+                              aria-live="polite"></span>
+                    </div>
+
+                    <p id="um-empty" class="um-empty" hidden>
+                        Filtrelere uygun kullanıcı bulunamadı.
+                    </p>
+
+                    <table class="overview-table users-management-table @(canEditUsers ? "has-actions" : "")">
+                        <caption class="visually-hidden">
+                            Kullanıcı hesapları ve erişim rolleri
+                        </caption>
+
+                        <thead>
+                            <tr>
+                                <th scope="col">Kullanıcı</th>
+                                <th scope="col">Erişim rolü</th>
+                                <th scope="col">Durum</th>
+                                <th scope="col">Kayıt tarihi</th>
+
+                                @if (canEditUsers)
+                                {
+                                    <th scope="col">İşlemler</th>
+                                }
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var user in Model.Users)
+                            {
+                                var name = string.IsNullOrWhiteSpace(user.FullName)
+                                    ? user.Email
+                                    : user.FullName;
+
+                                var initials = string.Concat(
+                                    name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                        .Take(2)
+                                        .Select(x => x[0])
+                                ).ToUpper(culture);
+
+                                var utc = DateTime.SpecifyKind(
+                                    user.CreatedAtUtc,
+                                    DateTimeKind.Utc);
+
+                                                                <tr data-um-row
+                                    data-um-status="@(user.IsActive ? "active" : "inactive")"
+                                    data-um-search="@($"{name} {user.Email} {string.Join(" ", user.Roles)}")">
+                                    <td data-label="Kullanıcı">
+                                        <div class="person-cell">
+                                            <span class="person-avatar"
+                                                  aria-hidden="true">
+                                                @initials
+                                            </span>
+                                            <div>
+                                                                                                <strong>
+                                                    @name
+                                                    @if (user.Id == currentUserId)
+                                                    {
+                                                        <small class="um-you">Siz</small>
+                                                    }
+                                                </strong>
+                                                <span>@user.Email</span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td data-label="Erişim rolü">
+                                        <div class="role-labels">
+                                            @if (user.Roles.Count == 0)
+                                            {
+                                                <span class="muted-label">
+                                                    Rol atanmamış
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                foreach (var role in user.Roles)
+                                                {
+                                                    <span class="role-label">
+                                                        @role
+                                                    </span>
+                                                }
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <td data-label="Durum">
+                                        <span class="status-label @(user.IsActive ? "status-active" : "status-inactive")">
+                                            <span aria-hidden="true"></span>
+                                            @(user.IsActive ? "Aktif" : "Pasif")
+                                        </span>
+                                    </td>
+
+                                    <td data-label="Kayıt tarihi">
+                                        <time datetime="@utc.ToString("O")"
+                                              data-utc="@utc.ToString("O")">
+                                            @utc.ToString("dd.MM.yyyy", culture)
+                                        </time>
+                                    </td>
+
+                                    @if (canEditUsers)
+                                    {
+                                        <td data-label="İşlemler">
+                                            <div class="users-row-actions">
+                                                <a class="users-row-button"
+                                                   asp-area=""
+                                                   asp-controller="Users"
+                                                   asp-action="Index"
+                                                   asp-route-editId="@user.Id">
+                                                    Düzenle
+                                                </a>
+
+                                                @if (userStamps.TryGetValue(user.Id, out var stamp))
+                                                {
+                                                    <form asp-area=""
+                                                          asp-controller="Users"
+                                                          asp-action="SetActive"
+                                                          method="post"
+                                                          data-status-confirm="@(user.IsActive ? "Bu kullanıcının uygulamaya erişimi kapatılsın mı?" : "Bu kullanıcının uygulamaya erişimi açılsın mı?")">
+
+                                                        <input type="hidden"
+                                                               name="Id"
+                                                               value="@user.Id" />
+
+                                                        <input type="hidden"
+                                                               name="ConcurrencyStamp"
+                                                               value="@stamp" />
+
+                                                        <input type="hidden"
+                                                               name="IsActive"
+                                                               value="@(!user.IsActive ? "true" : "false")" />
+
+                                                        <button class="users-row-button"
+                                                                type="submit"
+                                                                disabled="@(user.Id == currentUserId && user.IsActive)">
+                                                            @(user.IsActive ? "Pasife al" : "Aktif et")
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </section>
+    }
+
+    @if (Model.CanManageRoles)
+    {
+        <section class="tab-pane fade @(showRoles ? "show active" : "")"
+                 id="roles-panel"
+                 role="tabpanel"
+                 aria-labelledby="roles-tab">
+
+            <details class="surface management-form"
+                     open="@Model.ShowRoleForm">
+
+                <summary>Rol ve erişim izinleri</summary>
+
+                <form asp-area=""
+                      asp-controller="Roles"
+                      asp-action="Create"
+                      method="post"
+                      class="management-form-body">
+
+                    @Html.ValidationSummary(
+                        true, "", new { @class = "text-danger" })
+
+                    <label class="form-label" for="role-name">
+                        Rol adı
+                    </label>
+
+                    @Html.TextBox(
+                        "Name",
+                        Model.RoleForm.Name,
+                        new {
+                            @class = "form-control",
+                            id = "role-name",
+                            required = "required",
+                            maxlength = 100,
+                            autocomplete = "off"
+                        })
+
+                    @Html.ValidationMessage(
+                        "Name", "",
+                        new { @class = "text-danger" })
+
+                    <fieldset class="role-fieldset">
+                        <legend class="form-label">Erişim izinleri</legend>
+
+                        <div class="permission-grid">
+                            @for (var i = 0; i < AppPermissions.All.Count; i++)
+                            {
+                                var permission = AppPermissions.All[i];
+                                if (AppPermissions.IsAdministration(permission.Value))
+                                {
+                                    continue;
+                                }
+                                var canGrant = (
+                                    await AuthorizationService.AuthorizeAsync(
+                                        User,
+                                        null,
+                                        permission.Value)
+                                ).Succeeded;
+
+                                if (canGrant)
+                                {
+                                    <label class="permission-choice"
+                                           for="role-permission-@i">
+                                        <input class="form-check-input"
+                                               id="role-permission-@i"
+                                               name="SelectedPermissions"
+                                               type="checkbox"
+                                               value="@permission.Value"
+                                               checked="@(Model.RoleForm.SelectedPermissions.Contains(permission.Value))" />
+                                        <span>@permission.Label</span>
+                                    </label>
+                                }
+                            }
+                        </div>
+
+                        @Html.ValidationMessage(
+                            "SelectedPermissions", "",
+                            new { @class = "text-danger" })
+                    </fieldset>
+
+                    <p class="form-text">
+                        İzin seçilmeden oluşturulan rol,
+                        bu işlemlere erişim sağlamaz.
+                    </p>
+
+                    <div class="form-actions">
+                        <button class="btn btn-primary" type="submit">
+                            Rol oluştur
+                        </button>
+
+                        <a class="btn btn-outline-secondary"
+                           asp-area=""
+                           asp-controller="Users"
+                           asp-action="Index"
+                           asp-route-form="role">
+                            Formu temizle
+                        </a>
+                    </div>
+                </form>
+            </details>
+
+            <div class="surface">
+                <div class="surface-heading">
+                    <div>
+                        <h2>Roller ve yetkiler</h2>
+                        <p>Tanımladığınız roller ve izinleri.</p>
+                    </div>
+                    <span class="muted-label">@Model.Roles.Count kayıt</span>
+                </div>
+
+                @if (Model.Roles.Count == 0)
+                {
+                    <div class="empty-state">
+                        <p>Henüz rol kaydı bulunmuyor.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="role-list-compact">
+    @foreach (var role in Model.Roles)
+    {
+        var adminRole =
+            role.Name == "Yönetici" ||
+            role.Name == AppRoles.Admin;
+
+        <article class="role-list-row">
+            <div class="role-list-heading">
+                <div class="role-list-name">
+                    <strong>@role.Name</strong>
+                    <span>@role.UserCount kullanıcı</span>
+                </div>
+
+                @if (adminRole)
+                {
+                    <span class="role-list-admin">
+                        Tüm yetkilere sahip
+                    </span>
+                }
+                else
+                {
+                    <a asp-controller="Roles"
+                       asp-action="Permissions"
+                       asp-route-id="@role.Id"
+                       class="btn btn-outline-secondary role-list-edit">
+                        Yetkileri düzenle
+                    </a>
+                }
+            </div>
+
+            @if (!adminRole)
+            {
+                if (role.PermissionLabels.Count == 0)
+                {
+                    <p class="role-list-empty">
+                        Henüz yetki verilmedi.
+                    </p>
+                }
+                else
+                {
+                    <details class="role-list-details">
+                        <summary>
+                            Yetkileri göster (@role.PermissionLabels.Count)
+                        </summary>
+
+                        <div class="role-list-permissions">
+                            @foreach (var label in role.PermissionLabels)
+                            {
+                                <span>@label</span>
+                            }
+                        </div>
+                    </details>
+                }
+            }
+        </article>
+    }
+</div>
+                }
+            </div>
+        </section>
+    }
+</div>
+
+<style id="role-list-compact-style">
+    .role-list-compact {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 0;
+    }
+
+    .role-list-row {
+        min-width: 0;
+        padding: 10px 14px;
+        border-bottom: 1px solid #e2e8f0;
+        background: white;
+    }
+
+    .role-list-row:last-child {
+        border-bottom: 0;
+    }
+
+    .role-list-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .role-list-name {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .role-list-name strong {
+        color: #18365f;
+        font-size: 14px;
+        overflow-wrap: anywhere;
+    }
+
+    .role-list-name span,
+    .role-list-admin {
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .role-list-edit {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        min-height: 44px;
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .role-list-empty {
+        margin: 4px 0 0;
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .role-list-details {
+        margin-top: 4px;
+    }
+
+    .role-list-details summary {
+        display: list-item;
+        width: fit-content;
+        padding: 8px 0;
+        cursor: pointer;
+        color: #18365f;
+        font-size: 11px;
+    }
+
+    .role-list-permissions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 5px 0;
+    }
+
+    .role-list-permissions span {
+        padding: 5px 8px;
+        border-radius: 5px;
+        background: #edf2f8;
+        color: #475569;
+        font-size: 11px;
+        overflow-wrap: anywhere;
+    }
+
+    @@media (max-width: 600px) {
+        .role-list-row {
+            padding: 9px 10px;
+        }
+
+        .role-list-name {
+            gap: 4px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .role-list-edit {
+            font-size: 11px;
+        }
+    }
+</style>
+<style>
+    /* UsersFrontendV2 */
+    #users-panel,
+    #roles-panel {
+        min-width: 0;
+    }
+
+    #users-panel .um-filter {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 180px auto;
+        align-items: center;
+        gap: 8px;
+        padding: 12px;
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    #users-panel .um-filter input,
+    #users-panel .um-filter select {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        padding: 9px 10px;
+        border: 1px solid #d8e1ed;
+        border-radius: 7px;
+        background: white;
+        color: #18365f;
+        font-size: 16px;
+    }
+
+    #um-count {
+        color: #64748b;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    #users-panel .um-empty {
+        padding: 14px;
+        margin: 0;
+        color: #64748b;
+    }
+
+    #users-panel [hidden] {
+        display: none !important;
+    }
+
+    #users-panel .um-you {
+        display: inline-block;
+        margin-left: 5px;
+        padding: 3px 6px;
+        border-radius: 5px;
+        background: #edf3ff;
+        color: #2458a4;
+        font-size: 11px;
+    }
+
+    #users-panel .person-cell,
+    #users-panel .person-cell > div {
+        min-width: 0;
+    }
+
+    #users-panel .person-cell strong,
+    #users-panel .person-cell span {
+        overflow-wrap: anywhere;
+    }
+
+    #users-panel .users-row-button,
+    #users-panel .btn,
+    #roles-panel .btn {
+        min-height: 44px;
+    }
+
+    #roles-panel .role-list-heading {
+        flex-wrap: wrap;
+    }
+
+    #roles-panel .role-list-details summary {
+        min-height: 44px;
+        padding-block: 12px;
+        font-size: 12px;
+    }
+
+    @@media (max-width: 767px) {
+        #users-panel .um-filter {
+            grid-template-columns: minmax(0, 1fr) auto;
+        }
+
+        #users-panel .um-filter input {
+            grid-column: 1 / -1;
+        }
+
+        #users-panel .users-management-table,
+        #users-panel .users-management-table tbody {
+            display: block;
+            width: 100%;
+        }
+
+        #users-panel .users-management-table thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+        }
+
+        #users-panel .users-management-table tr {
+            display: block;
+            padding: 12px;
+            border-bottom: 1px solid #e5eaf1;
+        }
+
+        #users-panel .users-management-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            width: auto;
+            padding: 6px 0;
+            border: 0;
+            overflow-wrap: anywhere;
+        }
+
+        #users-panel .users-management-table td::before {
+            content: attr(data-label);
+            flex: 0 0 28%;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        #users-panel .users-management-table td:first-child {
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        #users-panel .users-management-table td:first-child::before {
+            display: none;
+        }
+
+        #users-panel .users-row-actions {
+            justify-content: flex-end;
+        }
+    }
+</style>
+@section Scripts {
+    <script>
+    (() => {
+        const search = document.getElementById("um-search");
+        const status = document.getElementById("um-status");
+        if (!search || !status) return;
+
+        const rows = [...document.querySelectorAll("[data-um-row]")];
+        const count = document.getElementById("um-count");
+        const empty = document.getElementById("um-empty");
+
+        const normalize = value => String(value ?? "")
+            .toLocaleLowerCase("tr-TR")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/ı/g, "i");
+
+        function filter() {
+            const words = normalize(search.value)
+                .trim().split(/\s+/).filter(Boolean);
+
+            let visible = 0;
+
+            rows.forEach(row => {
+                const text = normalize(row.dataset.umSearch);
+                row.hidden =
+                    !words.every(word => text.includes(word))
+                    || (status.value !== ""
+                        && row.dataset.umStatus !== status.value);
+
+                if (!row.hidden) visible++;
+            });
+
+            count.textContent = `${visible} / ${rows.length} kullanıcı`;
+            empty.hidden = visible !== 0;
+        }
+
+        search.addEventListener("input", filter);
+        status.addEventListener("change", filter);
+        filter();
+    })();
+    </script>
+    <script>
+        document.querySelectorAll("form[data-status-confirm]").forEach(form => {
+            form.addEventListener("submit", event => {
+                if (!window.confirm(form.dataset.statusConfirm)) {
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
+}

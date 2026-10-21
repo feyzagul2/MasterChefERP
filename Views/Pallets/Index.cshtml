@@ -1,0 +1,2090 @@
+@model MasterChefTakip.ViewModels.PalletIndexViewModel
+@using MasterChefTakip.Models
+@using MasterChefTakip.Services
+
+@{
+    ViewData["Title"] = "Paletler ve Barkodlar";
+}
+
+<style>
+    .pallet-page {
+        min-width: 0;
+        color: #17243b;
+    }
+
+    .pallet-page .pallet-heading,
+    .pallet-page .pallet-surface-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .pallet-page .pallet-heading {
+        margin-bottom: 20px;
+    }
+
+    .pallet-page h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .pallet-page h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 650;
+    }
+
+    .pallet-page .pallet-heading p,
+    .pallet-page .surface-description {
+        margin: 6px 0 0;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .pallet-page .pallet-surface {
+        margin-bottom: 20px;
+        border: 1px solid #18365f;
+        border-radius: 10px;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    .pallet-page .pallet-surface-heading {
+        padding: 14px 18px;
+        border-bottom: 1px solid #e5eaf1;
+        background: #f7f9fc;
+    }
+
+    .pallet-page .record-count {
+        padding: 5px 9px;
+        border-radius: 6px;
+        background: #eef2f7;
+        color: #475569;
+        font-size: 11px;
+    }
+
+    .pallet-page .btn {
+        min-height: 38px;
+        padding: 8px 12px;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .pallet-page .btn-dark {
+        background: #111;
+        border-color: #111;
+        color: #fff;
+    }
+
+    .pallet-page details > summary {
+        padding: 15px 18px;
+        background: #f7f9fc;
+        font-size: 13px;
+        font-weight: 650;
+        cursor: pointer;
+    }
+
+    .pallet-page details[open] > summary {
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .pallet-page .pallet-form {
+        padding: 18px;
+    }
+
+    .pallet-page .form-label {
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .pallet-page .form-control,
+    .pallet-page .form-select {
+        box-sizing: border-box;
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 1px solid #d8e0eb;
+        border-radius: 7px;
+        background-color: #f8fafc;
+        font-size: 13px;
+        line-height: 22px;
+    }
+
+    .pallet-page .form-select {
+        padding-right: 36px;
+    }
+
+    .pallet-page textarea.form-control {
+        height: 44px;
+        resize: vertical;
+        overflow-y: auto;
+    }
+
+    .pallet-page .form-control:focus,
+    .pallet-page .form-select:focus {
+        border-color: #244c87;
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(36,76,135,.09);
+    }
+
+    .pallet-page .form-note {
+        margin: 14px 0;
+        color: #64748b;
+        font-size: 11px;
+        line-height: 1.7;
+    }
+
+    .pallet-page .text-danger {
+        font-size: 12px;
+    }
+
+    .pallet-page .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .pallet-page .pallet-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    .pallet-page .pallet-table th {
+        padding: 11px 14px;
+        background: #edf1f7;
+        color: #18365f;
+        font-size: 11px;
+        font-weight: 650;
+        text-align: left;
+    }
+
+    .pallet-page .pallet-table td {
+        padding: 12px 14px;
+        border-top: 1px solid #e8edf4;
+        color: #475569;
+        font-size: 12px;
+        vertical-align: middle;
+        overflow-wrap: anywhere;
+    }
+
+    .pallet-page .pallet-list th:nth-child(1) { width: 34%; }
+    .pallet-page .pallet-list th:nth-child(2) { width: 18%; }
+    .pallet-page .pallet-list th:nth-child(3) { width: 24%; }
+    .pallet-page .pallet-list th:nth-child(4) { width: 10%; }
+    .pallet-page .pallet-list th:nth-child(5) { width: 14%; }
+
+    .pallet-page .content-table th:first-child {
+        width: 40%;
+    }
+
+    .pallet-page .barcode-text {
+        color: #17243b;
+        font-family: ui-monospace, monospace;
+        font-size: 11px;
+        overflow-wrap: anywhere;
+    }
+
+    .pallet-page .selected-row {
+        background: #f1f5fa;
+    }
+
+    .pallet-page .product-name {
+        display: block;
+        color: #17243b;
+        font-weight: 650;
+    }
+
+    .pallet-page .product-code {
+        display: block;
+        margin-top: 4px;
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .pallet-page .status {
+        display: inline-block;
+        padding: 5px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+    }
+
+    .pallet-page .status-active {
+        color: #23735b;
+        background: #edf7f2;
+    }
+
+    .pallet-page .status-inactive {
+        color: #64748b;
+        background: #eef2f7;
+    }
+
+    .pallet-page .empty-state {
+        padding: 24px 18px;
+        color: #64748b;
+        font-size: 13px;
+        text-align: center;
+    }
+
+    .pallet-page .section-note {
+        margin: 0;
+        padding: 12px 18px;
+        border-top: 1px solid #e5eaf1;
+        background: #f7f9fc;
+        color: #64748b;
+        font-size: 11px;
+        line-height: 1.7;
+    }
+
+    .pallet-page #pallet-content {
+        scroll-margin-top: 20px;
+    }
+
+    @@media (max-width: 767px) {
+        .pallet-page h1 {
+            font-size: 24px;
+        }
+
+        .pallet-page .form-control,
+        .pallet-page .form-select {
+            font-size: 16px;
+        }
+
+        .pallet-page .btn {
+            min-height: 44px;
+        }
+
+        .pallet-page .pallet-table,
+        .pallet-page .pallet-table tbody,
+        .pallet-page .pallet-table tr {
+            display: block;
+            width: 100%;
+        }
+
+        .pallet-page .pallet-table thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+        }
+
+        .pallet-page .pallet-table tr {
+            padding: 12px 18px;
+        }
+
+        .pallet-page .pallet-table tr + tr {
+            border-top: 1px solid #e8edf4;
+        }
+
+        .pallet-page .pallet-table td {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 7px 0;
+            border: 0;
+        }
+
+        .pallet-page .pallet-table td::before {
+            content: attr(data-label);
+            flex: 0 0 32%;
+            color: #64748b;
+        }
+    }
+    .pallet-page .pallet-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pallet-page .pallet-actions form {
+    margin: 0;
+}
+
+.pallet-page .pallet-list th:nth-child(1) { width: 30%; }
+.pallet-page .pallet-list th:nth-child(2) { width: 15%; }
+.pallet-page .pallet-list th:nth-child(3) { width: 20%; }
+.pallet-page .pallet-list th:nth-child(4) { width: 10%; }
+.pallet-page .pallet-list th:nth-child(5) { width: 25%; }
+.pallet-history > .pallet-history-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #f7f9fc;
+    color: #18365f;
+    cursor: pointer;
+    list-style: none;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.pallet-history > .pallet-history-heading::-webkit-details-marker {
+    display: none;
+}
+
+.pallet-history-heading > span:first-child::before {
+    content: "▸";
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.pallet-history[open] > .pallet-history-heading
+    > span:first-child::before {
+    content: "▾";
+}
+
+.pallet-history[open] > .pallet-history-heading {
+    border-bottom: 1px solid #e5eaf1;
+}
+
+.pallet-history-body {
+    min-width: 0;
+}
+
+@@media (max-width: 650px) {
+    .pallet-history > .pallet-history-heading {
+        padding: 12px;
+        font-size: 13px;
+    }
+
+    .pallet-history .pallet-table,
+    .pallet-history .pallet-table tbody,
+    .pallet-history .pallet-table tr {
+        display: block;
+        width: 100%;
+        min-width: 0 !important;
+    }
+
+    .pallet-history .pallet-table thead {
+        display: none;
+    }
+
+    .pallet-history .pallet-table tr {
+        padding: 8px 12px;
+        border-bottom: 1px solid #dce4ef;
+    }
+
+    .pallet-history .pallet-table td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100% !important;
+        max-width: none !important;
+        padding: 6px 0;
+        border: 0;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        font-size: 12px;
+    }
+
+    .pallet-history .pallet-table td::before {
+        content: attr(data-label);
+        flex: 0 0 95px;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .pallet-history .btn {
+        min-height: 40px;
+    }
+
+    .stock-summary-top {
+        gap: 10px;
+    }
+
+    .stock-summary-top > div:first-child {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .stock-summary-counts {
+        gap: 8px 14px;
+    }
+
+    .stock-entry-details > summary {
+        min-height: 44px;
+    }
+}
+/* Palet listesi: kompakt satırlar ve düğmeler */
+.pallet-table.pallet-list {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.pallet-table.pallet-list th,
+.pallet-table.pallet-list td {
+    padding: 9px 10px;
+    vertical-align: middle;
+}
+
+.pallet-table.pallet-list th:nth-child(1) {
+    width: 29%;
+}
+
+.pallet-table.pallet-list th:nth-child(2) {
+    width: 14%;
+}
+
+.pallet-table.pallet-list th:nth-child(3) {
+    width: 13%;
+}
+
+.pallet-table.pallet-list th:nth-child(4) {
+    width: 8%;
+}
+
+.pallet-table.pallet-list th:nth-child(5) {
+    width: 36%;
+}
+
+.pallet-list .barcode-text {
+    font-size: 11px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.pallet-list .pallet-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 0;
+}
+
+.pallet-list .pallet-actions form {
+    margin: 0;
+    padding: 0;
+}
+
+.pallet-list .pallet-actions .btn {
+    min-height: 32px;
+    padding: 5px 8px;
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+@@media (max-width: 767px) {
+    .pallet-table.pallet-list,
+    .pallet-table.pallet-list tbody {
+        display: block;
+        width: 100%;
+        min-width: 0 !important;
+    }
+
+    .pallet-table.pallet-list thead {
+        display: none;
+    }
+
+    .pallet-table.pallet-list tr {
+        display: block;
+        padding: 10px 12px;
+        border-bottom: 1px solid #dce4ef;
+    }
+
+    .pallet-table.pallet-list td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100% !important;
+        padding: 6px 0;
+        border: 0;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .pallet-table.pallet-list td::before {
+        content: attr(data-label);
+        flex: 0 0 65px;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .pallet-table.pallet-list td:last-child {
+        display: block;
+        padding-top: 10px;
+    }
+
+    .pallet-table.pallet-list td:last-child::before {
+        display: none;
+    }
+
+    .pallet-list .pallet-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .pallet-list .pallet-actions .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 44px;
+        font-size: 12px;
+        white-space: normal;
+    }
+}
+</style>
+
+
+
+<div class="pallet-page">
+    <div class="pallet-heading">
+        <div>
+            <h1>Paletler ve Barkodlar</h1>
+            <p>Palet kayıtları, konumları ve güncel ürün miktarları.</p>
+        </div>
+
+        @if (OperationAuthorization.Can(User, AppPermissions.PalletsManage))
+        {
+            <a class="btn btn-dark"
+               asp-controller="Pallets"
+               asp-action="Index"
+               asp-route-form="new">
+                + Yeni palet
+            </a>
+        }
+    </div>
+
+    @if (TempData["PalletSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">@success</div>
+    }
+    @if (TempData["PalletError"] is string error)
+{
+    <div class="alert alert-warning" role="alert">@error</div>
+}
+    @if (OperationAuthorization.Can(User, AppPermissions.PalletsManage))
+    {
+        <details class="pallet-surface" open="@Model.ShowForm">
+            <summary>Yeni palet bilgileri</summary>
+
+            <form class="pallet-form"
+                  asp-controller="Pallets"
+                  asp-action="Create"
+                  method="post">
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger" role="alert"></div>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Form.Location"
+                               class="form-label"></label>
+                        <input asp-for="Form.Location"
+                               class="form-control"
+                               maxlength="100"
+                               placeholder="Örneğin: Depo A / Raf 2" />
+                        <span asp-validation-for="Form.Location"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Form.Notes"
+                               class="form-label"></label>
+                        <textarea asp-for="Form.Notes"
+                                  class="form-control"
+                                  rows="1"
+                                  maxlength="500"></textarea>
+                        <span asp-validation-for="Form.Notes"
+                              class="text-danger"></span>
+                    </div>
+                </div>
+
+                <p class="form-note">
+                    Barkod kayıt sırasında otomatik oluşturulur.
+                    Paletin içindeki ürünler değişse de barkodu aynı kalır.
+                </p>
+
+                <div class="form-actions">
+                    <a class="btn btn-outline-secondary"
+                       asp-action="Index">Vazgeç</a>
+                    <button class="btn btn-dark" type="submit">
+                        Paleti oluştur
+                    </button>
+                </div>
+            </form>
+        </details>
+    }
+        <section class="surface">
+    <div class="surface-heading">
+        <h2>Barkodla palet bul</h2>
+    </div>
+
+    <form id="palletBarcodeForm" style="padding: 16px 18px;">
+        <label for="palletBarcodeInput" class="form-label">
+            Palet barkodu
+        </label>
+
+        <div class="d-flex flex-wrap gap-2">
+            <input id="palletBarcodeInput"
+                   class="form-control"
+                   type="text"
+                   maxlength="50"
+                   autocomplete="off"
+                   spellcheck="false"
+                   placeholder="Barkodu okutun veya yazın"
+                   style="min-width: 0;" />
+
+            <button id="palletBarcodeFind"
+                    class="btn btn-dark"
+                    type="submit"
+                    style="white-space: nowrap;">
+                Paleti aç
+            </button>
+            <button id="palletCameraOpen"
+            class="btn btn-outline-secondary"
+            type="button"
+            style="white-space: nowrap;">
+            Kamerayla okut
+            </button>
+        </div>
+
+        <div style="margin-top: 8px; font-size: 12px; color: #64748b;">
+            Barkod okuyucu kullanırken önce bu kutuya tıklayın.
+        </div>
+
+        <p id="palletBarcodeMessage"
+           role="status"
+           aria-live="polite"
+           hidden
+           style="margin: 10px 0 0; font-size: 13px; color: #18365f;">
+        </p>
+    </form>
+</section>
+
+         <details class="pallet-surface" open>
+        <summary class="pallet-surface-heading"
+                 style="cursor:pointer;">
+            <strong id="pallet-list-heading">Palet listesi</strong>
+
+            <span class="record-count">
+                @Model.Pallets.Count kayıt
+            </span>
+        </summary>
+
+        @if (Model.Pallets.Count == 0)
+        {
+            <div class="empty-state">Henüz palet kaydı bulunmuyor.</div>
+        }
+        else
+        {
+            <table class="pallet-table pallet-list">
+                <caption class="visually-hidden">
+                    Kayıtlı paletler ve içerik seçimi
+                </caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Palet</th>
+                        <th scope="col">Konum</th>
+                        <th scope="col">Not</th>
+                        <th scope="col">Durum</th>
+                        <th scope="col">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var pallet in Model.Pallets)
+                    {
+                        <tr class="@(Model.SelectedPallet?.Id == pallet.Id ? "selected-row" : "")">
+                            <td data-label="Palet">
+    <div>
+        <strong>Palet #@pallet.Id</strong>
+        <details class="pallet-identity-details">
+            <summary>Barkodu göster</summary>
+            <code>@pallet.Barcode</code>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    data-pallet-copy="@pallet.Barcode">
+                Kopyala
+            </button>
+        </details>
+    </div>
+</td>
+                            <td data-label="Konum">
+                                @(pallet.Location ?? "Belirtilmedi")
+                            </td>
+                            <td data-label="Not">
+                                @(pallet.Notes ?? "—")
+                            </td>
+                            <td data-label="Durum">
+                                <span class="status @(pallet.IsActive ? "status-active" : "status-inactive")">
+                                    @(pallet.IsActive ? "Aktif" : "Pasif")
+                                </span>
+                            </td>
+                            <td data-label="İşlem">
+    <div class="pallet-actions">
+        <a class="btn btn-outline-secondary"
+           asp-action="Index"
+           asp-route-palletId="@pallet.Id"
+           asp-fragment="pallet-content">
+            İçeriği aç
+        </a>
+        <button type="button"
+        class="btn btn-outline-secondary"
+        data-print-pallet="@pallet.Id">
+    Etiketi yazdır
+</button>
+
+        @if (OperationAuthorization.Can(User, AppPermissions.PalletsManage))
+{
+<form asp-controller="Pallets"
+                  asp-action="SetActive"
+                  method="post">
+                <input type="hidden" name="id" value="@pallet.Id" />
+                <input type="hidden" name="isActive"
+                       value="@(pallet.IsActive ? "false" : "true")" />
+
+                <button class="btn btn-outline-secondary" type="submit">
+                    @(pallet.IsActive ? "Pasife al" : "Aktifleştir")
+                </button>
+            </form>
+}
+
+@if (User.IsInRole(AppRoles.Admin))
+{
+<form asp-controller="Pallets"
+                  asp-action="Delete"
+                  method="post"
+                  onsubmit="return confirm('Palet, içeriği ve tüm stok hareketleri kalıcı olarak silinecek. Devam edilsin mi?');">
+                <input type="hidden" name="id" value="@pallet.Id" />
+
+                <button class="btn btn-outline-danger" type="submit">
+                    Sil
+                </button>
+            </form>
+}
+    </div>
+</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        
+    </section>
+
+    @if (Model.SelectedPallet is { } selected)
+    {
+        <section class="pallet-surface" id="pallet-content"
+                 aria-labelledby="content-heading">
+
+            <div class="pallet-surface-heading">
+                <div>
+                    <h2 id="content-heading">
+    Palet #@selected.Id —
+    @(string.IsNullOrWhiteSpace(selected.Location)
+        ? "Konum belirtilmedi"
+        : selected.Location)
+</h2>
+                    <details class="pallet-identity-details">
+    <summary>Paletin barkodu</summary>
+    <code>@selected.Barcode</code>
+    <button type="button"
+            class="btn btn-outline-secondary btn-sm"
+            data-pallet-copy="@selected.Barcode">
+        Kopyala
+    </button>
+</details>
+                </div>
+                <span class="record-count">
+                    @Model.Items.Select(item => item.ProductId).Distinct().Count() ürün çeşidi
+                </span>
+            </div>
+            @if (selected.IsActive
+                && !selected.IsCancelled
+                && OperationAuthorization.Can(
+                    User, AppPermissions.PalletsTransfer))
+            {
+                <div style="padding:12px 14px">
+                    <partial name="_PalletTransferInline" model="Model" />
+                </div>
+            }
+
+            @if (OperationAuthorization.Can(User, AppPermissions.PalletsLocation))
+{
+    <details open="@(ViewData.ModelState.Keys.Any(
+                         key => key.StartsWith("EditForm"))
+                     && !ViewData.ModelState.IsValid)">
+        <summary>Konum ve not düzenle</summary>
+
+        <form class="pallet-form"
+              asp-controller="Pallets"
+              asp-action="Edit"
+              method="post">
+
+            <input asp-for="EditForm.Id" type="hidden" />
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger" role="alert"></div>
+
+            <span asp-validation-for="EditForm.Id"
+                  class="text-danger"></span>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label asp-for="EditForm.Location"
+                           class="form-label"></label>
+
+                    <input asp-for="EditForm.Location"
+                           class="form-control"
+                           maxlength="100" />
+
+                    <span asp-validation-for="EditForm.Location"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label asp-for="EditForm.Notes"
+                           class="form-label"></label>
+
+                    <textarea asp-for="EditForm.Notes"
+                              class="form-control"
+                              rows="1"
+                              maxlength="500"></textarea>
+
+                    <span asp-validation-for="EditForm.Notes"
+                          class="text-danger"></span>
+                </div>
+            </div>
+
+            <p class="form-note">
+                Konum ve not güncellenir. Paletin barkodu aynı kalır.
+            </p>
+
+            <div class="form-actions">
+                <button class="btn btn-dark" type="submit">
+                    Değişiklikleri kaydet
+                </button>
+            </div>
+        </form>
+    </details>
+}
+            @if (OperationAuthorization.Can(User, AppPermissions.StockManage) && selected.IsActive)
+            {
+                <form class="pallet-form"
+                      asp-controller="Pallets"
+                      asp-action="AddProduct"
+                      method="post">
+
+                    <input asp-for="ProductForm.PalletId" type="hidden" />
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="text-danger" role="alert"></div>
+                    <span asp-validation-for="ProductForm.PalletId"
+                          class="text-danger"></span>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label asp-for="ProductForm.ProductId"
+                                   class="form-label"></label>
+                            <select asp-for="ProductForm.ProductId"
+                                    class="form-select">
+                                <option value="">Ürün seçin</option>
+                                @foreach (var product in Model.AvailableProducts)
+                                {
+                                    <option value="@product.Id">
+                                        @product.Name — @product.Code
+                                    </option>
+                                }
+                            </select>
+                            <span asp-validation-for="ProductForm.ProductId"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label asp-for="ProductForm.QuantityType"
+                                   class="form-label"></label>
+                            <select asp-for="ProductForm.QuantityType"
+                                    class="form-select">
+                                <option value="">Tür seçin</option>
+                                <option value="Unit">Adet</option>
+                                <option value="Box">Koli</option>
+                            </select>
+                            <span asp-validation-for="ProductForm.QuantityType"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label asp-for="ProductForm.Quantity"
+                                   class="form-label"></label>
+                            <input asp-for="ProductForm.Quantity"
+                                   class="form-control"
+                                   type="number" min="1" step="1"
+                                   inputmode="numeric" />
+                            <span asp-validation-for="ProductForm.Quantity"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 col-md-6" id="box-size-field">
+                            <label asp-for="ProductForm.UnitsPerBox"
+                                   class="form-label"></label>
+                            <input asp-for="ProductForm.UnitsPerBox"
+                                   class="form-control"
+                                   type="number" min="1" step="1"
+                                   inputmode="numeric" />
+                            <span asp-validation-for="ProductForm.UnitsPerBox"
+                                  class="text-danger"></span>
+                            <p class="form-note">
+                                Boş bırakırsanız mevcut palet içeriğinin,
+                                yoksa ürünün kayıtlı koli içi adedi kullanılır.
+                                İkisi de bilinmiyorsa yalnızca koli sayısı tutulur.
+                            </p>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label asp-for="ProductForm.Notes"
+                                   class="form-label"></label>
+                            <textarea asp-for="ProductForm.Notes"
+                                      class="form-control"
+                                      rows="1" maxlength="500"></textarea>
+                            <span asp-validation-for="ProductForm.Notes"
+                                  class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <p class="form-note">
+                        Eklediğiniz miktar mevcut miktara ilave edilir.
+                        Her kayıt, yeni bir stok girişidir.
+                    </p>
+
+                    <div class="form-actions">
+                        <button class="btn btn-dark" type="submit"
+                                disabled="@(Model.AvailableProducts.Count == 0)">
+                            İçeriği kaydet
+                        </button>
+                    </div>
+
+                    @if (Model.AvailableProducts.Count == 0)
+                    {
+                        <p class="form-note">
+                            Ürün eklemek için önce Ürünler bölümünde
+                            aktif bir ürün kaydı oluşturun.
+                        </p>
+                    }
+                </form>
+            }
+            else if (!selected.IsActive)
+            {
+                <div class="empty-state">
+                    Bu palet pasif. İçeriği görüntülenebilir,
+                    ancak yeni ürün eklenemez.
+                </div>
+            }
+
+            <style>
+    .stock-summary-list {
+        padding: 12px 16px;
+    }
+
+    .stock-summary-card {
+        margin-bottom: 10px;
+        border: 1px solid #dce4ef;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .stock-summary-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .stock-summary-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 14px;
+    }
+
+    .stock-summary-name {
+        color: #18365f;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .stock-summary-code {
+        display: block;
+        margin-top: 3px;
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .stock-summary-total {
+        flex-shrink: 0;
+        color: #18365f;
+        font-size: 16px;
+        font-weight: 700;
+        text-align: right;
+    }
+
+    .stock-summary-counts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+        padding: 0 14px 12px;
+        color: #52647b;
+        font-size: 12px;
+    }
+
+    .stock-summary-counts strong {
+        color: #18365f;
+    }
+
+    .stock-entry-details {
+        border-top: 1px solid #edf1f6;
+    }
+
+    .stock-entry-details > summary {
+        padding: 9px 14px;
+        color: #18365f;
+        background: #f8fafc;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .stock-entry-list {
+        padding: 0 14px;
+    }
+
+    .stock-entry-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #edf1f6;
+        color: #52647b;
+        font-size: 12px;
+    }
+
+    .stock-entry-row:last-child {
+        border-bottom: 0;
+    }
+
+    .stock-entry-description {
+        margin-top: 4px;
+        line-height: 1.6;
+    }
+
+    .stock-entry-total {
+        flex-shrink: 0;
+        color: #18365f;
+        font-weight: 700;
+    }
+
+    @@media (max-width: 576px) {
+        .stock-summary-list {
+            padding: 10px;
+        }
+
+        .stock-summary-top {
+            align-items: flex-start;
+        }
+
+        .stock-summary-total {
+            font-size: 14px;
+        }
+
+        .stock-entry-row {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 5px;
+        }
+    }
+</style>
+
+<div class="pallet-surface-heading">
+    <h2>Paletin güncel içeriği</h2>
+</div>
+
+@if (Model.Items.Count == 0)
+{
+    <div class="empty-state">
+        Bu palete henüz ürün eklenmedi.
+    </div>
+}
+else
+{
+    <div class="stock-summary-list">
+        @foreach (var group in Model.Items
+            .GroupBy(item => item.ProductId)
+            .OrderBy(group => group.First().Product.Name)
+            .ThenBy(group => group.First().Product.Code))
+        {
+            var entries = group.OrderBy(item => item.Id).ToList();
+            var product = entries[0].Product;
+
+            var closedBoxes = entries.Sum(item => (long)item.BoxCount);
+            var openUnits = entries.Sum(item => (long)item.OpenBoxUnitCount);
+            var looseUnits = entries.Sum(item => (long)item.LooseUnitCount);
+
+            var unknownBoxes = entries
+                .Where(item => item.UnitsPerBox is null
+                    || item.UnitsPerBox <= 0)
+                .Sum(item => (long)item.BoxCount);
+
+            var knownTotal = entries.Sum(item =>
+                (item.UnitsPerBox is > 0
+                    ? (long)item.BoxCount * item.UnitsPerBox.Value
+                    : 0L)
+                + item.OpenBoxUnitCount
+                + item.LooseUnitCount);
+
+            <div class="stock-summary-card">
+                <div class="stock-summary-top">
+                    <div>
+                        <div class="stock-summary-name">
+                            @product.Name
+                        </div>
+                        <span class="stock-summary-code">
+                            @product.Code
+                        </span>
+                    </div>
+
+                    <div class="stock-summary-total">
+                        @if (unknownBoxes == 0)
+                        {
+                            <span>@knownTotal adet</span>
+                        }
+                        else
+                        {
+                            <span>Toplam belirsiz</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="stock-summary-counts">
+                    <span>
+                        Kapalı koli: <strong>@closedBoxes</strong>
+                    </span>
+                    <span>
+                        Açık kolide: <strong>@openUnits adet</strong>
+                    </span>
+                    <span>
+                        Bağımsız tekli: <strong>@looseUnits adet</strong>
+                    </span>
+
+                    @if (unknownBoxes > 0)
+                    {
+                        <span>
+                            @knownTotal bilinen adet;
+                            @unknownBoxes kolinin iç adedi eksik.
+                        </span>
+                    }
+                </div>
+
+                <details class="stock-entry-details">
+                    <summary>
+                        Stok detayları (@entries.Count kayıt)
+                    </summary>
+
+                    <div class="stock-entry-list">
+                        @foreach (var entry in entries)
+                        {
+                            var entryKnown = entry.BoxCount == 0
+                                || entry.UnitsPerBox is > 0;
+
+                            var entryTotal =
+                                (entry.UnitsPerBox is > 0
+                                    ? (long)entry.BoxCount
+                                        * entry.UnitsPerBox.Value
+                                    : 0L)
+                                + entry.OpenBoxUnitCount
+                                + entry.LooseUnitCount;
+
+                            <div class="stock-entry-row">
+                                <div>
+                                    <strong>Stok kaydı #@entry.Id</strong>
+
+                                    <div class="stock-entry-description">
+                                        @entry.BoxCount kapalı koli
+                                        · Koli içi:
+                                        @(entry.UnitsPerBox?.ToString() ?? "Bilinmiyor")
+                                        adet
+                                        <br />
+                                        Açık kolide @entry.OpenBoxUnitCount adet
+                                        · Bağımsız tekli @entry.LooseUnitCount adet
+
+                                        @if (entry.OpenBoxUnitCount > 0)
+                                        {
+                                            <span>
+                                                · Açık koli kapasitesi:
+                                                @(entry.OpenBoxCapacity?.ToString() ?? "Bilinmiyor")
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="stock-entry-total">
+                                    @if (entryKnown)
+                                    {
+                                        <span>@entryTotal adet</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Koli içi adet eksik</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </details>
+            </div>
+        }
+    </div>
+}
+
+<p class="section-note">
+    Toplam adet; kapalı kolilerdeki, açık kolideki ve bağımsız
+    tekli ürünlerin toplamıdır.
+</p>
+        </section>
+    }
+
+<div class="modal fade"
+     id="palletCameraModal"
+     tabindex="-1"
+     aria-labelledby="palletCameraTitle"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content"
+             style="border: 1px solid #18365f; border-radius: 12px;">
+            <div class="modal-header">
+                <h2 class="modal-title fs-6" id="palletCameraTitle">
+                    Palet barkodunu okut
+                </h2>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Kapat"></button>
+            </div>
+
+            <div class="modal-body">
+                <video id="palletCameraVideo"
+                       autoplay
+                       muted
+                       playsinline
+                       style="display: block; width: 100%;
+                              min-height: 180px; background: #111;
+                              border-radius: 8px;"></video>
+
+                <p id="palletCameraMessage"
+                   role="status"
+                   aria-live="polite"
+                   style="margin: 12px 0 0; font-size: 13px;
+                          color: #18365f;">
+                    Barkodu kameranın karşısına getirin.
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                    Kapat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@if (Model.SelectedPallet is not null)
+{
+    <partial name="_PalletHistoryTimeline" model="Model" />
+}
+</div>
+<div class="modal fade"
+     id="receiptCorrectionModal"
+     tabindex="-1"
+     aria-labelledby="receiptCorrectionTitle"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content"
+             style="border: 1px solid #18365f; border-radius: 12px;">
+            <form asp-controller="Pallets"
+                  asp-action="CorrectReceipt"
+                  method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header">
+                    <h2 class="modal-title fs-6"
+                        id="receiptCorrectionTitle">
+                        Stok girişini düzenle
+                    </h2>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Kapat"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p id="correctionProductName"
+                       class="fw-semibold mb-3"></p>
+                    <div class="mb-3">
+    <label for="correctionProductId" class="form-label">
+        Doğru ürün
+    </label>
+
+    <select id="correctionProductId"
+            name="CorrectionForm.ProductId"
+            class="form-select"
+            required>
+        <option value="">Ürün seçin</option>
+
+        @foreach (var product in Model.AvailableProducts)
+        {
+            <option value="@product.Id"
+                    data-default-units="@product.DefaultUnitsPerBox">
+                @product.Name — @product.Code
+            </option>
+        }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="correctionUnitsPerBox" class="form-label">
+                    Koli içi adet
+                </label>
+
+                <input id="correctionUnitsPerBox"
+                    name="CorrectionForm.UnitsPerBox"
+                    class="form-control"
+                    type="number"
+                    min="1"
+                    max="2147483647"
+                    step="1" />
+
+                <small class="d-block mt-1" style="color: #64748b;">
+                    Seçilen ürünün bir kolisindeki adet.
+                    Bilinmiyorsa boş bırakın.
+                </small>
+            </div>
+                    <input type="hidden"
+                           name="CorrectionForm.MovementId"
+                           id="correctionMovementId" />
+
+                    <input type="hidden"
+                           name="CorrectionForm.ConcurrencyStamp"
+                           id="correctionStamp" />
+
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label for="correctionBoxes"
+                                   class="form-label">
+                                Doğru koli sayısı
+                            </label>
+
+                            <input type="number"
+                                   name="CorrectionForm.BoxCount"
+                                   id="correctionBoxes"
+                                   class="form-control"
+                                   min="0"
+                                   max="2147483647"
+                                   step="1"
+                                   required />
+                        </div>
+
+                        <div class="col-6">
+                            <label for="correctionUnits"
+                                   class="form-label">
+                                Doğru koli dışı adet
+                            </label>
+
+                            <input type="number"
+                                   name="CorrectionForm.LooseUnitCount"
+                                   id="correctionUnits"
+                                   class="form-control"
+                                   min="0"
+                                   max="2147483647"
+                                   step="1"
+                                   required />
+                        </div>
+
+                        <div class="col-12">
+                            <label for="correctionReason"
+                                   class="form-label">
+                                Düzeltme nedeni
+                            </label>
+
+                            <textarea name="CorrectionForm.Reason"
+                                      id="correctionReason"
+                                      class="form-control"
+                                      rows="2"
+                                      maxlength="500"
+                                      required></textarea>
+                        </div>
+                    </div>
+
+                    <p class="mt-3 mb-0"
+                       style="font-size: 12px; color: #64748b;">
+                        Bu işlemin doğru miktarını girin.
+                        Paletin toplam miktarını girmeyin.
+                        Eski işlem korunur ve stok fark kadar güncellenir.
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">
+                        Vazgeç
+                    </button>
+
+                    <button type="submit" class="btn btn-dark">
+                        Düzeltmeyi kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="~/js/JsBarcode.all.min.js"
+            asp-append-version="true"></script>
+
+    <script>
+        (() => {
+            const type =
+                document.getElementById('ProductForm_QuantityType');
+            const boxField =
+                document.getElementById('box-size-field');
+            const boxInput =
+                document.getElementById('ProductForm_UnitsPerBox');
+
+            if (type && boxField && boxInput) {
+                function updateQuantityFields() {
+                    const isBox = type.value === 'Box';
+                    boxField.hidden = !isBox;
+                    boxInput.disabled = !isBox;
+                }
+
+                type.addEventListener('change', updateQuantityFields);
+                updateQuantityFields();
+            }
+
+            const labelUrl = '@Url.Action("LabelData", "Pallets")';
+            let printing = false;
+
+            document.querySelectorAll('[data-print-pallet]')
+                .forEach(button => {
+                    button.addEventListener('click', async () => {
+                        if (printing) return;
+
+                        if (typeof window.JsBarcode !== 'function') {
+                            alert('Barkod dosyası yüklenemedi.');
+                            return;
+                        }
+
+                        printing = true;
+                        button.disabled = true;
+
+                        let frame = null;
+
+                        function cleanup() {
+                            frame?.remove();
+                            frame = null;
+                            button.disabled = false;
+                            printing = false;
+                        }
+
+                        try {
+                            const url = new URL(
+                                labelUrl,
+                                window.location.origin
+                            );
+
+                            url.searchParams.set(
+                                'id',
+                                button.dataset.printPallet
+                            );
+
+                            const response = await fetch(url, {
+                                credentials: 'same-origin',
+                                cache: 'no-store',
+                                headers: { 'Accept': 'application/json' }
+                            });
+
+                            if (!response.ok ||
+                                !response.headers.get('content-type')
+                                    ?.includes('application/json')) {
+                                throw new Error(
+                                    'Palet bilgileri alınamadı. '
+                                    + 'Sayfayı yenileyip tekrar deneyin.'
+                                );
+                            }
+
+                            const data = await response.json();
+
+                            frame = document.createElement('iframe');
+                            frame.title = 'Palet içeriği yazdırma';
+                            frame.style.cssText =
+                                'position:fixed;width:0;height:0;border:0;';
+
+                            document.body.appendChild(frame);
+
+                            const doc = frame.contentDocument;
+
+                            doc.open();
+                            doc.write(`
+                                <!DOCTYPE html>
+                                <html lang="tr">
+                                <head>
+                                    <meta charset="utf-8">
+                                    <title>MASTER CHEF Palet Etiketi</title>
+                                    <style>
+                                        @@page {
+                                            size: A4 landscape;
+                                            margin: 10mm;
+                                        }
+
+                                        body {
+                                            margin: 0;
+                                            color: #000;
+                                            background: #fff;
+                                            font-family: Arial, sans-serif;
+                                        }
+
+                                        .label {
+                                            width: 260mm;
+                                            max-width: 100%;
+                                            padding: 7mm;
+                                            border: 1px solid #000;
+                                            box-sizing: border-box;
+                                        }
+
+                                        .heading {
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: space-between;
+                                            gap: 20px;
+                                            border-bottom: 1px solid #bbb;
+                                            padding-bottom: 4mm;
+                                        }
+
+                                        h1 {
+                                            margin: 0;
+                                            font-size: 23px;
+                                            letter-spacing: 1px;
+                                        }
+
+                                        .subtitle {
+                                            margin-top: 5px;
+                                            font-size: 12px;
+                                        }
+
+                                        .meta {
+                                            text-align: right;
+                                            font-size: 11px;
+                                            line-height: 1.7;
+                                        }
+
+                                        svg {
+                                            display: block;
+                                            width: 100%;
+                                            height: auto;
+                                            margin: 4mm auto 0;
+                                        }
+
+                                        .number {
+                                            text-align: center;
+                                            font-family: monospace;
+                                            font-size: 12px;
+                                            overflow-wrap: anywhere;
+                                        }
+
+                                        h2 {
+                                            margin: 6mm 0 3mm;
+                                            font-size: 15px;
+                                        }
+
+                                        table {
+                                            width: 100%;
+                                            border-collapse: collapse;
+                                            table-layout: fixed;
+                                        }
+
+                                        th, td {
+                                            padding: 9px 8px;
+                                            border: 1px solid #bbb;
+                                            font-size: 12px;
+                                            text-align: left;
+                                            overflow-wrap: anywhere;
+                                        }
+
+                                        th {
+                                            background: #eee;
+                                        }
+
+                                        th:first-child {
+                                            width: 44%;
+                                        }
+
+                                        .code {
+                                            margin-top: 4px;
+                                            font-family: monospace;
+                                            font-size: 10px;
+                                        }
+
+                                        tr {
+                                            break-inside: avoid;
+                                        }
+
+                                        thead {
+                                            display: table-header-group;
+                                        }
+
+                                        .note {
+                                            margin-top: 4mm;
+                                            font-size: 11px;
+                                            line-height: 1.6;
+                                            white-space: pre-wrap;
+                                            overflow-wrap: anywhere;
+                                        }
+
+                                        .footer {
+                                            margin-top: 4mm;
+                                            padding-top: 3mm;
+                                            border-top: 1px solid #bbb;
+                                            font-size: 10px;
+                                            line-height: 1.6;
+                                        }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="label">
+                                        <div class="heading">
+                                            <div>
+                                                <h1>MASTER CHEF</h1>
+                                                <div class="subtitle">
+                                                    PALET VE İÇERİK ETİKETİ
+                                                </div>
+                                            </div>
+                                            <div class="meta">
+                                                <div id="labelLocation"></div>
+                                                <div id="labelStatus"></div>
+                                                <div id="labelDate"></div>
+                                            </div>
+                                        </div>
+
+                                        <svg id="labelBarcode"></svg>
+                                        <div class="number"
+                                             id="labelNumber"></div>
+
+                                        <h2>Paletin güncel içeriği</h2>
+
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Ürün / kod</th>
+                                                    <th>Koli sayısı</th>
+                                                    <th>Koli dışı adet</th>
+                                                    <th>Koli içi adet</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="labelItems"></tbody>
+                                        </table>
+
+                                        <div class="note"
+                                             id="labelNotes" hidden></div>
+
+                                        <div class="footer">
+                                            Koli dışı adet, kolilerin içindeki
+                                            ürünleri kapsamaz.
+                                            Bu çıktı belirtilen tarih ve saatteki
+                                            kayıtlı miktarları gösterir.
+                                            İçerik değiştiğinde yeniden yazdırın.
+                                        </div>
+                                    </div>
+                                </body>
+                                </html>
+                            `);
+                            doc.close();
+
+                            function setText(id, value) {
+                                doc.getElementById(id).textContent = value;
+                            }
+
+                            setText('labelNumber', data.barcode);
+                            setText(
+                                'labelLocation',
+                                'Konum: ' + (data.location || 'Belirtilmedi')
+                            );
+                            setText(
+                                'labelStatus',
+                                'Durum: ' + (data.isActive ? 'Aktif' : 'Pasif')
+                            );
+
+                            const date = new Intl.DateTimeFormat('tr-TR', {
+                                timeZone: 'Europe/Istanbul',
+                                dateStyle: 'short',
+                                timeStyle: 'medium'
+                            }).format(new Date(data.capturedAtUtc));
+
+                            setText('labelDate', 'Kayıt zamanı: ' + date);
+
+                            if (data.notes) {
+                                setText('labelNotes', 'Not: ' + data.notes);
+                                doc.getElementById('labelNotes').hidden = false;
+                            }
+
+                            const tbody =
+                                doc.getElementById('labelItems');
+
+                            function addCell(row, value) {
+                                const cell = doc.createElement('td');
+                                cell.textContent = String(value);
+                                row.appendChild(cell);
+                                return cell;
+                            }
+
+                            if (data.items.length === 0) {
+                                const row = doc.createElement('tr');
+                                const cell = addCell(
+                                    row,
+                                    'Palette kayıtlı ürün miktarı bulunmuyor.'
+                                );
+                                cell.colSpan = 4;
+                                tbody.appendChild(row);
+                            }
+
+                            for (const item of data.items) {
+                                const row = doc.createElement('tr');
+                                const productCell = doc.createElement('td');
+
+                                const name = doc.createElement('strong');
+                                name.textContent = item.name;
+
+                                const code = doc.createElement('div');
+                                code.className = 'code';
+                                code.textContent = item.code;
+
+                                productCell.append(name, code);
+                                row.appendChild(productCell);
+
+                                addCell(row, item.boxCount);
+                                addCell(row, item.looseUnitCount);
+                                addCell(
+                                    row,
+                                    item.unitsPerBox ?? 'Bilinmiyor'
+                                );
+
+                                tbody.appendChild(row);
+                            }
+
+                            JsBarcode(
+                                doc.getElementById('labelBarcode'),
+                                data.barcode,
+                                {
+                                    format: 'CODE128',
+                                    width: 2,
+                                    height: 85,
+                                    displayValue: false,
+                                    margin: 24,
+                                    background: '#ffffff',
+                                    lineColor: '#000000'
+                                }
+                            );
+
+                            frame.contentWindow.addEventListener(
+                                'afterprint',
+                                cleanup,
+                                { once: true }
+                            );
+
+                            setTimeout(() => {
+                                try {
+                                    frame.contentWindow.focus();
+                                    frame.contentWindow.print();
+                                } catch {
+                                    cleanup();
+                                    alert('Yazdırma penceresi açılamadı.');
+                                }
+                            }, 250);
+                        } catch (error) {
+                            cleanup();
+                            alert(
+                                error.message || 'Etiket oluşturulamadı.'
+                            );
+                        }
+                    });
+                });
+        })();
+    </script>
+    <script>
+    (() => {
+        const modal =
+            document.getElementById('receiptCorrectionModal');
+
+        const product =
+            document.getElementById('correctionProductId');
+
+        const unitsPerBox =
+            document.getElementById('correctionUnitsPerBox');
+
+        const boxes =
+            document.getElementById('correctionBoxes');
+
+        if (!modal || !product || !unitsPerBox || !boxes) {
+            return;
+        }
+
+        let originalProductId = '';
+        let originalUnitsPerBox = '';
+
+        function updateBoxField() {
+            const hasBoxes = Number(boxes.value) > 0;
+
+            unitsPerBox.disabled = !hasBoxes;
+        }
+
+        modal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+
+            if (!button) {
+                return;
+            }
+
+            originalProductId = button.dataset.productId;
+            originalUnitsPerBox =
+                button.dataset.unitsPerBox || '';
+
+            document.getElementById('correctionMovementId').value =
+                button.dataset.movementId;
+
+            boxes.value = button.dataset.boxCount;
+
+            document.getElementById('correctionUnits').value =
+                button.dataset.unitCount;
+
+            document.getElementById('correctionStamp').value =
+                button.dataset.stamp;
+
+            document.getElementById('correctionProductName').textContent =
+                'Mevcut giriş: ' + button.dataset.productName;
+
+            document.getElementById('correctionReason').value = '';
+
+            product.value = originalProductId;
+            unitsPerBox.value = originalUnitsPerBox;
+
+            updateBoxField();
+        });
+
+        product.addEventListener('change', () => {
+            const selected = product.selectedOptions[0];
+
+            unitsPerBox.value =
+                product.value === originalProductId
+                    ? originalUnitsPerBox
+                    : selected?.dataset.defaultUnits || '';
+        });
+
+        boxes.addEventListener('input', updateBoxField);
+    })();
+</script>
+    <script src="~/js/zxing-browser.min.js"
+        asp-append-version="true"></script>
+
+<script>
+    (() => {
+        const openButton = document.getElementById('palletCameraOpen');
+        const modalElement = document.getElementById('palletCameraModal');
+        const video = document.getElementById('palletCameraVideo');
+        const message = document.getElementById('palletCameraMessage');
+        const input = document.getElementById('palletBarcodeInput');
+        const form = document.getElementById('palletBarcodeForm');
+
+        if (!openButton || !modalElement || !video ||
+            !message || !input || !form) {
+            return;
+        }
+
+        const modal = new bootstrap.Modal(modalElement);
+
+        let controls = null;
+        let generation = 0;
+        let scanned = false;
+
+        function stopCamera() {
+            generation++;
+
+            if (controls) {
+                controls.stop();
+                controls = null;
+            }
+
+            const stream = video.srcObject;
+
+            if (stream && typeof stream.getTracks === 'function') {
+                stream.getTracks().forEach(track => track.stop());
+            }
+
+            video.srcObject = null;
+        }
+
+        openButton.addEventListener('click', () => {
+            if (!window.ZXingBrowser) {
+                alert('Barkod okuma dosyası yüklenemedi.');
+                return;
+            }
+
+            if (!navigator.mediaDevices?.getUserMedia) {
+                alert('Kamera kullanımı için HTTPS bağlantısı ve desteklenen bir tarayıcı gerekiyor.');
+                return;
+            }
+
+            modal.show();
+        });
+
+        modalElement.addEventListener('shown.bs.modal', async () => {
+            stopCamera();
+
+            const currentGeneration = generation;
+            scanned = false;
+            message.textContent = 'Kamera açılıyor...';
+
+            try {
+                const reader =
+                    new ZXingBrowser.BrowserMultiFormatReader();
+
+                const startedControls =
+                    await reader.decodeFromConstraints(
+                        {
+                            audio: false,
+                            video: {
+                                facingMode: { ideal: 'environment' }
+                            }
+                        },
+                        video,
+                        (result, error, scanControls) => {
+                            if (currentGeneration !== generation) {
+                                scanControls.stop();
+                                return;
+                            }
+
+                            if (!result || scanned) {
+                                return;
+                            }
+
+                            scanned = true;
+                            input.value = result.getText();
+
+                            scanControls.stop();
+                            modal.hide();
+
+                            // Mevcut barkod arama formunu çalıştırır.
+                            form.requestSubmit();
+                        }
+                    );
+
+                if (currentGeneration !== generation || scanned) {
+                    startedControls.stop();
+                    return;
+                }
+
+                controls = startedControls;
+                message.textContent =
+                    'Barkodu kameranın karşısına getirin. ' +
+                    'Barkodun tamamı net görünsün.';
+            }
+            catch (error) {
+                if (currentGeneration !== generation) {
+                    return;
+                }
+
+                stopCamera();
+
+                message.textContent =
+                    error?.name === 'NotAllowedError'
+                        ? 'Kamera izni verilmedi. Tarayıcı ayarlarından izin verin.'
+                        : error?.name === 'NotFoundError'
+                            ? 'Bu cihazda kamera bulunamadı.'
+                            : 'Kamera açılamadı. Kamera izinlerini kontrol edip tekrar deneyin.';
+            }
+        });
+
+        modalElement.addEventListener('hide.bs.modal', stopCamera);
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopCamera();
+                modal.hide();
+            }
+        });
+
+        window.addEventListener('pagehide', stopCamera);
+    })();
+</script>
+}
+<style>
+    .pallet-page #content-heading {
+        font-size: 18px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .pallet-identity-details {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .pallet-identity-details summary {
+        cursor: pointer;
+    }
+
+    .pallet-identity-details code {
+        display: block;
+        margin: 8px 0;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+</style>
+
+<script>
+(() => {
+    document.addEventListener("click", async event => {
+        const button = event.target.closest?.("[data-pallet-copy]");
+        if (!button || button.disabled) return;
+
+        const barcode = button.dataset.palletCopy;
+        const previous = button.textContent;
+        button.disabled = true;
+
+        try {
+            if (!navigator.clipboard?.writeText) {
+                window.prompt("Barkodu buradan kopyalayabilirsiniz:", barcode);
+                return;
+            }
+
+            await navigator.clipboard.writeText(barcode);
+            button.textContent = "Kopyalandı";
+        }
+        catch {
+            window.prompt("Barkodu buradan kopyalayabilirsiniz:", barcode);
+        }
+        finally {
+            button.disabled = false;
+            window.setTimeout(() => {
+                button.textContent = previous;
+            }, 1500);
+        }
+    });
+})();
+</script>

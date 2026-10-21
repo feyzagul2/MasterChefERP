@@ -1,0 +1,364 @@
+@model MasterChefTakip.ViewModels.ReturnsIndexViewModel
+@using MasterChefTakip.Models
+@using MasterChefTakip.ViewModels
+
+@{
+    var item = (ReturnInspection)ViewData["ReturnItem"]!;
+
+    var editable =
+        item.Status == ReturnInspectionStatus.Waiting ||
+        item.Status == ReturnInspectionStatus.Inspecting ||
+        item.Status == ReturnInspectionStatus.WaitingForPlacement;
+
+    var failed = Model.InspectionForm?.Id == item.Id;
+
+    var hasSavedControl =
+        item.Status == ReturnInspectionStatus.Inspecting ||
+        item.Status == ReturnInspectionStatus.WaitingForPlacement;
+
+    var form = failed
+        ? Model.InspectionForm!
+        : new InspectReturnItemViewModel
+        {
+            Id = item.Id,
+            ConcurrencyStamp = item.ConcurrencyStamp,
+
+            GoodUnits = hasSavedControl
+                ? item.InspectedGoodUnits
+                : null,
+
+            DamagedUnits = hasSavedControl
+                ? item.DamagedUnitCount
+                : null,
+
+            InspectionNotes = item.InspectionNotes,
+            PlacementUnitsPerBox = item.UnitsPerBox
+        };
+
+    var prefix = $"return-{item.Id}";
+
+    // Hatalı girişleri yalnızca ilgili ürünün formunda korur.
+    string InputValue(string key, object? fallback)
+    {
+        if (failed &&
+            ViewData.ModelState.TryGetValue(key, out var entry))
+        {
+            return entry.AttemptedValue ?? "";
+        }
+
+        return fallback?.ToString() ?? "";
+    }
+
+    var palletValue = InputValue(
+        "InspectionForm.DestinationPalletId",
+        form.DestinationPalletId);
+
+    var label = item.Status switch
+    {
+        ReturnInspectionStatus.Completed => "Tamamlandı",
+        ReturnInspectionStatus.Cancelled => "İptal edildi",
+        _ => "İşlem bekliyor"
+    };
+}
+
+<details class="returns-item" open="@(editable || failed)">
+    <summary>
+        @item.ShipmentItem.ProductName
+        — @item.ReceivedUnits ürün
+        · @label
+        @if (item.Status == ReturnInspectionStatus.Completed)
+        {
+            <span class="returns-result-summary">
+                Stoğa dönen: @item.GoodTotalUnits adet
+                · Hasarlı: @item.DamagedUnitCount adet
+            </span>
+        }
+    </summary>
+
+    <span class="returns-meta">
+        @item.ShipmentItem.ProductCode
+        · İade ürün satırı #@item.Id
+    </span>
+
+    <p class="returns-note">
+        <strong>Geri gelen:</strong>
+
+        @if (item.ReceivedBoxCount > 0 &&
+             item.ReceivedUnitsPerBox is > 0)
+        {
+            <span>
+                @item.ReceivedBoxCount koli
+                × @item.ReceivedUnitsPerBox ürün
+            </span>
+
+            @if (item.ReceivedAdditionalUnitCount > 0)
+            {
+                <span>
+                    + @item.ReceivedAdditionalUnitCount ürün
+                </span>
+            }
+
+            <span>
+                = <strong>@item.ReceivedUnits ürün</strong>
+            </span>
+        }
+        else
+        {
+            <span>
+                <strong>@item.ReceivedUnits ürün</strong>
+                (tekli veya karışık kolinin içeriği)
+            </span>
+        }
+    </p>
+    @await Html.PartialAsync(
+    "_CorrectReturnQuantity",
+    Model,
+    ViewData)
+    @if (editable && Model.CanInspect)
+    {
+        <form asp-controller="Returns"
+              asp-action="InspectItem"
+              method="post"
+              data-inspection-form
+              data-received="@item.ReceivedUnits">
+
+            <input type="hidden"
+                   name="InspectionForm.Id"
+                   value="@item.Id" />
+
+            <input type="hidden"
+                   name="InspectionForm.ConcurrencyStamp"
+                   value="@form.ConcurrencyStamp" />
+
+            <input type="hidden"
+                   name="InspectionForm.CompleteInspection"
+                   value="true" />
+
+            <div class="returns-grid">
+                <div class="returns-field">
+                    <label for="@(prefix + "-good")">
+                        Sağlam ürün adedi
+                    </label>
+
+                    <input id="@(prefix + "-good")"
+                           name="InspectionForm.GoodUnits"
+                           type="number"
+                           min="0"
+                           max="@item.ReceivedUnits"
+                           step="1"
+                           value="@InputValue("InspectionForm.GoodUnits", form.GoodUnits)"
+                           required />
+
+                    @if (failed)
+                    {
+                        @Html.ValidationMessage(
+                            "InspectionForm.GoodUnits")
+                    }
+                </div>
+
+                <div class="returns-field">
+                    <label for="@(prefix + "-bad")">
+                        Hasarlı ürün adedi
+                    </label>
+
+                    <input id="@(prefix + "-bad")"
+                           name="InspectionForm.DamagedUnits"
+                           type="number"
+                           min="0"
+                           max="@item.ReceivedUnits"
+                           step="1"
+                           value="@InputValue("InspectionForm.DamagedUnits", form.DamagedUnits)"
+                           required />
+
+                    @if (failed)
+                    {
+                        @Html.ValidationMessage(
+                            "InspectionForm.DamagedUnits")
+                    }
+                </div>
+
+                <div class="returns-field returns-wide"
+                     data-pallet-field>
+
+                    <label for="@(prefix + "-pallet")">
+                        Sağlam ürünlerin yerleştirildiği palet
+                    </label>
+
+                    <select id="@(prefix + "-pallet")"
+                            name="InspectionForm.DestinationPalletId">
+
+                        <option value="">Palet seçin</option>
+
+                        @foreach (var pallet in Model.PalletOptions)
+                        {
+                            <option value="@pallet.Value"
+                                    selected="@(pallet.Value == palletValue)">
+                                @pallet.Text
+                            </option>
+                        }
+                    </select>
+
+                    @if (failed)
+                    {
+                        @Html.ValidationMessage(
+                            "InspectionForm.DestinationPalletId")
+                    }
+                </div>
+            </div>
+
+            <details class="returns-item"
+                     data-box-details
+                     open="@(form.GoodBoxCount > 0)">
+
+                <summary>
+                    Sağlam ürünleri kapalı koli halinde yerleştirdim
+                </summary>
+
+                <p class="returns-note">
+                    Yalnızca gerçekten kapatılmış, aynı üründen
+                    oluşan tam kolileri girin. Kalan sağlam ürünler
+                    otomatik ayrı adet olarak eklenir.
+                </p>
+
+                <div class="returns-grid">
+                    <div class="returns-field">
+                        <label for="@(prefix + "-box")">
+                            Sağlam kapalı koli sayısı
+                        </label>
+
+                        <input id="@(prefix + "-box")"
+                               name="InspectionForm.GoodBoxCount"
+                               type="number"
+                               min="0"
+                               max="2147483647"
+                               step="1"
+                               value="@InputValue("InspectionForm.GoodBoxCount", form.GoodBoxCount)"
+                               required />
+
+                        @if (failed)
+                        {
+                            @Html.ValidationMessage(
+                                "InspectionForm.GoodBoxCount")
+                        }
+                    </div>
+
+                    <div class="returns-field">
+                        <label for="@(prefix + "-capacity")">
+                            Bir kolideki ürün adedi
+                        </label>
+
+                        <input id="@(prefix + "-capacity")"
+                               name="InspectionForm.PlacementUnitsPerBox"
+                               type="number"
+                               min="1"
+                               max="2147483647"
+                               step="1"
+                               value="@InputValue("InspectionForm.PlacementUnitsPerBox", form.PlacementUnitsPerBox)" />
+
+                        @if (failed)
+                        {
+                            @Html.ValidationMessage(
+                                "InspectionForm.PlacementUnitsPerBox")
+                        }
+                    </div>
+                </div>
+            </details>
+
+            <div class="returns-field">
+                <label for="@(prefix + "-notes")">
+                    Kontrol notu (isteğe bağlı)
+                </label>
+
+                <textarea id="@(prefix + "-notes")"
+                          name="InspectionForm.InspectionNotes"
+                          rows="2"
+                          maxlength="500">@InputValue("InspectionForm.InspectionNotes", form.InspectionNotes)</textarea>
+
+                @if (failed)
+                {
+                    @Html.ValidationMessage(
+                        "InspectionForm.InspectionNotes")
+                }
+            </div>
+
+            <div class="returns-live"
+                 data-inspection-total
+                 aria-live="polite"></div>
+
+            <p class="returns-note">
+                Sağlam ürünleri seçilen palete fiziksel olarak
+                yerleştirdikten sonra kaydedin.
+                Hasarlı iadeler stoktan tekrar düşülmez.
+            </p>
+
+            <div class="returns-actions end">
+                <button type="submit" class="btn btn-dark">
+                    Kontrolü tamamla ve stoğa ekle
+                </button>
+            </div>
+        </form>
+    }
+    else if (item.Status == ReturnInspectionStatus.Completed)
+    {
+        <div class="returns-result">
+            <div>
+                <strong>Stoğa dönen sağlam:</strong>
+                @item.GoodTotalUnits ürün
+            </div>
+
+            <div>
+                <strong>Hasarlı:</strong>
+                @item.DamagedUnitCount ürün (stoğa alınmadı)
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(item.InspectionNotes))
+            {
+                <div>
+                    <strong>Kontrol notu:</strong>
+                    @item.InspectionNotes
+                </div>
+            }
+
+            @foreach (var placement in item.Placements)
+            {
+                <div>
+                    <strong>Yerleştirilen:</strong>
+                    @placement.TotalUnits ürün
+                    — @placement.Pallet.Location
+                </div>
+
+                <span class="returns-meta">
+                    @placement.Pallet.Barcode
+                    · @placement.BoxCount kapalı koli
+                    · Koli içi @(placement.UnitsPerBox?.ToString() ?? "—")
+                    · @placement.LooseUnitCount ayrı ürün
+                    · @placement.CreatedAtUtc.AddHours(3).ToString("dd.MM.yyyy HH:mm")
+                </span>
+            }
+
+            @if (item.Placements.Count == 0 &&
+                 item.DestinationPallet is not null)
+            {
+                <div>
+                    <strong>Palet:</strong>
+                    @item.DestinationPallet.Barcode
+                </div>
+            }
+
+            @if (item.GoodTotalUnits == 0)
+            {
+                <p class="returns-note">
+                    Tamamı hasarlı olduğu için stok değişmedi.
+                </p>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="returns-note">
+            @(item.Status == ReturnInspectionStatus.Cancelled
+                ? "Bu iade iptal edildi."
+                : "Kontrolü paketleme veya kontrol yetkisi olan kullanıcı tamamlayabilir.")
+        </p>
+    }
+</details>

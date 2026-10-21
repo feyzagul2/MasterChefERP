@@ -1,0 +1,516 @@
+@model List<MasterChefTakip.Models.Shipment>
+@using MasterChefTakip.Models
+@using System.Globalization
+
+@{
+    Layout = null;
+
+    var culture = CultureInfo.GetCultureInfo("tr-TR");
+
+    var products =
+        ViewData["LabelProducts"] as Dictionary<string, Product>
+        ?? new Dictionary<string, Product>(
+            StringComparer.OrdinalIgnoreCase);
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>MASTER CHEF — Sevkiyat etiketleri</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 16px;
+            background: #f1f5f9;
+            color: #18365f;
+            font-family: Arial, sans-serif;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-width: 800px;
+            margin: 0 auto 16px;
+            font-size: 13px;
+        }
+
+        .print-button {
+            min-height: 44px;
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 7px;
+            background: #18365f;
+            color: white;
+            cursor: pointer;
+        }
+
+        .label {
+            max-width: 800px;
+            margin: 0 auto 20px;
+            padding: 22px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            overflow-wrap: anywhere;
+        }
+
+        .label-header {
+            padding-bottom: 14px;
+            border-bottom: 2px solid #18365f;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+
+        .label-title {
+            margin: 7px 0;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .number {
+            margin: 0;
+            font-size: 11px;
+        }
+
+        h2 {
+            margin: 18px 0 10px;
+            font-size: 16px;
+        }
+
+        .info {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px 18px;
+            margin: 16px 0;
+        }
+
+        .info dt {
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .info dd {
+            margin: 4px 0 0;
+            font-size: 13px;
+            white-space: pre-line;
+        }
+
+        .address {
+            grid-column: 1 / -1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th, td {
+            padding: 9px;
+            border: 1px solid #cbd5e1;
+            text-align: left;
+            vertical-align: top;
+            overflow-wrap: anywhere;
+        }
+
+        th {
+            background: #edf2f8;
+            font-size: 11px;
+        }
+
+        td {
+            font-size: 12px;
+        }
+
+        .product-column {
+            width: 38%;
+        }
+
+        .details-column {
+            width: 42%;
+        }
+
+        .quantity-column {
+            width: 20%;
+        }
+
+        .product-name {
+            font-weight: bold;
+        }
+
+        .code {
+            margin-top: 5px;
+            font-size: 10px;
+        }
+
+        .feature {
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+
+        .feature:last-child {
+            margin-bottom: 0;
+        }
+
+        .quantity {
+            font-weight: bold;
+        }
+
+        .total {
+            margin: 14px 0 0;
+            padding-top: 12px;
+            border-top: 1px solid #cbd5e1;
+            font-size: 14px;
+        }
+
+        .note {
+            margin: 12px 0 0;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-line;
+        }
+
+        @@media (max-width: 600px) {
+            body {
+                padding: 8px;
+            }
+
+            .label {
+                padding: 12px;
+            }
+
+            .info {
+                gap: 10px;
+            }
+
+            th, td {
+                padding: 6px;
+                font-size: 10px;
+            }
+
+            .code {
+                font-size: 9px;
+            }
+
+            .product-column {
+                width: 34%;
+            }
+
+            .details-column {
+                width: 44%;
+            }
+
+            .quantity-column {
+                width: 22%;
+            }
+        }
+
+        @@page {
+            size: A4;
+            margin: 12mm;
+        }
+
+        @@media print {
+            body {
+                padding: 0;
+                background: white;
+                color: black;
+            }
+
+            .toolbar {
+                display: none;
+            }
+
+            .label {
+                max-width: none;
+                margin: 0;
+                padding: 14px;
+                break-after: page;
+            }
+
+            .label:last-child {
+                break-after: auto;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            tr, .info > div, .label-header {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toolbar">
+        <span>@Model.Count sevkiyat etiketi</span>
+
+        <button type="button"
+                class="print-button"
+                onclick="window.print()">
+            Yazdır / PDF olarak kaydet
+        </button>
+    </div>
+
+    @foreach (var shipment in Model)
+    {
+        var status = shipment.Status switch
+        {
+            ShipmentStatus.Draft => "Taslak",
+            ShipmentStatus.Confirmed => "Gönderime hazır",
+            ShipmentStatus.Shipped => "Gönderildi",
+            ShipmentStatus.Delivered => "Teslim edildi",
+            ShipmentStatus.Cancelled => "İptal edildi",
+            _ => "Bilinmeyen durum"
+        };
+
+        var knownTotal = shipment.Items.All(i =>
+            i.BoxCount == 0 || i.UnitsPerBox is > 0);
+
+        var totalUnits = shipment.Items.Sum(i =>
+            (long)i.BoxCount * (i.UnitsPerBox ?? 0)
+            + i.LooseUnitCount);
+
+        <article class="label">
+            <header class="label-header">
+                <h1>MASTER CHEF</h1>
+                <p class="label-title">SEVKİYAT ETİKETİ</p>
+                <p class="number">@shipment.Number</p>
+            </header>
+
+            <dl class="info">
+                <div>
+                    <dt>Alıcı / işletme</dt>
+                    <dd>@shipment.RecipientName</dd>
+                </div>
+
+                <div>
+                    <dt>Telefon</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(shipment.RecipientPhone)
+                        ? "—" : shipment.RecipientPhone)</dd>
+                </div>
+
+                <div class="address">
+                    <dt>Teslimat adresi</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(shipment.DeliveryAddress)
+                        ? "—" : shipment.DeliveryAddress)</dd>
+                </div>
+
+                <div>
+                    <dt>Kargo firması</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(shipment.CargoCompany)
+                        ? "—" : shipment.CargoCompany)</dd>
+                </div>
+
+                <div>
+                    <dt>Takip numarası</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(shipment.TrackingNumber)
+                        ? "—" : shipment.TrackingNumber)</dd>
+                </div>
+
+                <div>
+                    <dt>Durum</dt>
+                    <dd>@status</dd>
+                </div>
+            </dl>
+
+            <h2>Gönderilen ürünler</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col" class="product-column">
+                            Ürün
+                        </th>
+                        <th scope="col" class="details-column">
+                            Ürün özellikleri
+                        </th>
+                        <th scope="col" class="quantity-column">
+                            Gönderilen adet
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var group in shipment.Items.GroupBy(i =>
+                        new { i.ProductCode, i.ProductName }))
+                    {
+                        products.TryGetValue(
+                            group.Key.ProductCode,
+                            out var product);
+
+                        var known = group.All(i =>
+                            i.BoxCount == 0 || i.UnitsPerBox is > 0);
+
+                        var units = group.Sum(i =>
+                            (long)i.BoxCount * (i.UnitsPerBox ?? 0)
+                            + i.LooseUnitCount);
+
+                        <tr>
+                            <td>
+                                <div class="product-name">
+                                    @group.Key.ProductName
+                                </div>
+
+                                <div class="code">
+                                    Kod: @group.Key.ProductCode
+                                </div>
+                            </td>
+
+                            <td>
+                                @if (product is not null)
+                                {
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        product.PackagingType))
+                                    {
+                                        <div class="feature">
+                                            <strong>Ambalaj:</strong>
+                                            @product.PackagingType
+                                        </div>
+                                    }
+
+                                    @if (product.DefaultUnitNetWeightGrams
+                                        is decimal weight)
+                                    {
+                                        <div class="feature">
+                                            <strong>Birim net ağırlık:</strong>
+                                            @(weight.ToString("#,##0.###", culture)) g
+                                        </div>
+                                    }
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        product.Barcode))
+                                    {
+                                        <div class="feature">
+                                            <strong>Barkod no:</strong>
+                                            @product.Barcode
+                                        </div>
+                                    }
+
+                                    @if (string.IsNullOrWhiteSpace(
+                                            product.PackagingType) &&
+                                        product.DefaultUnitNetWeightGrams
+                                            is null &&
+                                        string.IsNullOrWhiteSpace(
+                                            product.Barcode))
+                                    {
+                                        <span>—</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span>—</span>
+                                }
+                            </td>
+
+                            <td class="quantity">
+                                @(known
+                                    ? units.ToString("N0", culture) + " adet"
+                                    : "Miktar doğrulanmalı")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+                        @if (shipment.Packages.Count > 0)
+            {
+                <h2>Koli içerikleri</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width:18%">
+                                Koli
+                            </th>
+                            <th scope="col" style="width:62%">
+                                İçindeki ürünler
+                            </th>
+                            <th scope="col" style="width:20%">
+                                Toplam adet
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var package in shipment.Packages
+                            .OrderBy(p => p.Number))
+                        {
+                            var packageTotal = package.Items.Sum(
+                                item => (long)item.Quantity);
+
+                            <tr>
+                                <td>
+                                    <strong>@(package.Number). koli</strong>
+                                </td>
+
+                                <td>
+                                    @foreach (var group in package.Items
+                                        .GroupBy(item => new
+                                        {
+                                            item.ShipmentItem.ProductCode,
+                                            item.ShipmentItem.ProductName
+                                        })
+                                        .OrderBy(group => group.Key.ProductName))
+                                    {
+                                        var quantity = group.Sum(
+                                            item => (long)item.Quantity);
+
+                                        <div class="feature">
+                                            @group.Key.ProductName
+                                            —
+                                            <strong>
+                                                @quantity.ToString("N0", culture)
+                                                adet
+                                            </strong>
+                                            <div class="code">
+                                                Kod: @group.Key.ProductCode
+                                            </div>
+                                        </div>
+                                    }
+                                </td>
+
+                                <td class="quantity">
+                                    @packageTotal.ToString("N0", culture) adet
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+                       <p class="total">
+                <strong>Sevkiyat toplamı:</strong>
+
+                @if (shipment.Packages.Count > 0)
+                {
+                    <span>@shipment.Packages.Count koli · </span>
+                }
+
+                @(knownTotal
+                    ? totalUnits.ToString("N0", culture) + " adet ürün"
+                    : "Miktar doğrulanmalı")
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(shipment.Notes))
+            {
+                <p class="note"><strong>Not:</strong> @shipment.Notes</p>
+            }
+        </article>
+    }
+</body>
+</html>

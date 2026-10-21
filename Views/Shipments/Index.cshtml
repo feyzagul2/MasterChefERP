@@ -1,0 +1,959 @@
+@using MasterChefTakip.Models
+@using MasterChefTakip.Services
+@model MasterChefTakip.ViewModels.ShipmentIndexViewModel
+
+@{
+    ViewData["Title"] = "Sevkiyat";
+}
+
+<style>
+    .shipment-page {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        margin: 0;
+        color: #18365f;
+    }
+
+    .shipment-page,
+    .shipment-page * {
+        box-sizing: border-box;
+    }
+
+    .shipment-page .page-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .shipment-page h1 {
+        margin: 0 0 6px;
+        font-size: 28px;
+    }
+
+    .shipment-page h2 {
+        margin: 0;
+        font-size: 16px;
+    }
+
+    .shipment-page .description {
+        margin: 0;
+        color: #64748b;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .shipment-page .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 8px 12px;
+        border-radius: 7px;
+        font-size: 13px;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .shipment-page .btn-dark {
+        background: #18365f;
+        border-color: #18365f;
+    }
+
+    .shipment-page .btn-dark:hover {
+        background: #244b7d;
+        border-color: #244b7d;
+    }
+
+    .shipment-page .surface {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        margin: 0 0 14px;
+        border: 1px solid #d3ddeb;
+        border-radius: 10px;
+        background: white;
+        overflow: hidden;
+    }
+
+    .shipment-page .surface-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px 14px;
+        background: #f7f9fc;
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .shipment-page .sp-summary {
+        padding: 12px 14px;
+        background: #f7f9fc;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .shipment-page details.surface[open] > .sp-summary {
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .shipment-page .sp-count {
+        margin-left: 8px;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 400;
+    }
+
+    .shipment-page .form-body {
+        padding: 14px;
+    }
+
+    .shipment-page .sp-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .shipment-page .sp-wide {
+        grid-column: 1 / -1;
+    }
+
+    .shipment-page .form-label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .shipment-page .form-control,
+    .shipment-page .form-select {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        border-color: #d8e1ed;
+        border-radius: 7px;
+        font-size: 16px;
+    }
+
+    .shipment-page textarea.form-control {
+        resize: vertical;
+    }
+
+    .shipment-page .sp-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .shipment-page .sp-selected-body {
+        min-width: 0;
+        padding: 12px;
+    }
+
+    .shipment-page .sp-selected-body .surface {
+        margin-bottom: 0;
+    }
+
+    .shipment-page .code {
+        display: block;
+        margin-top: 3px;
+        color: #64748b;
+        font-size: 11px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+    .shipment-page .text-danger {
+        font-size: 13px;
+    }
+
+    .shipment-page .validation-summary-valid {
+        display: none;
+    }
+
+    .shipment-page :focus-visible {
+        outline: 2px solid #80a6e6;
+        outline-offset: 2px;
+    }
+
+    @@media (max-width: 767px) {
+        .shipment-page .sp-form-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .shipment-page .page-heading {
+            align-items: flex-start;
+        }
+
+        .shipment-page h1 {
+            font-size: 24px;
+        }
+
+        .shipment-page .sp-selected-body {
+            padding: 8px;
+        }
+
+        .shipment-page .sp-actions {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .shipment-page .sp-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+
+
+<div class="shipment-page">
+    <header class="page-heading">
+        <div>
+            <h1>Sevkiyat</h1>
+            <p class="description">
+                Ürünleri ve çıkış paletini seçin.
+                Sevkiyatı onayladığınızda stok düşer.
+            </p>
+        </div>
+
+        @if (OperationAuthorization.Can(User, AppPermissions.ShipmentsManage))
+{
+<a asp-controller="Shipments"
+           asp-action="Index"
+           asp-route-form="new"
+           class="btn btn-dark">
+            + Yeni sevkiyat
+        </a>
+}
+    </header>
+
+    @if (TempData["ShipmentSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">
+            @success
+        </div>
+    }
+
+    @if (TempData["ShipmentError"] is string error)
+    {
+        <div class="alert alert-warning" role="alert">
+            @error
+        </div>
+    }
+
+    @if (Model.ShowForm && OperationAuthorization.Can(User, AppPermissions.ShipmentsManage))
+    {
+        <details class="surface" open>
+            <summary class="sp-summary">
+                Yeni sevkiyat bilgileri
+            </summary>
+
+            <div class="form-body">
+                <form asp-controller="Shipments"
+                      asp-action="Create"
+                      method="post">
+
+                    <div asp-validation-summary="All"
+                         class="text-danger"
+                         role="alert"></div>
+
+                    <div class="sp-form-grid">
+                        <div class="sp-wide">
+                            <label asp-for="Form.RecipientName"
+                                   class="form-label">
+                                Alıcı / işletme adı
+                            </label>
+
+                            <input asp-for="Form.RecipientName"
+                                   class="form-control"
+                                   maxlength="200"
+                                   required />
+
+                            <span asp-validation-for="Form.RecipientName"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div>
+    <label asp-for="Form.RecipientPhone" class="form-label">
+        Alıcı telefonu (isteğe bağlı)
+    </label>
+    <input asp-for="Form.RecipientPhone"
+           class="form-control"
+           type="tel"
+           maxlength="50"
+           autocomplete="tel" />
+    <span asp-validation-for="Form.RecipientPhone"
+          class="text-danger"></span>
+</div>
+
+<div class="sp-wide">
+    <label asp-for="Form.DeliveryAddress" class="form-label">
+        Teslimat adresi (isteğe bağlı)
+    </label>
+    <textarea asp-for="Form.DeliveryAddress"
+              class="form-control"
+              rows="2"
+              maxlength="500"
+              autocomplete="street-address"></textarea>
+    <span asp-validation-for="Form.DeliveryAddress"
+          class="text-danger"></span>
+</div>
+
+<div>
+                            <label asp-for="Form.CargoCompany"
+                                   class="form-label">
+                                Kargo firması
+                            </label>
+
+                            <input asp-for="Form.CargoCompany"
+                                   class="form-control"
+                                   maxlength="100" />
+
+                            <span asp-validation-for="Form.CargoCompany"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="Form.TrackingNumber"
+                                   class="form-label">
+                                Takip numarası
+                            </label>
+
+                            <input asp-for="Form.TrackingNumber"
+                                   class="form-control"
+                                   maxlength="100" />
+
+                            <span asp-validation-for="Form.TrackingNumber"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="sp-wide">
+                            <label asp-for="Form.Notes"
+                                   class="form-label">
+                                Not (isteğe bağlı)
+                            </label>
+
+                            <textarea asp-for="Form.Notes"
+                                      class="form-control"
+                                      rows="2"
+                                      maxlength="500"></textarea>
+
+                            <span asp-validation-for="Form.Notes"
+                                  class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="sp-actions">
+                        <button type="submit" class="btn btn-dark">
+                            Taslağı oluştur ve ürünleri seç
+                        </button>
+
+                        <a asp-controller="Shipments"
+                           asp-action="Index"
+                           class="btn btn-outline-secondary">
+                            Vazgeç
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </details>
+    }
+
+    <details class="surface" open>
+        <summary class="sp-summary">
+            Sevkiyat listesi
+            <span class="sp-count">
+                @Model.Shipments.Count kayıt
+            </span>
+        </summary>
+
+        <partial name="_ShipmentList" model="Model" />
+    </details>
+
+    @if (Model.SelectedShipment is not null)
+    {
+        <details class="surface" id="selected-shipment" open>
+            <summary class="sp-summary">
+                Seçili sevkiyat — @Model.SelectedShipment.RecipientName
+            </summary>
+
+
+            <div class="sp-selected-body">
+                @if (Model.SelectedShipment.Status == ShipmentStatus.Draft)
+                {
+                    <div id="shipment-edit-panel" class="shipment-edit-details" style="margin-bottom:18px" hidden>
+                        
+
+                        <form asp-controller="Shipments" asp-action="UpdateDetails" method="post" style="margin-top:18px">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="shipmentId" value="@Model.SelectedShipment.Id" />
+                            <input type="hidden" name="concurrencyStamp" value="@Model.SelectedShipment.ConcurrencyStamp" />
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Alıcı / Müşteri Adı</label>
+                                    <input class="form-control" name="recipientName" maxlength="200" required value="@Model.SelectedShipment.RecipientName" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Telefon</label>
+                                    <input class="form-control" name="recipientPhone" maxlength="50" value="@Model.SelectedShipment.RecipientPhone" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Teslimat Adresi</label>
+                                    <textarea class="form-control" name="deliveryAddress" maxlength="500" rows="3">@Model.SelectedShipment.DeliveryAddress</textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Kargo Firması</label>
+                                    <input class="form-control" name="cargoCompany" maxlength="100" value="@Model.SelectedShipment.CargoCompany" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Kargo Takip Numarası</label>
+                                    <input class="form-control" name="trackingNumber" maxlength="100" value="@Model.SelectedShipment.TrackingNumber" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Notlar</label>
+                                    <textarea class="form-control" name="notes" maxlength="500" rows="2">@Model.SelectedShipment.Notes</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">Bilgileri Kaydet</button>
+                                    <button type="button"
+                                            class="btn btn-outline-secondary"
+                                            onclick="document.getElementById('shipment-edit-panel').hidden=true">
+                                        Kapat
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                }
+                <partial name="_ShipmentBatch" model="Model" />
+            </div>
+        </details>
+    }
+</div>
+<style>
+    #shipment-label-dialog {
+        width: min(960px, calc(100vw - 24px));
+        max-width: none;
+        height: min(850px, calc(100dvh - 24px));
+        max-height: none;
+        padding: 0;
+        border: 1px solid #d3ddeb;
+        border-radius: 10px;
+        background: white;
+        color: #18365f;
+    }
+
+    #shipment-label-dialog::backdrop {
+        background: rgb(15 23 42 / 55%);
+    }
+
+    #shipment-label-dialog .label-preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 14px;
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    #shipment-label-dialog .label-preview-header h2 {
+        margin: 0;
+        font-size: 16px;
+    }
+
+    #shipment-label-dialog .label-preview-close {
+        min-height: 44px;
+        padding: 8px 14px;
+        border: 1px solid #d3ddeb;
+        border-radius: 7px;
+        background: white;
+        color: #18365f;
+        cursor: pointer;
+    }
+
+    #shipment-label-dialog .label-preview-frame {
+        display: block;
+        width: 100%;
+        height: calc(100% - 65px);
+        border: 0;
+    }
+</style>
+
+<dialog id="shipment-label-dialog"
+        aria-labelledby="shipment-label-dialog-title">
+    <div class="label-preview-header">
+        <h2 id="shipment-label-dialog-title">
+            Etiket önizlemesi
+        </h2>
+
+        <button type="button"
+                class="label-preview-close"
+                id="shipment-label-dialog-close">
+            Kapat
+        </button>
+    </div>
+
+    <iframe id="shipment-label-frame"
+            class="label-preview-frame"
+            title="Seçilen sevkiyatların etiketleri">
+    </iframe>
+</dialog>
+
+<script>
+    (() => {
+        const form = document.getElementById("shipment-label-selection");
+        const dialog = document.getElementById("shipment-label-dialog");
+        const frame = document.getElementById("shipment-label-frame");
+        const close = document.getElementById("shipment-label-dialog-close");
+
+        if (!form || !dialog || !frame || !close) return;
+
+        let previousFocus = null;
+
+        form.addEventListener("submit", event => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            const selected = [
+                ...form.querySelectorAll(
+                    'input[name="ids"]:checked')
+            ];
+
+            if (selected.length === 0 || selected.length > 100) {
+                alert("1 ile 100 arasında sevkiyat seçin.");
+                return;
+            }
+
+            const url = new URL(form.action, window.location.href);
+            url.search = "";
+
+            selected.forEach(input => {
+                url.searchParams.append("ids", input.value);
+            });
+
+            previousFocus = document.activeElement;
+            frame.src = url.href;
+            dialog.showModal();
+        }, true);
+
+        close.addEventListener("click", () => {
+            dialog.close();
+        });
+
+        dialog.addEventListener("close", () => {
+            frame.src = "about:blank";
+            previousFocus?.focus();
+        });
+    })();
+</script>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+            const form = document.getElementById("shipment-label-selection");
+            if (!form) return;
+
+            const all = document.getElementById("shipment-select-all");
+            const button = document.getElementById("shipment-print-selected");
+            const count = document.getElementById("shipment-selected-count");
+            const boxes = [...form.querySelectorAll("[data-shipment-label]")];
+            const search = document.getElementById("shipment-search");
+
+            if (!all || !button || !count) return;
+
+            function visibleBoxes() {
+                return boxes.filter(box =>
+                    !box.closest("tr").hidden);
+            }
+
+            function update() {
+                const selected = boxes.filter(box => box.checked).length;
+                const visible = visibleBoxes();
+
+                count.textContent = selected;
+                button.disabled = selected === 0 || selected > 100;
+
+                all.disabled = visible.length === 0;
+                all.checked = visible.length > 0 &&
+                    visible.every(box => box.checked);
+
+                all.indeterminate = !all.checked &&
+                    visible.some(box => box.checked);
+            }
+
+            // Arama kodu üst seçim kutusunu yönetiyorsa
+            // onun stopImmediatePropagation kontrolü korunur.
+            all.addEventListener("change", () => {
+                const checked = all.checked;
+                const visible = new Set(visibleBoxes());
+                let selected = 0;
+
+                boxes.forEach(box => {
+                    box.checked = checked &&
+                        visible.has(box) &&
+                        selected < 100;
+
+                    if (box.checked) selected++;
+                });
+
+                update();
+            });
+
+            boxes.forEach(box => {
+                box.addEventListener("change", () => {
+                    if (boxes.filter(item => item.checked).length > 100) {
+                        box.checked = false;
+                        alert("En fazla 100 sevkiyat seçebilirsiniz.");
+                    }
+
+                    update();
+                });
+            });
+
+            search?.addEventListener("input", update);
+
+            form.addEventListener("submit", event => {
+                const selected = boxes.filter(box => box.checked).length;
+
+                if (selected === 0 || selected > 100) {
+                    event.preventDefault();
+                    alert("1 ile 100 arasında sevkiyat seçin.");
+                }
+            });
+
+            update();
+        })();
+
+        (() => {
+            const form = document.getElementById("batchShipmentForm");
+            const rows = document.getElementById("batchRows");
+            const template = document.getElementById("batchRowTemplate");
+            const addButton = document.getElementById("addBatchRow");
+            const saveButton = document.getElementById("saveBatchShipment");
+            const totalMessage = document.getElementById("batchTotal");
+
+            if (!form || !rows || !template ||
+                !addButton || !saveButton || !totalMessage) return;
+
+            let incomplete = true;
+            let submitting = false;
+            const initiallyDisabled = saveButton.disabled;
+
+            const integer = value => {
+                const raw = String(value ?? "").trim();
+                const number = Number(raw);
+
+                return raw !== "" &&
+                    Number.isSafeInteger(number) &&
+                    number >= 0 ? number : null;
+            };
+
+            function update() {
+                const groups = new Map();
+                let totalUnits = 0;
+
+                incomplete =
+                    rows.querySelectorAll(".batch-row").length === 0;
+
+                rows.querySelectorAll(".batch-row").forEach(row => {
+                    const stock = row.querySelector(
+                        '[data-field="PalletItemId"]');
+
+                    const type = row.querySelector(
+                        '[data-field="QuantityType"]');
+
+                    const quantity = row.querySelector(
+                        '[data-field="Quantity"]');
+
+                    const message = row.querySelector(
+                        "[data-batch-calculation]");
+
+                    stock.setCustomValidity("");
+                    type.setCustomValidity("");
+                    quantity.setCustomValidity("");
+                    message.classList.remove("invalid");
+
+                    function invalid(input, text) {
+                        input.setCustomValidity(text);
+                        message.textContent = text;
+                        message.classList.add("invalid");
+                        incomplete = true;
+                    }
+
+                    if (!stock.value) {
+                        invalid(stock, "Ürün ve çıkış paletini seçin.");
+                        return;
+                    }
+
+                    const option = stock.selectedOptions[0];
+
+                    if (!option ||
+                        !Object.hasOwn(option.dataset, "boxes")) {
+                        invalid(
+                            stock,
+                            "Bu stok artık kullanılamıyor. Yeni stok seçin.");
+                        return;
+                    }
+
+                    const capacity = integer(option.dataset.capacity);
+                    const boxes = integer(option.dataset.boxes) ?? 0;
+                    const loose = integer(option.dataset.loose) ?? 0;
+                    const open = integer(option.dataset.open) ?? 0;
+                    const count = integer(quantity.value);
+                    const isBox = type.value === "2";
+
+                    if (type.value !== "1" && type.value !== "2") {
+                        invalid(type, "Adet veya depodaki tam koli seçin.");
+                        return;
+                    }
+
+                    if (isBox && (capacity === null || capacity <= 0)) {
+                        invalid(
+                            type,
+                            "Tam koli çıkışı için stok koli içi adedi bilinmeli.");
+                        return;
+                    }
+
+                    if (count === null || count <= 0) {
+                        invalid(quantity, "Miktar en az 1 olmalıdır.");
+                        return;
+                    }
+
+                    const units = isBox ? count * capacity : count;
+
+                    if (!Number.isSafeInteger(units) ||
+                        count > 2147483647 ||
+                        units > 2147483647) {
+                        invalid(
+                            quantity,
+                            "Ürün miktarı desteklenen sınırı aşıyor.");
+                        return;
+                    }
+
+                    const known = capacity !== null && capacity > 0;
+                    const available =
+                        loose + open + (known ? boxes * capacity : 0);
+
+                    message.textContent = isBox
+                        ? `${count} depodaki koli × ${capacity} adet = ${units} ürün.`
+                        : `${count} ürün gönderilecek.`;
+
+                    message.textContent += known
+                        ? ` Mevcut: ${available} ürün; ${boxes} kapalı koli.`
+                        : ` Adet çıkışında kullanılabilir: ${available} ürün. Kapalı koli kapasitesi bilinmiyor.`;
+
+                    if (!groups.has(stock.value)) {
+                        groups.set(stock.value, {
+                            boxes,
+                            available,
+                            outgoingBoxes: 0,
+                            outgoingUnits: 0,
+                            rows: []
+                        });
+                    }
+
+                    const group = groups.get(stock.value);
+
+                    group.outgoingBoxes += isBox ? count : 0;
+                    group.outgoingUnits += units;
+                    group.rows.push({ quantity, message });
+
+                    totalUnits += units;
+                });
+
+                groups.forEach(group => {
+                    let error = "";
+
+                    if (group.outgoingBoxes > group.boxes) {
+                        error =
+                            `Bu stokta ${group.boxes} kapalı koli var. Toplam koli seçimi fazla.`;
+                    } else if (group.outgoingUnits > group.available) {
+                        error =
+                            `Bu stoktan ${group.outgoingUnits} ürün isteniyor; ${group.available} ürün kullanılabilir.`;
+                    }
+
+                    if (error) {
+                        incomplete = true;
+
+                        group.rows.forEach(row => {
+                            row.quantity.setCustomValidity(error);
+                            row.message.textContent += " " + error;
+                            row.message.classList.add("invalid");
+                        });
+                    }
+                });
+
+                totalMessage.textContent = incomplete
+                    ? "Ürün seçimlerini ve miktarları kontrol edin. Stok henüz değişmedi."
+                    : `Gönderilecek toplam: ${totalUnits} ürün. Onayladığınızda stoktan düşecek.`;
+            }
+
+            function reindex() {
+                const current = rows.querySelectorAll(".batch-row");
+
+                current.forEach((row, index) => {
+                    row.querySelectorAll("[data-field]").forEach(input => {
+                        input.name =
+                            `Batch.Rows[${index}].${input.dataset.field}`;
+
+                        input.id =
+                            `batch-${index}-${input.dataset.field}`;
+
+                        const label =
+                            input.parentElement.querySelector("label");
+
+                        if (label) label.htmlFor = input.id;
+                    });
+
+                    row.querySelectorAll("[data-valmsg-for]").forEach(span => {
+                        span.dataset.valmsgFor =
+                            span.dataset.valmsgFor.replace(
+                                /Batch\.Rows\[\d+\]/,
+                                `Batch.Rows[${index}]`);
+                    });
+
+                    const remove = row.querySelector("[data-remove-row]");
+                    if (remove) remove.disabled = current.length <= 1;
+                });
+
+                addButton.disabled = current.length >= 100;
+                update();
+            }
+
+            addButton.addEventListener("click", () => {
+                if (submitting ||
+                    rows.querySelectorAll(".batch-row").length >= 100) return;
+
+                rows.appendChild(template.content.cloneNode(true));
+                reindex();
+
+                rows.lastElementChild
+                    ?.querySelector('[data-field="PalletItemId"]')
+                    ?.focus();
+            });
+
+            rows.addEventListener("click", event => {
+                const button = event.target.closest("[data-remove-row]");
+
+                if (submitting || !button ||
+                    rows.querySelectorAll(".batch-row").length <= 1) return;
+
+                button.closest(".batch-row").remove();
+                reindex();
+            });
+
+            rows.addEventListener("input", update);
+            rows.addEventListener("change", update);
+
+            if (window.jQuery) {
+                const $form = window.jQuery(form);
+                const validator = $form.data("validator");
+
+                if (validator) {
+                    validator.destroy();
+                    $form.removeData("unobtrusiveValidation");
+                }
+            }
+
+            form.removeAttribute("novalidate");
+
+            form.addEventListener("submit", event => {
+                if (submitting || initiallyDisabled) {
+                    event.preventDefault();
+                    return;
+                }
+
+                reindex();
+
+                if (!form.reportValidity() || incomplete) {
+                    event.preventDefault();
+                    return;
+                }
+
+                if (!confirm(
+                    totalMessage.textContent +
+                    "\nSevkiyatı onaylıyor musunuz?")) {
+                    event.preventDefault();
+                    return;
+                }
+
+                submitting = true;
+                saveButton.disabled = true;
+                saveButton.textContent = "Kaydediliyor...";
+            });
+
+            window.addEventListener("pageshow", event => {
+                if (event.persisted) window.location.reload();
+            });
+
+            reindex();
+        })();
+    </script>
+}
+<style>
+.shipment-edit-details {
+    border: 1px solid #dce4ef;
+    border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+}
+.shipment-edit-details > summary {
+    display: list-item;
+    padding: 14px 18px;
+    font-size: 14px;
+    font-weight: 600 !important;
+    line-height: 1.5;
+    color: #18365f;
+    cursor: pointer;
+    background: #f8fafc;
+}
+.shipment-edit-details > form {
+    padding: 18px;
+}
+</style>
+
+
+<script>
+(function () {
+    function showShipmentEditPanel() {
+        if (window.location.hash !== "#shipment-edit-panel") return;
+
+        const panel = document.getElementById("shipment-edit-panel");
+        if (!panel) return;
+
+        panel.hidden = false;
+
+        requestAnimationFrame(() => {
+            panel.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            showShipmentEditPanel
+        );
+    } else {
+        showShipmentEditPanel();
+    }
+
+    window.addEventListener(
+        "hashchange",
+        showShipmentEditPanel
+    );
+})();
+</script>

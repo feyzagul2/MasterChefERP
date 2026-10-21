@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-MasterChefTakip-1e3cded4-79a0-4e26-9a46-b64c5820eff8</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.12" />
+  </ItemGroup>
+  <ItemGroup Label="MasterChefTakipPublishExclusions">
+    <Content Update="**/*.db" CopyToPublishDirectory="Never" />
+    <None Update="**/*.db" CopyToPublishDirectory="Never" />
+    <Content Update="**/*.db-shm" CopyToPublishDirectory="Never" />
+    <None Update="**/*.db-shm" CopyToPublishDirectory="Never" />
+    <Content Update="**/*.db-wal" CopyToPublishDirectory="Never" />
+    <None Update="**/*.db-wal" CopyToPublishDirectory="Never" />
+    <Content Update="**/*.bak" CopyToPublishDirectory="Never" />
+    <None Update="**/*.bak" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+</Project>

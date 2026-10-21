@@ -1,0 +1,75 @@
+@using MasterChefTakip.Models
+@using MasterChefTakip.ViewModels
+@model PalletIndexViewModel
+
+@{
+    var pallet = Model.SelectedPallet!;
+    var transfer = new PalletTransferViewModel
+    {
+        SourcePalletId = pallet.Id,
+
+        Stocks = Model.Items
+            .Where(s => s.Product.IsActive
+                && (s.BoxCount > 0
+                    || s.LooseUnitCount > 0
+                    || s.OpenBoxUnitCount > 0))
+            .OrderBy(s => s.Product.Name)
+            .ThenBy(s => s.Id)
+            .Select(s => new PalletTransferStockOption
+            {
+                Id = s.Id,
+                PalletId = s.PalletId,
+                Label = $"{s.Product.Name} · {s.Product.Code} "
+                    + $"· Stok #{s.Id}",
+                ConcurrencyStamp = s.ConcurrencyStamp,
+                BoxCount = s.BoxCount,
+                IndividualUnits =
+                    (long)s.LooseUnitCount + s.OpenBoxUnitCount,
+                UnitsPerBox = s.UnitsPerBox
+            })
+            .ToList(),
+
+        Destinations = Model.Pallets
+            .Where(p => p.IsActive
+                && !p.IsCancelled
+                && p.Id != pallet.Id)
+            .OrderBy(p => p.Location)
+            .ThenBy(p => p.Id)
+            .ToList()
+    };
+}
+
+@if (TempData["PalletTransferSuccess"] is string success)
+{
+    <div class="alert alert-success" role="status">
+        @success
+    </div>
+}
+
+<details class="transfer-page"
+         style="max-width:none;border:1px solid #dce4ef;border-radius:8px">
+    <summary style="padding:12px;font-weight:600;cursor:pointer">
+        Ürünü başka palete taşı
+    </summary>
+
+    <div class="transfer-card" style="border:0">
+        <p class="transfer-note">
+            Bu paletten hedef palete aktarılır. Toplam stok değişmez.
+        </p>
+
+        @if (transfer.Stocks.Count == 0)
+        {
+            <p>Bu palette taşınabilecek ürün bulunmuyor.</p>
+        }
+        else if (transfer.Destinations.Count == 0)
+        {
+            <p>
+                Taşıma için başka bir aktif palet gerekiyor.
+            </p>
+        }
+        else
+        {
+            <partial name="_PalletTransferForm" model="transfer" />
+        }
+    </div>
+</details>

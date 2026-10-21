@@ -1,0 +1,253 @@
+@using MasterChefTakip.Models
+@using MasterChefTakip.Services
+@using MasterChefTakip.ViewModels
+@model PalletIndexViewModel
+
+@{
+    var transferHistory =
+        ViewData["PalletTransferHistory"] as List<HistoryEntry>
+        ?? new List<HistoryEntry>();
+
+    var timeline = Model.Movements
+        .Select(m => (
+            Date: m.CreatedAtUtc,
+            Id: m.Id,
+            Movement: (PalletMovementViewModel?)m,
+            Transfer: (HistoryEntry?)null))
+        .Concat(transferHistory.Select(t => (
+            Date: t.CreatedAtUtc,
+            Id: t.Id,
+            Movement: (PalletMovementViewModel?)null,
+            Transfer: (HistoryEntry?)t)))
+        .OrderByDescending(row => row.Date)
+        .ThenByDescending(row => row.Id)
+        .ToList();
+
+    var turkeyTimeZone =
+        TimeZoneInfo.FindSystemTimeZoneById("Turkey Standard Time");
+}
+
+<style>
+    .pallet-history .timeline-table {
+        width: 100%;
+        min-width: 0 !important;
+        table-layout: fixed;
+    }
+
+    .pallet-history .timeline-table th,
+    .pallet-history .timeline-table td {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        vertical-align: top;
+    }
+
+    .pallet-history .timeline-table th:nth-child(1) { width: 15%; }
+    .pallet-history .timeline-table th:nth-child(2) { width: 21%; }
+    .pallet-history .timeline-table th:nth-child(3) { width: 19%; }
+    .pallet-history .timeline-table th:nth-child(4) { width: 19%; }
+    .pallet-history .timeline-table th:nth-child(5) { width: 13%; }
+    .pallet-history .timeline-table th:nth-child(6) { width: 13%; }
+
+    .timeline-muted {
+        display: block;
+        margin-top: 4px;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .timeline-details summary {
+        cursor: pointer;
+        color: #18365f;
+    }
+
+    .timeline-details p {
+        margin: 8px 0;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
+
+    .timeline-edit {
+        margin-top: 8px;
+    }
+
+    .timeline-transfer {
+        display: inline-block;
+        padding: 4px 7px;
+        border-radius: 6px;
+        background: #edf4fb;
+    }
+</style>
+
+<section class="pallet-surface">
+    <details class="pallet-history">
+        <summary class="pallet-history-heading">
+            <span>Paletin işlem geçmişi</span>
+            <span class="record-count">@timeline.Count işlem</span>
+        </summary>
+
+        <div class="pallet-history-body">
+            @if (timeline.Count == 0)
+            {
+                <div class="empty-state">
+                    Bu palete ait işlem bulunmuyor.
+                </div>
+            }
+            else
+            {
+                <table class="pallet-table timeline-table">
+                    <caption class="visually-hidden">
+                        Paletin stok hareketleri ve paletler arası taşımalar
+                    </caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Tarih / saat</th>
+                            <th scope="col">Ürün</th>
+                            <th scope="col">İşlem</th>
+                            <th scope="col">Miktar</th>
+                            <th scope="col">Personel</th>
+                            <th scope="col">Ayrıntı / işlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in timeline)
+                        {
+                            var localDate = TimeZoneInfo.ConvertTimeFromUtc(
+                                DateTime.SpecifyKind(row.Date, DateTimeKind.Utc),
+                                turkeyTimeZone);
+
+                            var movement = row.Movement;
+                            var transfer = row.Transfer;
+
+                            <tr>
+                                <td data-label="Tarih / saat">
+                                    <span>@localDate.ToString("dd.MM.yyyy HH:mm")</span>
+                                </td>
+
+                                <td data-label="Ürün">
+                                    <div>
+                                        <strong>
+                                            @(transfer?.ProductName
+                                                ?? movement!.ProductName)
+                                        </strong>
+                                        <small class="timeline-muted">
+                                            @(transfer?.ProductCode
+                                                ?? movement!.ProductCode)
+                                        </small>
+                                    </div>
+                                </td>
+
+                                <td data-label="İşlem">
+                                    @if (transfer is not null)
+                                    {
+                                        <span class="timeline-transfer">
+                                            @(transfer.EventKey.EndsWith(":out")
+                                                ? "Başka palete taşındı"
+                                                : "Başka paletten alındı")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span>@movement!.TypeLabel</span>
+                                    }
+                                </td>
+
+                                <td data-label="Miktar">
+                                    <div>
+                                        @if (transfer is not null)
+                                        {
+                                            @transfer.Quantity
+                                        }
+                                        else
+                                        {
+                                            var known = movement!.BoxCount == 0
+                                                || movement.UnitsPerBox is > 0;
+
+                                            var total = (long)movement.BoxCount
+                                                * (movement.UnitsPerBox ?? 0)
+                                                + movement.LooseUnitCount;
+
+                                            @if (movement.BoxCount > 0)
+                                            {
+                                                <span>
+                                                    @movement.BoxCount koli
+                                                    + @movement.LooseUnitCount adet
+                                                </span>
+                                                <small class="timeline-muted">
+                                                    @(known
+                                                        ? $"Toplam {total} ürün"
+                                                        : "Koli içi adet bilinmiyor")
+                                                </small>
+                                            }
+                                            else
+                                            {
+                                                <span>@movement.LooseUnitCount adet</span>
+                                            }
+                                        }
+                                    </div>
+                                </td>
+
+                                <td data-label="Personel">
+                                    <span>
+                                        @(transfer is not null
+                                            ? string.IsNullOrWhiteSpace(transfer.UserName)
+                                                ? "İsimsiz kullanıcı"
+                                                : transfer.UserName
+                                            : movement!.CreatedByName)
+                                    </span>
+                                </td>
+
+                                <td data-label="Ayrıntı / işlem">
+                                    <div>
+                                        <details class="timeline-details"
+                                                 name="pallet-history-row">
+                                            <summary>Detay</summary>
+
+                                            @if (transfer is not null)
+                                            {
+                                                <p><strong>Paletler:</strong> @transfer.Reference</p>
+                                                <p><strong>Önce:</strong> @transfer.BeforeValue</p>
+                                                <p><strong>Sonra:</strong> @transfer.AfterValue</p>
+
+                                                @if (!string.IsNullOrWhiteSpace(transfer.Notes))
+                                                {
+                                                    <p>@transfer.Notes</p>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <p><strong>Koli içi adet:</strong> @(movement!.UnitsPerBox?.ToString() ?? "Bilinmiyor")</p>
+                                                <p>@(string.IsNullOrWhiteSpace(movement.Notes)
+                                                    ? "Ek açıklama bulunmuyor."
+                                                    : movement.Notes)</p>
+                                            }
+                                        </details>
+
+                                        @if (movement is not null
+                                            && movement.CanCorrect
+                                            && OperationAuthorization.Can(
+                                                User, AppPermissions.StockManage))
+                                        {
+                                            <button type="button"
+                                                class="btn btn-outline-secondary timeline-edit"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#receiptCorrectionModal"
+                                                data-movement-id="@movement.Id"
+                                                data-product-id="@movement.ProductId"
+                                                data-units-per-box="@movement.UnitsPerBox"
+                                                data-box-count="@movement.BoxCount"
+                                                data-unit-count="@movement.LooseUnitCount"
+                                                data-stamp="@movement.ConcurrencyStamp"
+                                                data-product-name="@movement.ProductName">
+                                                Düzenle
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </details>
+</section>

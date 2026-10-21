@@ -1,0 +1,314 @@
+@* DailyHistoryCompactV1 *@
+@using System.Globalization
+@using System.Security.Claims
+@using MasterChefTakip.Models
+@using MasterChefTakip.Services
+@model List<HistoryEntry>
+
+@{
+    var culture = CultureInfo.GetCultureInfo("tr-TR");
+    var currentUserId = User.FindFirst(
+        ClaimTypes.NameIdentifier)?.Value;
+
+    var today = DateTime.UtcNow.AddHours(3)
+        .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    var entries = Model
+        .OrderByDescending(entry => entry.CreatedAtUtc)
+        .ThenByDescending(entry => entry.Id)
+        .Take(5)
+        .ToList();
+
+    var canViewShipments = OperationAuthorization.Can(
+        User, AppPermissions.ShipmentsView);
+
+    var canViewPallets = OperationAuthorization.Can(
+        User, AppPermissions.PalletsView);
+}
+
+<style>
+    .pd-daily-compact {
+        margin: 0 0 14px;
+        border: 1px solid #d8e1ed;
+        border-radius: 8px;
+        background: white;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .pd-daily-empty {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    .pd-daily-empty p {
+        margin: 0;
+        color: #64748b;
+    }
+
+    .pd-daily-empty strong {
+        color: #18365f;
+    }
+
+    .pd-daily-compact > summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 48px;
+        padding: 10px 14px;
+        background: #f7f9fc;
+        color: #18365f;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .pd-daily-compact > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .pd-daily-compact > summary > span:first-child::before {
+        content: "▸";
+        margin-right: 8px;
+    }
+
+    .pd-daily-compact[open] > summary > span:first-child::before {
+        content: "▾";
+    }
+
+    .pd-daily-compact[open] > summary {
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .pd-daily-count {
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 400;
+        white-space: nowrap;
+    }
+
+    .pd-daily-row {
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr) minmax(0, 180px);
+        align-items: start;
+        gap: 10px;
+        padding: 10px 14px;
+        border-bottom: 1px solid #e5eaf1;
+        font-size: 13px;
+    }
+
+    .pd-daily-row > div,
+    .pd-daily-quantity {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .pd-daily-time,
+    .pd-daily-product {
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .pd-daily-product {
+        margin-top: 3px;
+    }
+
+    .pd-daily-quantity {
+        text-align: right;
+    }
+
+    .pd-daily-detail {
+        margin-top: 4px;
+        font-size: 12px;
+    }
+
+    .pd-daily-detail > summary {
+        display: list-item;
+        width: fit-content;
+        min-height: 36px;
+        padding: 8px 0;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .pd-daily-detail p {
+        margin: 6px 0;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
+
+    .pd-daily-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .pd-daily-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 4px 0;
+        color: #18365f;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        font-size: 13px;
+    }
+
+    .pd-daily-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 6px 14px;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    @@media (max-width: 600px) {
+        .pd-daily-row {
+            grid-template-columns: 42px minmax(0, 1fr);
+            gap: 8px;
+            padding: 10px 12px;
+        }
+
+        .pd-daily-quantity {
+            grid-column: 2;
+            text-align: left;
+            font-size: 12px;
+        }
+    }
+</style>
+
+@if (entries.Count == 0)
+{
+    <div class="pd-daily-compact pd-daily-empty" role="status">
+        <p>
+            <strong>Bugün yaptıklarım:</strong>
+            Henüz işlem kaydın yok.
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(currentUserId))
+        {
+            <a class="pd-daily-link"
+               asp-controller="History"
+               asp-action="Index"
+               asp-route-userId="@currentUserId"
+               asp-route-start="@today"
+               asp-route-end="@today">
+                Geçmişi aç
+            </a>
+        }
+    </div>
+}
+else
+{
+    <details class="pd-daily-compact">
+        <summary>
+            <span>Bugün yaptıklarım</span>
+            <span class="pd-daily-count">
+                Son @entries.Count kayıt
+            </span>
+        </summary>
+
+        @foreach (var entry in entries)
+        {
+            <div class="pd-daily-row">
+                <time class="pd-daily-time"
+                      datetime="@(DateTime.SpecifyKind(
+                          entry.CreatedAtUtc, DateTimeKind.Utc).ToString("O"))">
+                    @(entry.CreatedAtUtc.AddHours(3)
+                        .ToString("HH:mm", culture))
+                </time>
+
+                <div>
+                    <span>@entry.Title</span>
+
+                    @if (!string.IsNullOrWhiteSpace(entry.ProductName))
+                    {
+                        <div class="pd-daily-product">
+                            @entry.ProductName
+                        </div>
+                    }
+
+                    <details class="pd-daily-detail"
+                             name="pd-daily-entry">
+                        <summary>Ayrıntı</summary>
+
+                        @if (!string.IsNullOrWhiteSpace(entry.Reference))
+                        {
+                            <p>@entry.Reference</p>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(entry.Notes))
+                        {
+                            <p>@entry.Notes</p>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(entry.BeforeValue))
+                        {
+                            <p><strong>Önce:</strong> @entry.BeforeValue</p>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(entry.AfterValue))
+                        {
+                            <p><strong>Sonra:</strong> @entry.AfterValue</p>
+                        }
+
+                        <div class="pd-daily-links">
+                            @if (entry.ShipmentId is int shipmentId
+                                && canViewShipments)
+                            {
+                                <a class="pd-daily-link"
+                                   asp-controller="Shipments"
+                                   asp-action="Index"
+                                   asp-route-shipmentId="@shipmentId"
+                                   asp-fragment="selected-shipment">
+                                    Sevkiyatı aç
+                                </a>
+                            }
+
+                            @if (entry.PalletId is int palletId
+                                && canViewPallets)
+                            {
+                                <a class="pd-daily-link"
+                                   asp-controller="Pallets"
+                                   asp-action="Index"
+                                   asp-route-palletId="@palletId"
+                                   asp-fragment="pallet-content">
+                                    Paleti aç
+                                </a>
+                            }
+                        </div>
+                    </details>
+                </div>
+
+                <span class="pd-daily-quantity">@entry.Quantity</span>
+            </div>
+        }
+
+        <div class="pd-daily-footer">
+            <span>Bugünkü son 5 kayda kadar gösterilir.</span>
+
+            @if (!string.IsNullOrWhiteSpace(currentUserId))
+            {
+                <a class="pd-daily-link"
+                   asp-controller="History"
+                   asp-action="Index"
+                   asp-route-userId="@currentUserId"
+                   asp-route-start="@today"
+                   asp-route-end="@today">
+                    Bugünkü tüm işlemlerim
+                </a>
+            }
+        </div>
+    </details>
+}

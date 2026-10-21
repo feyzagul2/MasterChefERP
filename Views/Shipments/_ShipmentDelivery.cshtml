@@ -1,0 +1,97 @@
+@using MasterChefTakip.Services
+@model MasterChefTakip.Models.Shipment
+@using MasterChefTakip.Models
+
+<div class="form-body">
+    @if (Model.Status == ShipmentStatus.Confirmed && OperationAuthorization.Can(User, AppPermissions.ShipmentsManage))
+    {
+        <p class="description">
+            Gönderime hazır. Ürünler kargoya veya araca teslim edilince
+            aşağıdaki düğmeye basın.
+        </p>
+
+        <form asp-controller="Shipments"
+              asp-action="MarkShipped"
+              method="post">
+
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <input type="hidden"
+                   name="concurrencyStamp"
+                   value="@Model.ConcurrencyStamp" />
+
+            <button type="submit" class="btn btn-dark">
+                Gönderildi olarak kaydet
+            </button>
+        </form>
+    }
+    else if (Model.Status == ShipmentStatus.Shipped && OperationAuthorization.Can(User, AppPermissions.ShipmentsManage))
+    {
+        <p class="description">
+            Gönderildi:
+            @(Model.ShippedAtUtc?.AddHours(3).ToString("dd.MM.yyyy HH:mm"))
+        </p>
+
+        <details>
+            <summary>Müşteriye teslimi kaydet</summary>
+
+            <form asp-controller="Shipments"
+                  asp-action="MarkDelivered"
+                  method="post"
+                  style="margin-top:12px;">
+
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <input type="hidden"
+                       name="concurrencyStamp"
+                       value="@Model.ConcurrencyStamp" />
+
+                <div style="margin-bottom:12px;">
+                    <label for="delivered-to-@Model.Id" class="form-label">
+                        Teslim alan kişi
+                    </label>
+
+                    <input id="delivered-to-@Model.Id"
+                           name="deliveredToName"
+                           class="form-control"
+                           maxlength="200"
+                           required />
+                </div>
+
+                <div style="margin-bottom:12px;">
+                    <label for="delivery-notes-@Model.Id" class="form-label">
+                        Teslim notu (isteğe bağlı)
+                    </label>
+
+                    <textarea id="delivery-notes-@Model.Id"
+                              name="deliveryNotes"
+                              class="form-control"
+                              rows="2"
+                              maxlength="500"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-dark">
+                    Teslim edildi olarak kaydet
+                </button>
+            </form>
+        </details>
+
+        <p class="description" style="margin-top:12px;">
+            Gönderilen ürünler geri gelirse İade ve Hasar bölümünden kaydedin.
+        </p>
+    }
+    else if (Model.Status == ShipmentStatus.Delivered)
+    {
+        <p>
+            <strong>Teslim edildi</strong>
+            · @(Model.DeliveredAtUtc?.AddHours(3).ToString("dd.MM.yyyy HH:mm"))
+        </p>
+
+        <p>Teslim alan: @Model.DeliveredToName</p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.DeliveryNotes))
+        {
+            <p>@Model.DeliveryNotes</p>
+        }
+    }
+</div>

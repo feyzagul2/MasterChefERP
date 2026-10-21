@@ -1,0 +1,825 @@
+@using MasterChefTakip.Services
+@model MasterChefTakip.ViewModels.ShipmentIndexViewModel
+@using MasterChefTakip.Models
+
+<style>
+    .shipment-page .sl-searchbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .shipment-page .sl-search {
+        width: 100%;
+        min-width: 0;
+        height: 40px;
+        padding: 8px 10px;
+        border: 1px solid #d3ddeb;
+        border-radius: 7px;
+        color: #18365f;
+        background: white;
+        font-size: 16px;
+    }
+
+    .shipment-page .sl-results {
+        flex-shrink: 0;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .shipment-page .sl-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 6px 12px;
+    }
+
+    .shipment-page .sl-check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 36px;
+        margin: 0;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .shipment-page .sl-check input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: #18365f;
+    }
+
+    .shipment-page .sl-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 6px 9px;
+        border: 1px solid #d3ddeb;
+        border-radius: 7px;
+        background: white;
+        color: #18365f;
+        font-size: 12px;
+        font-weight: 400;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .shipment-page .sl-print {
+        background: #18365f;
+        border-color: #18365f;
+        color: white;
+    }
+
+    .shipment-page .sl-print:disabled {
+        opacity: .55;
+    }
+
+    .shipment-page .sl-table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    .shipment-page .sl-table th {
+        padding: 9px 12px;
+        background: #edf2f8;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    .shipment-page .sl-table td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #e5eaf1;
+        vertical-align: middle;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .shipment-page .sl-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .shipment-page .sl-table .sl-selection {
+        text-align: center;
+        padding-inline: 6px;
+    }
+
+    .shipment-page .sl-current {
+        background: #f5f8fd;
+    }
+
+    .shipment-page .sl-name {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .shipment-page .sl-code {
+        display: block;
+        margin-top: 2px;
+        color: #64748b;
+        font-size: 10px;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+    }
+
+    .shipment-page .sl-status {
+        display: inline-block;
+        padding: 4px 6px;
+        border-radius: 6px;
+        background: #eef2f7;
+        font-size: 11px;
+        line-height: 1.4;
+    }
+
+    .shipment-page .sl-ready,
+    .shipment-page .sl-delivered {
+        color: #23735b;
+        background: #edf7f2;
+    }
+
+    .shipment-page .sl-shipped {
+        color: #2458a4;
+        background: #edf3ff;
+    }
+
+    .shipment-page .sl-cancelled {
+        color: #9f3030;
+        background: #fff0f0;
+    }
+
+    .shipment-page .sl-mobile-label {
+        display: none;
+    }
+
+    .shipment-page .sl-empty {
+        margin: 0;
+        padding: 14px;
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .shipment-page #shipment-label-selection [hidden] {
+        display: none !important;
+    }
+
+    @@media (min-width: 768px) {
+        .shipment-page .sl-table {
+            display: table;
+        }
+
+        .shipment-page .sl-table thead {
+            display: table-header-group;
+        }
+
+        .shipment-page .sl-table tbody {
+            display: table-row-group;
+        }
+
+        .shipment-page .sl-table tr {
+            display: table-row;
+        }
+
+        .shipment-page .sl-table th,
+        .shipment-page .sl-table td {
+            display: table-cell;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .shipment-page .sl-table,
+        .shipment-page .sl-table tbody {
+            display: block;
+            width: 100%;
+        }
+
+        .shipment-page .sl-table colgroup,
+        .shipment-page .sl-table thead {
+            display: none;
+        }
+
+        .shipment-page .sl-table tr {
+            display: grid;
+            grid-template-columns: 36px minmax(0, 1fr) 88px;
+            grid-template-areas:
+                "check recipient recipient"
+                "check cargo tracking"
+                "check status action";
+            align-items: center;
+            gap: 3px 8px;
+            margin: 0;
+            padding: 8px 10px;
+            border-top: 1px solid #e5eaf1;
+        }
+
+        .shipment-page .sl-table td {
+            display: block;
+            width: auto;
+            min-width: 0;
+            padding: 0;
+            border: 0;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .shipment-page .sl-table td::before {
+            display: none !important;
+        }
+
+        .shipment-page .sl-table .sl-selection {
+            grid-area: check;
+            align-self: start;
+            padding: 0;
+        }
+
+        .shipment-page .sl-recipient {
+            grid-area: recipient;
+        }
+
+        .shipment-page .sl-cargo {
+            grid-area: cargo;
+        }
+
+        .shipment-page .sl-tracking {
+            grid-area: tracking;
+        }
+
+        .shipment-page .sl-state {
+            grid-area: status;
+        }
+
+        .shipment-page .sl-action {
+            grid-area: action;
+        }
+
+        .shipment-page .sl-mobile-label {
+            display: inline;
+            color: #64748b;
+            font-size: 10px;
+        }
+
+        .shipment-page .sl-code {
+            margin: 1px 0 3px;
+            font-size: 9px;
+        }
+
+        .shipment-page .sl-status {
+            font-size: 10px;
+        }
+
+        .shipment-page .sl-table .sl-button {
+            width: 100%;
+            min-height: 44px;
+            padding: 4px 6px;
+            font-size: 11px;
+        }
+
+        .shipment-page .sl-check {
+            min-height: 44px;
+            font-size: 11px;
+        }
+
+        .shipment-page .sl-selection .sl-check {
+            width: 36px;
+        }
+
+        .shipment-page .sl-toolbar .sl-button {
+            min-height: 44px;
+            font-size: 11px;
+        }
+
+        .shipment-page .sl-search {
+            height: 44px;
+        }
+    }
+    /* ShipmentListFrontendV2 */
+    .shipment-page .sl-searchbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 185px auto;
+        gap: 8px;
+    }
+
+    .shipment-page .sl-status-filter {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        padding: 8px;
+        border: 1px solid #d3ddeb;
+        border-radius: 7px;
+        color: #18365f;
+        background: white;
+        font-size: 14px;
+    }
+
+    .shipment-page .sl-search {
+        min-height: 44px;
+    }
+
+    .shipment-page .sl-reference {
+        margin-top: 3px;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .shipment-page .sl-reference summary {
+        width: fit-content;
+        padding: 4px 0;
+        cursor: pointer;
+    }
+
+    .shipment-page .sl-reference .sl-code {
+        font-size: 12px;
+        padding: 5px 0;
+        overflow-wrap: anywhere;
+    }
+
+    .shipment-page .sl-button {
+        min-height: 44px;
+    }
+
+    @@media (max-width: 767px) {
+        .shipment-page .sl-searchbar {
+            grid-template-columns: minmax(0, 1fr) auto;
+        }
+
+        .shipment-page .sl-search {
+            grid-column: 1 / -1;
+        }
+
+        .shipment-page .sl-results {
+            text-align: right;
+        }
+
+        .shipment-page .sl-table tr {
+            grid-template-columns: 36px minmax(0, 1fr) 100px;
+            grid-template-areas:
+                "check recipient recipient"
+                "check cargo cargo"
+                "check tracking tracking"
+                "check status action";
+            gap: 5px 8px;
+        }
+
+        .shipment-page .sl-table td {
+            font-size: 13px;
+        }
+
+        .shipment-page .sl-name {
+            font-size: 14px;
+        }
+
+        .shipment-page .sl-status {
+            font-size: 12px;
+        }
+    }
+
+/* MC_SHIPMENT_PAGING_V1 */
+.sl-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 18px 12px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.sl-pagination[hidden] {
+    display: none !important;
+}
+
+.sl-pagination .btn {
+    min-width: 38px;
+    min-height: 36px;
+}
+
+
+/* MC_SHIPMENT_PAGING_COMPACT */
+.sl-pagination {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px !important;
+    padding: 8px 14px !important;
+    border-top: 1px solid #e2e8f0;
+}
+
+.sl-pagination[hidden] {
+    display: none !important;
+}
+
+.sl-pagination .btn {
+    min-width: 28px !important;
+    min-height: 28px !important;
+    height: 28px !important;
+    padding: 3px 8px !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    border-radius: 6px !important;
+}
+
+</style>
+
+@if (Model.Shipments.Count == 0)
+{
+    <p class="sl-empty">Henüz sevkiyat kaydı bulunmuyor.</p>
+}
+else
+{
+    <form asp-controller="Shipments"
+          asp-action="Labels"
+          method="get"
+          id="shipment-label-selection">
+
+        <div class="sl-searchbar">
+            <input type="search"
+                   id="shipment-search"
+                   class="sl-search"
+                   placeholder="Alıcı, sevkiyat veya takip numarası ara"
+                   aria-label="Sevkiyat ara"
+                   autocomplete="off" />
+
+                        <select id="shipment-status-filter"
+                    class="sl-status-filter"
+                    aria-label="Sevkiyat durumuna göre filtrele">
+                <option value="">Bütün durumlar</option>
+                <option value="Draft">Taslak</option>
+                <option value="Confirmed">Gönderime hazır</option>
+                <option value="Shipped">Gönderildi</option>
+                <option value="Delivered">Teslim edildi</option>
+                <option value="Cancelled">İptal edildi</option>
+            </select>
+
+            <span id="shipment-search-count"
+                  class="sl-results"
+                  role="status"
+                  aria-live="polite">
+                @Model.Shipments.Count kayıt
+            </span>
+        </div>
+
+        @if (OperationAuthorization.Can(User, AppPermissions.ShipmentsLabels))
+{
+<div class="sl-toolbar">
+            <label class="sl-check">
+                <input type="checkbox" id="shipment-select-all" />
+                Etiketleri seç
+            </label>
+
+            <button type="submit"
+                    class="sl-button sl-print"
+                    id="shipment-print-selected"
+                    disabled>
+                Etiketleri yazdır
+                (<span id="shipment-selected-count">0</span>)
+            </button>
+        </div>
+}
+
+        <table class="sl-table">
+            <colgroup>
+                <col style="width:48px;" />
+                <col style="width:32%;" />
+                <col style="width:12%;" />
+                <col style="width:17%;" />
+                <col style="width:18%;" />
+                <col />
+            </colgroup>
+
+            <thead>
+                <tr>
+                    <th scope="col" class="sl-selection">
+                        Seç
+                    </th>
+                    <th scope="col">Sevkiyat / alıcı</th>
+                    <th scope="col">Kargo</th>
+                    <th scope="col">Takip numarası</th>
+                    <th scope="col">Durum</th>
+                    <th scope="col">İşlem</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var shipment in Model.Shipments)
+                {
+                    var printable = OperationAuthorization.Can(
+                        User, AppPermissions.ShipmentsLabels)
+                        && shipment.Status is (
+                            ShipmentStatus.Confirmed or
+                            ShipmentStatus.Shipped or
+                            ShipmentStatus.Delivered);
+
+                    var selected =
+                        Model.SelectedShipment?.Id == shipment.Id;
+
+                    var text = shipment.Status switch
+                    {
+                        ShipmentStatus.Draft => "Taslak",
+                        ShipmentStatus.Confirmed => "Gönderime hazır",
+                        ShipmentStatus.Shipped => "Gönderildi",
+                        ShipmentStatus.Delivered => "Teslim edildi",
+                        ShipmentStatus.Cancelled => "İptal edildi",
+                        _ => "Bilinmeyen durum"
+                    };
+
+                    var statusClass = shipment.Status switch
+                    {
+                        ShipmentStatus.Confirmed => "sl-ready",
+                        ShipmentStatus.Shipped => "sl-shipped",
+                        ShipmentStatus.Delivered => "sl-delivered",
+                        ShipmentStatus.Cancelled => "sl-cancelled",
+                        _ => ""
+                    };
+
+                    <tr class="@(selected ? "sl-current" : "")"
+                        data-shipment-row data-status="@shipment.Status"
+                        data-search="@($"{shipment.RecipientName} {shipment.Number} {shipment.TrackingNumber} {shipment.CargoCompany} {text}")">
+
+                        <td class="sl-selection">
+                            @if (printable)
+                            {
+                                <label class="sl-check">
+                                    <input type="checkbox"
+                                           name="ids"
+                                           value="@shipment.Id"
+                                           data-shipment-label
+                                           aria-label="@($"{shipment.RecipientName} etiketini seç")" />
+                                </label>
+                            }
+                            else
+                            {
+                                <span title="Bu durumdaki sevkiyatın etiketi seçilemez">
+                                    —
+                                </span>
+                            }
+                        </td>
+
+                        <td class="sl-recipient">
+                            <span class="sl-name">
+                                @shipment.RecipientName
+                            </span>
+                                                        <details class="sl-reference">
+                                <summary>Sevkiyat #@shipment.Id</summary>
+                                <span class="sl-code">@shipment.Number</span>
+                            </details>
+                        </td>
+
+                        <td class="sl-cargo">
+                            <span class="sl-mobile-label">Kargo: </span>
+                            @(string.IsNullOrWhiteSpace(shipment.CargoCompany)
+                                ? "—" : shipment.CargoCompany)
+                        </td>
+
+                        <td class="sl-tracking">
+                            <span class="sl-mobile-label">Takip: </span>
+                            @(string.IsNullOrWhiteSpace(shipment.TrackingNumber)
+                                ? "—" : shipment.TrackingNumber)
+                        </td>
+
+                        <td class="sl-state">
+                            <span class="sl-status @statusClass">
+                                @text
+                            </span>
+                        </td>
+
+                        <td class="sl-action">
+                            <a asp-controller="Shipments"
+                               asp-action="Index"
+                               asp-route-shipmentId="@shipment.Id"
+                               asp-fragment="selected-shipment"
+                               class="sl-button">
+                                İçeriği aç
+                            </a>
+                            @if (shipment.Status == ShipmentStatus.Draft)
+                            {
+                                <a asp-controller="Shipments"
+                                   asp-action="Index"
+                                   asp-route-shipmentId="@shipment.Id"
+                                   asp-fragment="shipment-edit-panel"
+                                   class="sl-button"
+                                   style="margin-left:6px">
+                                    Düzenle
+                                </a>
+                            }
+
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <p id="shipment-search-empty" class="sl-empty" hidden>
+            Aramanıza uygun sevkiyat bulunamadı.
+        </p>
+    </form>
+}
+
+<script>
+(() => {
+    const form = document.getElementById("shipment-label-selection");
+    const search = document.getElementById("shipment-search");
+    const status = document.getElementById("shipment-status-filter");
+    if (!form || !search || !status) return;
+
+    const rows = [...form.querySelectorAll("[data-shipment-row]")];
+    const boxes = [...form.querySelectorAll("[data-shipment-label]")];
+    const count = document.getElementById("shipment-search-count");
+    const empty = document.getElementById("shipment-search-empty");
+    const all = document.getElementById("shipment-select-all");
+    const selectedCount = document.getElementById("shipment-selected-count");
+    const printButton = document.getElementById("shipment-print-selected");
+
+    // MC_SHIPMENT_PAGING_V1
+    const pageSize = 20;
+    let currentPage = 1;
+    let filteredRows = [];
+
+    const pager = document.createElement("div");
+    pager.className = "sl-pagination";
+    pager.setAttribute("aria-label", "Sevkiyat sayfaları");
+
+    const table = form.querySelector("table");
+    if (table) {
+        table.insertAdjacentElement("afterend", pager);
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(filteredRows.length / pageSize);
+
+        currentPage = Math.max(
+            1,
+            Math.min(currentPage, Math.max(totalPages, 1))
+        );
+
+        rows.forEach(row => {
+            row.hidden = true;
+        });
+
+        filteredRows.forEach((row, index) => {
+            row.hidden =
+                index < (currentPage - 1) * pageSize
+                || index >= currentPage * pageSize;
+        });
+
+        pager.replaceChildren();
+
+        if (totalPages <= 1) {
+            pager.hidden = true;
+            updateSelection();
+            return;
+        }
+
+        pager.hidden = false;
+
+        function addButton(label, page, disabled = false, active = false) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = label;
+            button.className = active
+                ? "btn btn-primary btn-sm"
+                : "btn btn-outline-secondary btn-sm";
+
+            button.disabled = disabled;
+
+            if (active) {
+                button.setAttribute("aria-current", "page");
+            }
+
+            button.addEventListener("click", () => {
+                currentPage = page;
+                renderPagination();
+            });
+
+            pager.append(button);
+        }
+
+        addButton("Önceki", currentPage - 1, currentPage === 1);
+
+        for (let page = 1; page <= totalPages; page++) {
+            addButton(String(page), page, false, page === currentPage);
+        }
+
+        addButton(
+            "Sonraki",
+            currentPage + 1,
+            currentPage === totalPages
+        );
+
+        updateSelection();
+    }
+
+    function normalize(value) {
+        return String(value ?? "")
+            .toLocaleLowerCase("tr-TR")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/ı/g, "i");
+    }
+
+    function updateSelection() {
+        if (!all || !selectedCount || !printButton) return;
+
+        const selected = boxes.filter(box => box.checked).length;
+        const visible = boxes.filter(box =>
+            !box.closest("[data-shipment-row]").hidden);
+
+        selectedCount.textContent = selected;
+        printButton.disabled = selected === 0 || selected > 100;
+
+        all.disabled = visible.length === 0;
+        all.checked = visible.length > 0
+            && visible.every(box => box.checked);
+        all.indeterminate = !all.checked
+            && visible.some(box => box.checked);
+    }
+
+    function filter() {
+        const words = normalize(search.value)
+            .trim().split(/\s+/).filter(Boolean);
+
+        filteredRows = rows.filter(row => {
+            const text = normalize(
+                `${row.dataset.search} ${row.querySelector(".sl-reference summary")?.textContent ?? ""}`
+            );
+
+            return words.every(word => text.includes(word))
+                && (status.value === ""
+                    || row.dataset.status === status.value);
+        });
+
+        // Filtre değiştiğinde ilk sayfaya dön.
+        currentPage = 1;
+
+        count.textContent =
+            `${filteredRows.length} / ${rows.length} kayıt`;
+
+        empty.hidden = filteredRows.length > 0;
+        empty.textContent =
+            "Seçtiğiniz filtrelere uygun sevkiyat bulunamadı.";
+
+        renderPagination();
+    }
+
+    search.addEventListener("input", filter);
+    status.addEventListener("change", filter);
+
+    search.addEventListener("keydown", event => {
+        if (event.key === "Enter") event.preventDefault();
+    });
+
+    all?.addEventListener("change", event => {
+        event.stopImmediatePropagation();
+
+        const checked = all.checked;
+        let selected = 0;
+
+        boxes.forEach(box => {
+            const visible = !box.closest("[data-shipment-row]").hidden;
+            box.checked = checked && visible && selected < 100;
+            if (box.checked) selected++;
+        });
+
+        updateSelection();
+    });
+
+    boxes.forEach(box => {
+        box.addEventListener("change", event => {
+            event.stopImmediatePropagation();
+
+            if (boxes.filter(item => item.checked).length > 100) {
+                box.checked = false;
+                alert("En fazla 100 sevkiyat seçebilirsiniz.");
+            }
+
+            updateSelection();
+        });
+    });
+
+    form.addEventListener("submit", event => {
+        const selected = boxes.filter(box => box.checked).length;
+
+        if (!printButton || selected === 0 || selected > 100) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            if (printButton) {
+                alert("Yazdırmak için 1 ile 100 arasında sevkiyat seçin.");
+            }
+        }
+    });
+
+    filter();
+})();
+</script>
+
+
+

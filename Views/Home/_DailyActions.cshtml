@@ -1,0 +1,107 @@
+@using System.Globalization
+@using System.Security.Claims
+@using MasterChefTakip.Models
+@using MasterChefTakip.Services
+@model MasterChefTakip.ViewModels.ProductionDashboardViewModel
+
+@{
+    var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    var today = Model.LocalDate.ToString(
+        "yyyy-MM-dd", CultureInfo.InvariantCulture);
+}
+
+<style>
+    .pd-daily-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .pd-daily-action {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+        min-height: 76px;
+        min-width: 0;
+        padding: 12px 14px;
+        border: 1px solid #d8e1ed;
+        border-radius: 8px;
+        background: white;
+        color: #18365f;
+        text-decoration: none;
+    }
+
+    .pd-daily-action strong { font-size: 14px; }
+    .pd-daily-action span { font-size: 12px; color: #64748b; }
+    .pd-daily-action:hover { background: #edf2f8; color: #18365f; }
+
+    @@media (max-width: 600px) {
+        .pd-daily-actions {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 7px;
+        }
+
+        .pd-daily-action { padding: 10px; }
+    }
+</style>
+
+<nav class="pd-daily-actions" aria-label="Günlük işlemler">
+    @if (OperationAuthorization.Can(User, AppPermissions.PackagingManage))
+    {
+        <a class="pd-daily-action"
+           asp-controller="Packaging" asp-action="Index">
+            <strong>Paketleme kaydet</strong>
+            <span>Yeni hazırlanan ürünleri stoğa ekle.</span>
+        </a>
+    }
+
+    @if (OperationAuthorization.Can(User, AppPermissions.ShipmentsManage))
+    {
+        <a class="pd-daily-action"
+           asp-controller="Shipments" asp-action="Index"
+           asp-route-form="new">
+            <strong>Sevkiyat hazırla</strong>
+            <span>Alıcı ve koli içeriklerini gir.</span>
+        </a>
+    }
+
+    @if (Model.CanViewStock)
+    {
+        <a class="pd-daily-action"
+           href="#pd-stock-panel" id="pd-find-stock">
+            <strong>Ürün / konum bul</strong>
+            <span>Ürünü ara, palet bilgilerini gör.</span>
+        </a>
+    }
+
+    @if (OperationAuthorization.Can(User, AppPermissions.HistoryView)
+        && !string.IsNullOrWhiteSpace(currentUserId))
+    {
+        <a class="pd-daily-action"
+           asp-controller="History" asp-action="Index"
+           asp-route-userId="@currentUserId"
+           asp-route-start="@today" asp-route-end="@today">
+            <strong>Bugün yaptıklarım</strong>
+            <span>Bugünkü kendi işlem kayıtlarını aç.</span>
+        </a>
+    }
+</nav>
+
+<script>
+(() => {
+    document.getElementById("pd-find-stock")
+        ?.addEventListener("click", event => {
+            const search = document.getElementById("pd-product-search");
+            const panel = document.getElementById("pd-stock-panel")
+                ?? search?.closest("details");
+            if (!panel || !search) return;
+
+            event.preventDefault();
+            panel.open = true;
+            panel.scrollIntoView({ behavior: "smooth", block: "start" });
+            search.focus({ preventScroll: true });
+        });
+})();
+</script>

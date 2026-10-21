@@ -1,0 +1,1102 @@
+@model MasterChefTakip.ViewModels.ReturnsIndexViewModel
+@using MasterChefTakip.Models
+@using MasterChefTakip.ViewModels
+@using Microsoft.AspNetCore.Mvc.ViewFeatures
+
+@{
+    ViewData["Title"] = "İade ve Hasar";
+
+    var damageOpen = ViewData.ModelState.Keys.Any(k =>
+        k.StartsWith("DamageForm", StringComparison.Ordinal));
+
+    var correctionForm =
+        ViewData["CorrectionForm"] as CorrectReturnQuantityViewModel;
+
+    var pageSize = Math.Max(1, Model.PageSize);
+
+    var pageCount = Math.Max(
+        1,
+        (int)Math.Ceiling((double)Model.TotalCount / pageSize));
+
+    var legacyOpen = Model.Returns.Any(i =>
+        Model.InspectionForm?.Id == i.Id ||
+        correctionForm?.Id == i.Id);
+
+    string ReceiptLabel(ReturnReceiptStatus status) => status switch
+    {
+        ReturnReceiptStatus.WaitingForInspection => "Kontrol bekliyor",
+        ReturnReceiptStatus.Inspecting => "Kontrol sürüyor",
+        ReturnReceiptStatus.WaitingForPlacement => "Yerleştirme bekliyor",
+        ReturnReceiptStatus.Completed => "Tamamlandı",
+        ReturnReceiptStatus.Cancelled => "İptal edildi",
+        _ => "Bilinmeyen durum"
+    };
+}
+
+<style>
+    .returns-page {
+        width: 100%;
+        max-width: 1000px;
+        min-width: 0;
+        margin-inline: auto;
+        color: #17365d;
+        overflow-wrap: anywhere;
+    }
+
+    .returns-page,
+    .returns-page * {
+        box-sizing: border-box;
+    }
+
+    .returns-page h1 {
+        margin-bottom: 8px;
+    }
+
+    .returns-description,
+    .returns-note,
+    .returns-meta {
+        color: #64748b;
+    }
+
+    .returns-description {
+        margin-bottom: 18px;
+    }
+
+    .returns-panel {
+        margin-bottom: 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    .returns-heading {
+        padding: 13px 16px;
+        background: #f6f8fb;
+        font-weight: 600;
+    }
+
+    .returns-body {
+        padding: 16px;
+    }
+
+    .returns-grid,
+    .returns-filter {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .returns-wide {
+        grid-column: 1 / -1;
+    }
+
+    .returns-field {
+        min-width: 0;
+    }
+
+    .returns-field label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 13px;
+    }
+
+    .returns-page input:not([type="hidden"]):not([type="checkbox"]),
+    .returns-page select,
+    .returns-page textarea {
+        width: 100%;
+        min-width: 0;
+        border: 1px solid #d5dfec;
+        border-radius: 7px;
+        padding: 9px 10px;
+        color: #17365d;
+        background: #fff;
+        font: inherit;
+    }
+
+    .returns-page input:not([type="hidden"]):not([type="checkbox"]),
+    .returns-page select {
+        min-height: 44px;
+    }
+
+    .returns-page input[type="checkbox"] {
+        width: auto;
+        min-height: 0;
+        margin-right: 6px;
+        accent-color: #17365d;
+    }
+
+    .returns-page textarea {
+        resize: vertical;
+    }
+
+    .returns-page input:focus,
+    .returns-page select:focus,
+    .returns-page textarea:focus {
+        outline: 2px solid #93b4e2;
+        outline-offset: 1px;
+    }
+
+    .returns-page .field-validation-error {
+        display: block;
+        color: #b42318;
+        margin-top: 4px;
+        font-size: 13px;
+    }
+
+    .returns-page .input-validation-error {
+        border-color: #b42318;
+    }
+
+    .returns-page .validation-summary-valid {
+        display: none;
+    }
+
+    .returns-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-top: 14px;
+    }
+
+    .returns-actions.end {
+        justify-content: flex-end;
+    }
+
+    .returns-note {
+        margin: 10px 0 0;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .returns-meta {
+        display: block;
+        margin-top: 4px;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .returns-card {
+        border: 1px solid #d5dfec;
+        border-radius: 8px;
+        padding: 13px;
+        margin-bottom: 12px;
+        min-width: 0;
+    }
+
+    .returns-card-top,
+    .returns-row-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .returns-row-heading {
+        margin-bottom: 10px;
+    }
+
+    .returns-badge {
+        display: inline-block;
+        padding: 5px 8px;
+        background: #edf2f8;
+        border-radius: 6px;
+        font-size: 12px;
+    }
+
+    .returns-badge.completed {
+        background: #eaf6f0;
+        color: #147658;
+    }
+
+    .returns-badge.cancelled {
+        background: #fff1f0;
+        color: #b42318;
+    }
+
+    .returns-page summary {
+        cursor: pointer;
+        overflow-wrap: anywhere;
+    }
+
+    .returns-item {
+        padding-top: 12px;
+        margin-top: 12px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .returns-item > summary {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .returns-item[open] > summary {
+        margin-bottom: 12px;
+    }
+
+    .returns-product-row {
+        padding: 12px;
+        margin-bottom: 10px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+    }
+
+    .returns-live {
+        padding: 10px 12px;
+        margin-top: 12px;
+        background: #edf2f8;
+        border-radius: 7px;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .returns-live.invalid {
+        background: #fff1f0;
+        color: #b42318;
+    }
+
+    .returns-result {
+        font-size: 13px;
+        line-height: 1.8;
+    }
+
+    .returns-page [hidden] {
+        display: none !important;
+    }
+
+    @@media (max-width: 600px) {
+        .returns-grid,
+        .returns-filter {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .returns-wide {
+            grid-column: auto;
+        }
+
+        .returns-body {
+            padding: 12px;
+        }
+
+        .returns-page input:not([type="hidden"]):not([type="checkbox"]),
+        .returns-page select,
+        .returns-page textarea {
+            font-size: 16px;
+        }
+
+        .returns-actions .btn {
+            width: 100%;
+            min-height: 44px;
+        }
+    }
+    /* ReturnsFrontendV2 */
+    .returns-page {
+        max-width: none;
+    }
+
+    .returns-page .returns-filter {
+        grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .returns-page .returns-description {
+        margin-bottom: 12px;
+    }
+
+    .returns-page .returns-body {
+        padding: 12px;
+    }
+
+    .returns-page .returns-card {
+        padding: 12px;
+    }
+
+    .returns-page .returns-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .returns-page .returns-item > summary {
+        padding: 8px 0;
+        min-height: 44px;
+    }
+
+    .returns-page .returns-reference {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .returns-page .returns-reference summary {
+        padding: 4px 0;
+    }
+
+    .returns-page .returns-result-summary {
+        display: block;
+        margin-top: 5px;
+        color: #17365d;
+        font-size: 13px;
+        font-weight: 400;
+    }
+
+    #returns-review {
+        width: min(700px, calc(100vw - 24px));
+        max-height: calc(100dvh - 32px);
+        padding: 0;
+        border: 1px solid #d5dfec;
+        border-radius: 12px;
+        color: #17365d;
+        overflow: auto;
+    }
+
+    #returns-review::backdrop {
+        background: rgb(15 23 42 / 50%);
+    }
+
+    #returns-review .rr-header,
+    #returns-review .rr-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px;
+        background: #f6f8fb;
+    }
+
+    #returns-review h2 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    #returns-review .rr-body {
+        padding: 14px;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+        line-height: 1.7;
+    }
+
+    #returns-review .rr-warning {
+        margin: 12px 0 0;
+        padding: 10px;
+        border-radius: 7px;
+        background: #fff8e6;
+        font-weight: 600;
+    }
+
+    #returns-review button {
+        min-height: 44px;
+    }
+
+    @@media (max-width: 900px) {
+        .returns-page .returns-filter {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .returns-page .returns-filter {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        #returns-review .rr-footer button {
+            flex: 1 1 100%;
+        }
+    }
+</style>
+
+
+
+<div class="returns-page">
+    <h1>İade ve Hasar</h1>
+
+    <p class="returns-description">
+        İadeyi kaydedin. Sağlam ve hasarlı ürünleri ayırın.
+        Sağlamları yerleştirdiğiniz paleti seçerek işlemi tamamlayın.
+    </p>
+
+    @if (TempData["ReturnSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">
+            @success
+        </div>
+    }
+
+    @if (TempData["ReturnError"] is string error)
+    {
+        <div class="alert alert-danger" role="alert">
+            @error
+        </div>
+    }
+
+    <div asp-validation-summary="All"
+         class="alert alert-danger"
+         role="alert"></div>
+
+    @if (Model.CanReceive)
+    {
+        @await Html.PartialAsync("_CreateReturnReceipt", Model)
+    }
+
+    @if (Model.CanRecordDamage)
+    {
+        <details class="returns-panel" open="@damageOpen">
+            <summary class="returns-heading">
+                Depoda oluşan hasar
+            </summary>
+
+            <div class="returns-body">
+                <form asp-controller="Returns"
+                      asp-action="Damage"
+                      method="post">
+
+                    <input asp-for="DamageForm.RequestId" type="hidden" />
+
+                    <div class="returns-grid">
+                        <div class="returns-field returns-wide">
+                            <label asp-for="DamageForm.PalletItemId">
+                                Hasarlı ürünün stok kaydı
+                            </label>
+
+                            <select asp-for="DamageForm.PalletItemId"
+                                    asp-items="Model.StockOptions"
+                                    required>
+                                <option value="">Ürün ve stok seçin</option>
+                            </select>
+
+                            <span asp-validation-for="DamageForm.PalletItemId"></span>
+                        </div>
+
+                        <div class="returns-field">
+                            <label asp-for="DamageForm.Quantity">
+                                Hasarlı ürün adedi
+                            </label>
+
+                            <input asp-for="DamageForm.Quantity"
+                                   type="number"
+                                   min="1"
+                                   max="2147483647"
+                                   step="1"
+                                   required />
+
+                            <span asp-validation-for="DamageForm.Quantity"></span>
+                        </div>
+
+                        <div class="returns-field returns-wide">
+                            <label asp-for="DamageForm.Reason">
+                                Hasar nedeni
+                            </label>
+
+                            <textarea asp-for="DamageForm.Reason"
+                                      rows="2"
+                                      maxlength="400"
+                                      required></textarea>
+
+                            <span asp-validation-for="DamageForm.Reason"></span>
+                        </div>
+                    </div>
+
+                    <p class="returns-note">
+                        Bu işlem depodaki mevcut stoktan düşer.
+                        Müşteriden hasarlı dönen iadeleri burada
+                        tekrar kaydetmeyin.
+                    </p>
+
+                    <div class="returns-actions end">
+                        <button type="submit"
+                                class="btn btn-outline-danger"
+                                disabled="@(Model.StockOptions.Count == 0)">
+                            Hasarı kaydet ve stoktan düş
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </details>
+    }
+
+    <section class="returns-panel">
+        <div class="returns-heading">
+            İade kayıtları — @Model.TotalCount kayıt
+        </div>
+
+        <div class="returns-body">
+            <form asp-controller="Returns"
+                  asp-action="Index"
+                  method="get">
+
+                <div class="returns-filter">
+                    <div class="returns-field">
+                        <label asp-for="Search">
+                            Müşteri / ürün / sevkiyat
+                        </label>
+
+                        <input asp-for="Search" type="search" />
+                    </div>
+
+                    <div class="returns-field">
+                        <label asp-for="StatusFilter">Durum</label>
+
+                        <select asp-for="StatusFilter">
+                            <option value="">Tüm durumlar</option>
+
+                            @foreach (var status in Enum.GetValues<ReturnReceiptStatus>())
+                            {
+                                <option value="@((int)status)">
+                                    @ReceiptLabel(status)
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="returns-field">
+                        <label asp-for="StartDate">Başlangıç tarihi</label>
+                        <input asp-for="StartDate" type="date" />
+                    </div>
+
+                    <div class="returns-field">
+                        <label asp-for="EndDate">Bitiş tarihi</label>
+                        <input asp-for="EndDate" type="date" />
+                    </div>
+                </div>
+
+                <div class="returns-actions">
+                    <button class="btn btn-outline-secondary"
+                            type="submit">
+                        Filtrele
+                    </button>
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+                        Temizle
+                    </a>
+                </div>
+            </form>
+
+            <div style="margin-top:16px;">
+                @if (Model.Receipts.Count == 0)
+                {
+                    <p class="returns-note">
+                        Bu filtrelere uygun iade kaydı bulunmuyor.
+                    </p>
+                }
+
+                @foreach (var receipt in Model.Receipts.OrderBy(r => r.Status == ReturnReceiptStatus.Completed || r.Status == ReturnReceiptStatus.Cancelled ? 1 : 0).ThenByDescending(r => r.CreatedAtUtc))
+                {
+                    var total = receipt.Items.Sum(i => (long)i.ReceivedUnits);
+
+                    var badgeClass =
+                        receipt.Status == ReturnReceiptStatus.Completed
+                            ? "completed"
+                            : receipt.Status == ReturnReceiptStatus.Cancelled
+                                ? "cancelled"
+                                : "";
+
+                    <article class="returns-card">
+                        <div class="returns-card-top">
+                            <div>
+                                <strong>
+                                    @receipt.Shipment.RecipientName
+                                </strong>
+
+                                                                <details class="returns-reference">
+                                    <summary>
+                                        İade #@receipt.Id
+                                        · Sevkiyat #@receipt.Shipment.Id
+                                    </summary>
+                                    @receipt.Shipment.Number
+                                </details>
+
+                                <span class="returns-meta">
+                                    @receipt.PackageCount dış paket
+                                    · @receipt.Items.Count ürün satırı
+                                    · @total ürün adedi
+                                </span>
+
+                                <span class="returns-meta">
+                                    @receipt.CreatedAtUtc.AddHours(3).ToString("dd.MM.yyyy HH:mm")
+                                </span>
+                            </div>
+
+                            <span class="returns-badge @badgeClass">
+                                @ReceiptLabel(receipt.Status)
+                            </span>
+                        </div>
+
+                        <p class="returns-note">
+                            <strong>İade nedeni:</strong>
+                            @receipt.Reason
+                        </p>
+
+                        @foreach (var item in receipt.Items.OrderBy(i => i.Id))
+                        {
+                            var itemData = new ViewDataDictionary(ViewData);
+                            itemData["ReturnItem"] = item;
+
+                            @await Html.PartialAsync(
+                                "_ReturnItem",
+                                Model,
+                                itemData)
+                        }
+
+                        @if (receipt.Status == ReturnReceiptStatus.Cancelled)
+                        {
+                            <p class="returns-note">
+                                <strong>İptal gerekçesi:</strong>
+                                @receipt.CancellationReason
+                            </p>
+                        }
+                        else if (
+                            Model.CanManage &&
+                            receipt.Status != ReturnReceiptStatus.Completed &&
+                            !receipt.Items.Any(i => i.Placements.Count > 0))
+                        {
+                            <details class="returns-item">
+                                <summary>İade kaydını iptal et</summary>
+
+                                <form asp-controller="Returns"
+                                      asp-action="CancelReceipt"
+                                      method="post">
+
+                                    <input type="hidden"
+                                           name="Id"
+                                           value="@receipt.Id" />
+
+                                    <input type="hidden"
+                                           name="ConcurrencyStamp"
+                                           value="@receipt.ConcurrencyStamp" />
+
+                                    <div class="returns-field">
+                                        <label for="cancel-reason-@receipt.Id">
+                                            İptal gerekçesi
+                                        </label>
+
+                                        <textarea id="cancel-reason-@receipt.Id"
+                                                  name="Reason"
+                                                  rows="2"
+                                                  maxlength="500"
+                                                  required></textarea>
+                                    </div>
+
+                                    <div class="returns-actions">
+                                        <button type="submit"
+                                                class="btn btn-outline-danger">
+                                            İadeyi iptal et
+                                        </button>
+                                    </div>
+                                </form>
+                            </details>
+                        }
+                    </article>
+                }
+            </div>
+
+            @if (pageCount > 1)
+            {
+                <div class="returns-actions">
+                    @if (Model.Page > 1)
+                    {
+                        <a asp-action="Index"
+                           asp-route-page="@(Model.Page - 1)"
+                           asp-route-search="@Model.Search"
+                           asp-route-statusFilter="@Model.StatusFilter"
+                           asp-route-startDate="@(Model.StartDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-endDate="@(Model.EndDate?.ToString("yyyy-MM-dd"))"
+                           class="btn btn-outline-secondary">
+                            Önceki
+                        </a>
+                    }
+
+                    <span>@Model.Page / @pageCount</span>
+
+                    @if (Model.Page < pageCount)
+                    {
+                        <a asp-action="Index"
+                           asp-route-page="@(Model.Page + 1)"
+                           asp-route-search="@Model.Search"
+                           asp-route-statusFilter="@Model.StatusFilter"
+                           asp-route-startDate="@(Model.StartDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-endDate="@(Model.EndDate?.ToString("yyyy-MM-dd"))"
+                           class="btn btn-outline-secondary">
+                            Sonraki
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </section>
+
+    @if (Model.Returns.Count > 0)
+    {
+        <details class="returns-panel" open="@legacyOpen">
+            <summary class="returns-heading">
+                Önceki iade kayıtları — @Model.Returns.Count kayıt
+            </summary>
+
+            <div class="returns-body">
+                @foreach (var item in Model.Returns)
+                {
+                    var itemData = new ViewDataDictionary(ViewData);
+                    itemData["ReturnItem"] = item;
+
+                    <article class="returns-card">
+                        <strong>
+                            @item.ShipmentItem.Shipment.RecipientName
+                        </strong>
+
+                        <span class="returns-meta">
+                            @item.ShipmentItem.Shipment.Number
+                            · İade #@item.Id
+                        </span>
+
+                        <p class="returns-note">@item.Reason</p>
+
+                        @await Html.PartialAsync(
+                            "_ReturnItem",
+                            Model,
+                            itemData)
+                    </article>
+                }
+            </div>
+        </details>
+    }
+</div>
+
+<script>
+(() => {
+    function integer(input) {
+        const raw = input.value.trim();
+        const value = Number(raw);
+
+        return raw !== "" &&
+            Number.isSafeInteger(value) &&
+            value >= 0 &&
+            value <= 2147483647
+                ? value
+                : null;
+    }
+
+    document.querySelectorAll("[data-inspection-form]").forEach(form => {
+        const good = form.querySelector(
+            '[name="InspectionForm.GoodUnits"]');
+
+        const damaged = form.querySelector(
+            '[name="InspectionForm.DamagedUnits"]');
+
+        const pallet = form.querySelector(
+            '[name="InspectionForm.DestinationPalletId"]');
+
+        const box = form.querySelector(
+            '[name="InspectionForm.GoodBoxCount"]');
+
+        const capacity = form.querySelector(
+            '[name="InspectionForm.PlacementUnitsPerBox"]');
+
+        const palletField = form.querySelector("[data-pallet-field]");
+        const boxDetails = form.querySelector("[data-box-details]");
+        const message = form.querySelector("[data-inspection-total]");
+        const received = Number(form.dataset.received);
+
+        if (!good || !damaged || !pallet || !box || !capacity ||
+            !palletField || !boxDetails || !message) {
+            return;
+        }
+
+        function update() {
+            const g = integer(good);
+            const d = integer(damaged);
+
+            good.setCustomValidity("");
+            damaged.setCustomValidity("");
+            pallet.setCustomValidity("");
+            box.setCustomValidity("");
+            capacity.setCustomValidity("");
+
+            const allDamaged = g === 0;
+
+            pallet.required = g !== null && g > 0;
+            pallet.disabled = allDamaged;
+            palletField.hidden = allDamaged;
+            boxDetails.hidden = allDamaged;
+
+            if (allDamaged) {
+                pallet.value = "";
+                box.value = "0";
+                capacity.value = "";
+            }
+
+            box.disabled = allDamaged;
+            capacity.disabled = allDamaged;
+
+            const b = allDamaged ? 0 : integer(box);
+            const c = allDamaged ? null : integer(capacity);
+
+            capacity.required = b !== null && b > 0;
+            message.classList.remove("invalid");
+
+            if (g === null || d === null) {
+                message.textContent =
+                    `Geri gelen: ${received} ürün. ` +
+                    "Sağlam ve hasarlı adetlerini girin.";
+                return;
+            }
+
+            if (g + d !== received) {
+                const difference = received - g - d;
+
+                const text = difference > 0
+                    ? `${difference} ürünün sonucu eksik. ` +
+                      `Sağlam ve hasarlı toplamı ${received} olmalı.`
+                    : `Toplam ${-difference} ürün fazla. ` +
+                      `Sağlam ve hasarlı toplamı ${received} olmalı.`;
+
+                damaged.setCustomValidity(text);
+                message.textContent = text;
+                message.classList.add("invalid");
+                return;
+            }
+
+            if (b === null || (b > 0 && (c === null || c < 1))) {
+                const text =
+                    "Kapalı koli sayısını ve koli içi adedini kontrol edin.";
+
+                if (b === null)
+                    box.setCustomValidity(text);
+                else
+                    capacity.setCustomValidity(text);
+
+                boxDetails.open = true;
+                message.textContent = text;
+                message.classList.add("invalid");
+                return;
+            }
+
+            const boxedUnits = b * (c || 0);
+
+            if (!Number.isSafeInteger(boxedUnits) || boxedUnits > g) {
+                const text =
+                    "Kolilerdeki ürün miktarı sağlam miktarı aşamaz.";
+
+                box.setCustomValidity(text);
+                boxDetails.open = true;
+                message.textContent = text;
+                message.classList.add("invalid");
+                return;
+            }
+
+            if (g === 0) {
+                message.textContent =
+                    `${d} ürünün tamamı hasarlı. ` +
+                    "Palet seçilmez; stok değişmez.";
+                return;
+            }
+
+            const loose = g - boxedUnits;
+
+            message.textContent = b > 0
+                ? `Stoğa eklenecek: ${g} sağlam ürün ` +
+                  `(${b} kapalı koli × ${c} + ${loose} ayrı ürün). ` +
+                  `${d} hasarlı ürün stoğa alınmayacak.`
+                : `Stoğa eklenecek: ${g} sağlam ürün. ` +
+                  `${d} hasarlı ürün stoğa alınmayacak.`;
+
+            if (!pallet.value)
+                message.textContent += " Hedef paleti seçin.";
+        }
+
+        form.addEventListener("input", update);
+        form.addEventListener("change", update);
+
+        form.addEventListener("submit", event => {
+            update();
+
+            if (!form.reportValidity())
+                event.preventDefault();
+        });
+
+        update();
+    });
+})();
+</script>
+<script>
+(() => {
+    const page = document.querySelector(".returns-page");
+    if (!page) return;
+
+    const forms = [...page.querySelectorAll('form[method="post"]')]
+        .filter(form =>
+            form.id === "simple-return-form"
+            || form.hasAttribute("data-inspection-form")
+            || form.querySelector('[name="DamageForm.Quantity"]'));
+
+    if (!forms.length) return;
+
+    forms.forEach(form => { form.noValidate = true; });
+
+    const dialog = document.createElement("dialog");
+    dialog.id = "returns-review";
+    dialog.setAttribute("aria-labelledby", "returns-review-title");
+
+    dialog.innerHTML = `
+        <div class="rr-header">
+            <h2 id="returns-review-title">İşlemi kontrol et</h2>
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    data-rr-close>Kapat</button>
+        </div>
+        <div class="rr-body">
+            <div data-rr-content></div>
+            <p class="rr-warning" data-rr-warning></p>
+        </div>
+        <div class="rr-footer">
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    data-rr-close>Geri dön ve düzenle</button>
+            <button type="button"
+                    class="btn btn-dark"
+                    data-rr-approve>Onayla ve kaydet</button>
+        </div>`;
+
+    document.body.appendChild(dialog);
+
+    let pending = null;
+    let submitter = null;
+    const approved = new WeakSet();
+    const approveButton = dialog.querySelector("[data-rr-approve]");
+
+    const value = (form, name) =>
+        form.querySelector(`[name="${name}"]`)?.value.trim() ?? "";
+
+    const selectedText = select =>
+        select?.selectedOptions[0]?.textContent.trim() ?? "";
+
+    function describe(form) {
+        if (form.id === "simple-return-form") {
+            const customer = selectedText(
+                form.querySelector("#return-customer-select"));
+            const shipment = selectedText(
+                form.querySelector("#simple-return-shipment"));
+
+            const lines = [...form.querySelectorAll(".returns-product-row")]
+                .map(row => {
+                    const product = selectedText(
+                        row.querySelector('[data-field="ShipmentItemId"]'));
+                    const amount = row.querySelector(
+                        "[data-simple-row-total]").textContent;
+                    return `${product}\n${amount}`;
+                });
+
+            return {
+                title: "İade kabulünü kontrol et",
+                text: `Müşteri: ${customer}\nSevkiyat: ${shipment}\n\n`
+                    + lines.join("\n\n")
+                    + `\n\nGelen dış paket: ${value(form, "ReceiptForm.PackageCount")}`
+                    + `\nİade nedeni: ${value(form, "ReceiptForm.Reason")}`,
+                warning: "İade kabul kaydı oluşturulur. Bu adımda stok değişmez."
+            };
+        }
+
+        if (form.hasAttribute("data-inspection-form")) {
+            const heading = form.closest(".returns-item")
+                ?.querySelector("summary")?.textContent
+                .replace(/\s+/g, " ").trim() ?? "";
+
+            const good = value(form, "InspectionForm.GoodUnits");
+            const damaged = value(form, "InspectionForm.DamagedUnits");
+            const pallet = selectedText(form.querySelector(
+                '[name="InspectionForm.DestinationPalletId"]'));
+
+            const result = form.querySelector(
+                "[data-inspection-total]")?.textContent ?? "";
+
+            return {
+                title: "İade kontrolünü tamamla",
+                text: `${heading}\n\nSağlam: ${good} adet\nHasarlı: ${damaged} adet`
+                    + (Number(good) > 0 ? `\nHedef palet: ${pallet}` : "")
+                    + `\n\n${result}`
+                    + `\n\nKontrol notu: ${value(form, "InspectionForm.InspectionNotes") || "—"}`,
+                warning: Number(good) > 0
+                    ? "Sağlam ürünler seçilen paletin stoğuna eklenir. Hasarlı iadeler stoktan tekrar düşülmez."
+                    : "Ürünlerin tamamı hasarlı olarak kaydedilir. Stok değişmez."
+            };
+        }
+
+        return {
+            title: "Depo hasarını kontrol et",
+            text: selectedText(form.querySelector(
+                '[name="DamageForm.PalletItemId"]'))
+                + `\n\nHasarlı: ${value(form, "DamageForm.Quantity")} adet`
+                + `\nNeden: ${value(form, "DamageForm.Reason")}`,
+            warning: "Bu miktar depodaki mevcut stoktan düşer."
+        };
+    }
+
+    dialog.querySelectorAll("[data-rr-close]").forEach(button => {
+        button.addEventListener("click", () => dialog.close());
+    });
+
+    dialog.addEventListener("close", () => {
+        submitter?.focus();
+        pending = null;
+        submitter = null;
+    });
+
+    page.addEventListener("submit", event => {
+        const form = event.target;
+        if (!forms.includes(form)) return;
+
+        if (approved.has(form)) {
+            approved.delete(form);
+            return;
+        }
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        form.dispatchEvent(new Event("input", { bubbles: true }));
+
+        const button = event.submitter
+            ?? form.querySelector('button[type="submit"]');
+
+        if (!form.reportValidity() || button?.disabled) return;
+
+        const content = describe(form);
+
+        if (typeof dialog.showModal !== "function") {
+            if (window.confirm(
+                `${content.text}\n\n${content.warning}\n\nKaydedilsin mi?`)) {
+                approved.add(form);
+                form.requestSubmit(button);
+            }
+            return;
+        }
+
+        pending = form;
+        submitter = button;
+
+        dialog.querySelector("#returns-review-title").textContent =
+            content.title;
+        dialog.querySelector("[data-rr-content]").textContent =
+            content.text;
+        dialog.querySelector("[data-rr-warning]").textContent =
+            content.warning;
+
+        dialog.showModal();
+    }, true);
+
+    approveButton.addEventListener("click", () => {
+        if (!pending) return;
+
+        const form = pending;
+        const button = submitter;
+        dialog.close();
+
+        approved.add(form);
+        if (button) form.requestSubmit(button);
+        else form.requestSubmit();
+
+        approved.delete(form);
+    });
+})();
+</script>

@@ -1,0 +1,105 @@
+
+# MASTER CHEF TAKIP - GitHub exclusions
+
+# Build files
+**/bin/
+**/obj/
+**/TestResults/
+.vs/
+.idea/
+.vscode/
+
+# Databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Backups
+Backups/
+**/Backups/
+*.bak
+
+# Secrets and local settings
+.env
+.env.*
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/appsettings.Local.json
+**/secrets.json
+*.pfx
+*.pem
+*.key
+
+# Published output
+publish/
+**/publish/
+MasterChefTakip_Release_Kontrol/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# GITHUB_SIRKET_VERISI_KORUMA
+
+# Company data and imported documents
+*.xlsx
+*.xls
+*.csv
+*.pdf
+*.docx
+
+# Historical backup copies
+*.bak_*
+*.before_*
+*.draft_*
+*.fix*.bak
+*.preview_*.bak
+*.safe_*.bak
+
+# Local and generated data
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.bak
+**/Backups/
+**/bin/
+**/obj/
+**/TestResults/
+
+
+# MasterChefERP - private company data protection
+**/bin/
+**/obj/
+**/TestResults/
+**/Backups/
+**/.vs/
+**/.git/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.xlsx
+*.xls
+*.csv
+*.pdf
+*.docx
+*.bak
+*.bak_*
+*.before_*
+*.draft_*
+*.map
+*.pfx
+*.pem
+*.key
+.env
+.env.*
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Local.json
+dotnet-tools.json

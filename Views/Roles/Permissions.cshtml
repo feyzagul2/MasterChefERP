@@ -1,0 +1,448 @@
+@model MasterChefTakip.ViewModels.EditRolePermissionsViewModel
+@using MasterChefTakip.Models
+
+@{
+    ViewData["Title"] = "Rol yetkileri";
+}
+
+<style>
+    .role-permissions-page {
+        width: 100%;
+        max-width: 1050px;
+        min-width: 0;
+        color: #18365f;
+    }
+
+    .role-permissions-page [hidden],
+    .role-permissions-page .validation-summary-valid {
+        display: none !important;
+    }
+
+    .rpf-top-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .rpf-top-actions form { margin: 0; }
+
+    .rpf-top-actions .btn,
+    .rpf-actions .btn {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .rpf-heading {
+        margin-bottom: 15px;
+    }
+
+    .rpf-heading h1 {
+        font-size: clamp(22px, 3vw, 27px);
+        font-weight: 700;
+        margin: 0 0 6px;
+        overflow-wrap: anywhere;
+    }
+
+    .rpf-note {
+        color: #64748b;
+        font-size: 13px;
+        line-height: 1.55;
+        margin: 0;
+    }
+
+    .rpf-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin: 16px 0 12px;
+    }
+
+    .rpf-search {
+        flex: 1 1 270px;
+        min-width: 0;
+        height: 44px;
+        padding: 9px 12px;
+        border: 1px solid #d8e1ed;
+        border-radius: 8px;
+        font-size: 15px;
+        background: #fff;
+        color: #18365f;
+    }
+
+    .rpf-selected-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        margin: 0;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .rpf-selected-toggle input {
+        width: 18px;
+        height: 18px;
+        accent-color: #18365f;
+    }
+
+    .rpf-count {
+        font-size: 12px;
+        color: #64748b;
+        white-space: nowrap;
+    }
+
+    /* Tek parça, liste görünümlü akordiyon. */
+    .rpf-list {
+        border: 1px solid #d8e1ed;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .rpf-group + .rpf-group {
+        border-top: 1px solid #e8edf4;
+    }
+
+    .rpf-group > summary {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 57px;
+        padding: 13px 16px;
+        cursor: pointer;
+        list-style: none;
+        font-size: 14px;
+        font-weight: 600;
+        color: #18365f;
+        background: #fff;
+        user-select: none;
+    }
+
+    .rpf-group > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .rpf-group > summary:hover {
+        background: #f6f8fc;
+    }
+
+    .rpf-group > summary:focus-visible,
+    .rpf-search:focus-visible,
+    .rpf-option:focus-within {
+        outline: 2px solid #3564a2;
+        outline-offset: -2px;
+    }
+
+    .rpf-group[open] > summary {
+        background: #f4f7fb;
+        border-bottom: 1px solid #e8edf4;
+    }
+
+    .rpf-group-name {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .rpf-group-count {
+        flex: 0 0 auto;
+        border-radius: 20px;
+        background: #eff3f9;
+        padding: 4px 9px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #50617a;
+    }
+
+    .rpf-chevron {
+        width: 9px;
+        height: 9px;
+        flex: 0 0 auto;
+        border-right: 2px solid #64748b;
+        border-bottom: 2px solid #64748b;
+        transform: rotate(45deg);
+        transition: transform 150ms ease;
+        margin: -4px 3px 0 3px;
+    }
+
+    .rpf-group[open] .rpf-chevron {
+        transform: rotate(225deg);
+        margin-top: 4px;
+    }
+
+    .rpf-group-options {
+        background: #fff;
+    }
+
+    .rpf-option {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        min-height: 47px;
+        padding: 11px 17px 11px 24px;
+        margin: 0;
+        color: #334155;
+        font-size: 13px;
+        line-height: 1.5;
+        cursor: pointer;
+    }
+
+    .rpf-option + .rpf-option {
+        border-top: 1px solid #f0f3f7;
+    }
+
+    .rpf-option:hover {
+        background: #f8fafc;
+    }
+
+    .rpf-option:has(input:checked) {
+        background: #f0f6ff;
+    }
+
+    .rpf-option input {
+        flex: 0 0 auto;
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: #18365f;
+        cursor: pointer;
+    }
+
+    .rpf-empty {
+        margin: 12px 0;
+        padding: 14px;
+        color: #64748b;
+        border: 1px dashed #d8e1ed;
+        border-radius: 8px;
+        font-size: 13px;
+    }
+
+    .rpf-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 17px;
+    }
+
+    .rpf-footnote {
+        margin-top: 12px;
+        font-size: 12px;
+        line-height: 1.6;
+        color: #64748b;
+    }
+
+    @@media (max-width: 620px) {
+        .rpf-top-actions { margin-bottom: 14px; }
+        .rpf-group > summary { padding: 13px 12px; }
+        .rpf-option { padding-left: 15px; }
+        .rpf-toolbar { gap: 7px 12px; }
+        .rpf-search { flex-basis: 100%; }
+        .rpf-count { margin-left: auto; }
+        .rpf-actions .btn { flex: 1 1 auto; }
+    }
+</style>
+
+<div class="role-permissions-page">
+    <div class="rpf-top-actions">
+        <a asp-controller="Users"
+           asp-action="Index"
+           asp-route-form="role"
+           class="btn btn-outline-secondary">
+            &#8592; Rollere dön
+        </a>
+
+        <form asp-controller="Roles"
+              asp-action="Delete"
+              method="post"
+              onsubmit="return confirm('Bu rol silinsin mi?');">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <input type="hidden" name="concurrencyStamp" value="@Model.ConcurrencyStamp" />
+            <button type="submit" class="btn btn-outline-danger">Rolü sil</button>
+        </form>
+    </div>
+
+    @if (TempData["RoleDeleteError"] is string deleteError)
+    {
+        <div class="alert alert-warning" role="alert">@deleteError</div>
+    }
+
+    <div class="rpf-heading">
+        <h1>@Model.Name — Rol yetkileri</h1>
+        <p class="rpf-note">
+            Yetkileri görmek için bir başlığa tıklayın, erişimleri seçin ve kaydedin.
+        </p>
+    </div>
+
+    <form asp-controller="Roles" asp-action="Permissions" method="post">
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="ConcurrencyStamp" type="hidden" />
+
+        <div asp-validation-summary="All" class="text-danger mb-2" role="alert"></div>
+
+        <div class="rpf-toolbar">
+            <input id="rpf-search"
+                   class="rpf-search"
+                   type="search"
+                   placeholder="Yetki ara..."
+                   aria-label="Yetki ara"
+                   autocomplete="off" />
+
+            <label class="rpf-selected-toggle" for="rpf-selected">
+                <input id="rpf-selected" type="checkbox" />
+                Yalnızca seçilenler
+            </label>
+
+            <span id="rpf-count" class="rpf-count" role="status" aria-live="polite"></span>
+        </div>
+
+        <div class="rpf-list">
+            @foreach (var group in AppPermissions.All
+                .Where(permission => !AppPermissions.IsAdministration(permission.Value))
+                .GroupBy(permission => AppPermissions.Group(permission.Value)))
+            {
+                <details class="rpf-group" data-group-title="@group.Key">
+                    <summary>
+                        <span class="rpf-group-name">@group.Key</span>
+                        <span class="rpf-group-count"></span>
+                        <span class="rpf-chevron" aria-hidden="true"></span>
+                    </summary>
+
+                    <div class="rpf-group-options">
+                        @foreach (var permission in group)
+                        {
+                            <label class="rpf-option">
+                                <input type="checkbox"
+                                       name="SelectedPermissions"
+                                       value="@permission.Value"
+                                       checked="@(Model.SelectedPermissions.Contains(permission.Value))" />
+                                <span>@permission.Label</span>
+                            </label>
+                        }
+                    </div>
+                </details>
+            }
+        </div>
+
+        <p id="rpf-empty" class="rpf-empty" hidden>
+            Aramanıza uygun yetki bulunamadı.
+        </p>
+
+        <div class="rpf-actions">
+            <button type="submit" class="btn btn-dark">Yetkileri kaydet</button>
+            <a asp-controller="Users"
+               asp-action="Index"
+               asp-route-form="role"
+               class="btn btn-outline-secondary">
+                Geri dön
+            </a>
+        </div>
+
+        <p class="rpf-footnote">
+            Bu role verilen yetkiler, role bağlı bütün kullanıcılara uygulanır.
+            İşlem izni gerekli görüntüleme erişimini de sağlayabilir.
+            Birden fazla rolü olan kullanıcıların yetkileri birleşir.
+        </p>
+    </form>
+</div>
+
+<script>
+(() => {
+    const page = document.querySelector('.role-permissions-page');
+    if (!page) return;
+
+    const groups = [...page.querySelectorAll('.rpf-group')];
+    const allOptions = [...page.querySelectorAll('.rpf-option')];
+    // MC_ACCORDION_FIX_V1
+    document.querySelectorAll('.role-permissions-page details.rpf-group').forEach(group => {
+        group.addEventListener('toggle', () => {
+            const searchBox = document.querySelector('#rpf-search');
+            const searching = searchBox && searchBox.value.trim().length > 0;
+            const selectedOnly = document.querySelector('#rpf-selected');
+            if (!group.open || searching || (selectedOnly && selectedOnly.checked)) return;
+
+            document.querySelectorAll('.role-permissions-page details.rpf-group').forEach(other => {
+                if (other !== group) other.open = false;
+            });
+        });
+    });
+    const search = page.querySelector('#rpf-search');
+    const selectedOnly = page.querySelector('#rpf-selected');
+    const count = page.querySelector('#rpf-count');
+    const empty = page.querySelector('#rpf-empty');
+    let filtering = false;
+    let savedOpen = [];
+
+    const normalize = value => String(value ?? '')
+        .toLocaleLowerCase('tr-TR')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/ı/g, 'i');
+
+    function update() {
+        const words = normalize(search.value).trim().split(/\s+/).filter(Boolean);
+        const active = words.length > 0 || selectedOnly.checked;
+
+        if (active && !filtering) {
+            savedOpen = groups.filter(group => group.open);
+        }
+
+        let shown = 0;
+        let checked = 0;
+
+        for (const group of groups) {
+            const options = [...group.querySelectorAll('.rpf-option')];
+            const title = normalize(group.dataset.groupTitle);
+            let groupShown = 0;
+            let groupChecked = 0;
+
+            for (const option of options) {
+                const checkbox = option.querySelector('input[type="checkbox"]');
+                const matches = words.every(word =>
+                    normalize(`${title} ${option.textContent}`).includes(word));
+                const visible = matches && (!selectedOnly.checked || checkbox.checked);
+
+                option.hidden = !visible;
+                if (visible) { shown++; groupShown++; }
+                if (checkbox.checked) { checked++; groupChecked++; }
+            }
+
+            group.querySelector('.rpf-group-count').textContent =
+                `${groupChecked} / ${options.length} seçili`;
+            group.hidden = groupShown === 0;
+
+            if (active) group.open = groupShown > 0;
+            else if (filtering) group.open = savedOpen.includes(group);
+        }
+
+        filtering = active;
+        count.textContent = `${checked} seçili · ${shown} / ${allOptions.length} gösteriliyor`;
+        empty.hidden = shown > 0;
+    }
+
+    // Normal durumda sadece tıklanan başlık açılsın.
+    for (const group of groups) {
+        group.addEventListener('toggle', () => {
+            if (filtering || !group.open) return;
+            for (const other of groups) {
+                if (other !== group && other.open) other.open = false;
+            }
+        });
+    }
+
+    search.addEventListener('input', update);
+    search.addEventListener('keydown', event => {
+        if (event.key === 'Enter') event.preventDefault();
+    });
+    selectedOnly.addEventListener('change', update);
+    for (const option of allOptions) {
+        option.querySelector('input').addEventListener('change', update);
+    }
+
+    update();
+})();
+</script>

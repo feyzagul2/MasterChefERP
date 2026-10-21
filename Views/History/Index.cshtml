@@ -1,0 +1,713 @@
+﻿@model MasterChefTakip.ViewModels.HistoryIndexViewModel
+@using MasterChefTakip.Models
+@using MasterChefTakip.Services
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "İşlem Geçmişi";
+
+    var culture = CultureInfo.GetCultureInfo("tr-TR");
+
+    string[] categories =
+    [
+        "Paketleme / giriş",
+        "Stok",
+        "Sevkiyat",
+        "İade",
+        "Hasar",
+        "Düzeltme",
+        "İptal",
+        "Konum",
+        "Palet"
+    ];
+}
+
+<style>
+    .history-page {
+        width: 100%;
+        min-width: 0;
+        color: #18365f;
+    }
+
+    .history-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .history-heading h1 {
+        margin: 0 0 5px;
+        font-size: 26px;
+    }
+
+    .history-note {
+        margin: 0;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .history-surface {
+        overflow: hidden;
+        border: 1px solid #d8e1ed;
+        border-radius: 9px;
+        background: white;
+    }
+
+    .history-filters {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        padding: 12px;
+        margin-bottom: 14px;
+    }
+
+    .history-filters > div {
+        min-width: 0;
+    }
+
+    .history-filters label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 11px;
+    }
+
+    .history-filters input,
+    .history-filters select {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        padding: 7px 9px;
+        border: 1px solid #d8e1ed;
+        border-radius: 6px;
+        font-size: 16px;
+        background: white;
+    }
+
+    .history-actions {
+        display: flex;
+        align-items: end;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .history-page .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        font-size: 12px;
+    }
+
+    .history-head,
+    .history-main {
+        display: grid;
+        grid-template-columns:
+            125px minmax(90px, .8fr)
+            minmax(140px, 1.3fr)
+            minmax(120px, 1.2fr) 105px;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+    }
+
+    .history-head {
+        background: #edf2f8;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .history-record {
+        padding-bottom: 5px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .history-main {
+        font-size: 12px;
+    }
+
+    .history-main > div {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .history-small {
+        display: block;
+        margin-top: 3px;
+        font-size: 10px;
+        color: #64748b;
+    }
+
+    .history-details {
+        margin: 0 12px;
+    }
+
+    .history-details summary {
+        padding: 7px 0;
+        cursor: pointer;
+        font-size: 11px;
+    }
+
+    .history-detail-body {
+        padding: 10px;
+        border-radius: 6px;
+        background: #f6f8fc;
+        font-size: 12px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .history-detail-body p {
+        margin: 0 0 7px;
+        white-space: pre-line;
+    }
+
+    .history-links,
+    .history-pagination {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .history-pagination {
+        justify-content: space-between;
+        padding: 12px;
+    }
+
+    .history-empty {
+        padding: 18px 12px;
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    @@media (max-width: 767px) {
+        .history-filters {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            padding: 10px;
+        }
+
+        .history-head {
+            display: none;
+        }
+
+        .history-main {
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 6px 10px;
+        }
+
+        .history-main > div:nth-child(3),
+        .history-main > div:nth-child(4) {
+            grid-column: 1 / -1;
+        }
+
+        .history-main > div:nth-child(5) {
+            grid-column: 2;
+            grid-row: 2;
+        }
+    }
+    /* HistoryFrontendV2 */
+    .history-page,
+    .history-page * {
+        box-sizing: border-box;
+    }
+
+    .history-page .validation-summary-valid {
+        display: none;
+    }
+
+    .history-page .history-filters {
+        align-items: end;
+    }
+
+    .history-page .history-shortcuts {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        border-top: 1px solid #e5eaf1;
+        padding-top: 10px;
+    }
+
+    .history-page .history-main {
+        padding-block: 10px;
+        font-size: 13px;
+    }
+
+    .history-page .history-small {
+        font-size: 12px;
+    }
+
+    .history-page .history-details summary {
+        display: list-item;
+        width: fit-content;
+        min-height: 44px;
+        padding: 12px 0;
+        font-size: 12px;
+    }
+
+    .history-page .history-detail-body {
+        margin-bottom: 8px;
+        font-size: 13px;
+    }
+
+    .history-page .history-detail-body p:last-child {
+        margin-bottom: 0;
+    }
+
+    .history-page .history-main > div:last-child {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+
+    @@media (max-width: 767px) {
+        .history-page .history-main {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            grid-template-areas:
+                "time person"
+                "operation operation"
+                "product quantity";
+            gap: 8px;
+        }
+
+        .history-page .history-main > div:nth-child(1) {
+            grid-area: time;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .history-page .history-main > div:nth-child(2) {
+            grid-area: person;
+            text-align: right;
+            font-size: 12px;
+        }
+
+        .history-page .history-main > div:nth-child(3) {
+            grid-area: operation;
+            font-weight: 600;
+        }
+
+        .history-page .history-main > div:nth-child(4) {
+            grid-area: product;
+        }
+
+        .history-page .history-main > div:nth-child(5) {
+            grid-area: quantity;
+            text-align: right;
+        }
+
+        .history-page .history-detail-body .btn {
+            flex: 1 1 auto;
+        }
+    }
+
+    @@media (max-width: 420px) {
+        .history-page .history-filters {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    /* MC_HISTORY_LIST_TOGGLE_V1 */
+    .history-page .history-list-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 15px 18px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 700;
+        color: #18365f;
+        list-style: none;
+    }
+
+    .history-page .history-list-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .history-page .history-list-summary:hover {
+        background: #f1f5f9;
+    }
+
+    .history-page .history-list-arrow {
+        font-size: 24px;
+        line-height: 1;
+        transition: transform .2s ease;
+    }
+
+    .history-page .history-list-toggle[open] .history-list-arrow {
+        transform: rotate(180deg);
+    }
+
+    .history-page .history-list-content {
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .history-page .history-list-summary:focus-visible {
+        outline: 2px solid #2563eb;
+        outline-offset: -2px;
+    }
+
+</style>
+
+<div class="history-page">
+    <header class="history-heading">
+        <div>
+            <h1>İşlem Geçmişi</h1>
+            <p class="history-note">
+                @(Model.CanViewAll
+                    ? "Personelin yaptığı işlemler ve stok hareketleri."
+                    : "Kendi yaptığınız işlemler ve stok hareketleri.")
+            </p>
+        </div>
+
+        
+    </header>
+
+    @if (TempData["HistoryMessage"] is string message)
+    {
+        <div class="alert alert-success" role="status">@message</div>
+    }
+
+    @if (TempData["HistoryError"] is string error)
+    {
+        <div class="alert alert-warning" role="alert">@error</div>
+    }
+
+    <div asp-validation-summary="All"
+         class="text-danger"
+         role="alert"></div>
+
+    <form asp-controller="History"
+          asp-action="Index"
+          method="get"
+          class="history-surface history-filters">
+
+        <div>
+            <label for="history-search">Ara</label>
+            <input id="history-search"
+                   name="search"
+                   value="@Model.Search"
+                   type="search"
+                   placeholder="Ürün, personel, palet veya sevkiyat" />
+        </div>
+
+        <div>
+            <label for="history-category">İşlem türü</label>
+            <select id="history-category" name="category">
+                <option value="">Bütün işlemler</option>
+                @foreach (var category in categories)
+                {
+                    <option value="@category"
+                            selected="@(Model.Category == category)">
+                        @category
+                    </option>
+                }
+            </select>
+        </div>
+
+        @if (Model.CanViewAll)
+        {
+            <div>
+                <label for="history-person">Personel</label>
+                <select id="history-person" name="userId">
+                    <option value="">Bütün personel</option>
+                    @foreach (var person in Model.People)
+                    {
+                        <option value="@person.Id"
+                                selected="@(Model.UserId == person.Id)">
+                            @person.Name
+                        </option>
+                    }
+                </select>
+            </div>
+        }
+
+        <div>
+            <label for="history-start">Başlangıç</label>
+            <input id="history-start"
+                   name="start"
+                   type="date"
+                   value="@Model.Start.ToString("yyyy-MM-dd")" />
+        </div>
+
+        <div>
+            <label for="history-end">Bitiş</label>
+            <input id="history-end"
+                   name="end"
+                   type="date"
+                   value="@Model.End.ToString("yyyy-MM-dd")" />
+        </div>
+
+        <div class="history-actions">
+            <button class="btn btn-dark" type="submit">Listele</button>
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+                Temizle
+            </a>
+        </div>
+            <div class="history-shortcuts">
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    data-history-days="1">Bugün</button>
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    data-history-days="7">Son 7 gün</button>
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    data-history-days="30">Son 30 gün</button>
+        </div>
+    </form>
+
+    <section class="history-surface">
+    @* MC_HISTORY_LIST_TOGGLE_V1 *@
+    <details class="history-list-toggle">
+        <summary class="history-list-summary">
+            <span>İşlem Listesi (@Model.Rows.Count kayıt)</span>
+            <span class="history-list-arrow" aria-hidden="true">⌄</span>
+        </summary>
+        <div class="history-list-content">
+        <div class="history-head" aria-hidden="true">
+            <div>Tarih / saat</div>
+            <div>Personel</div>
+            <div>İşlem</div>
+            <div>Ürün</div>
+            <div>Miktar</div>
+        </div>
+
+        @if (Model.Rows.Count == 0)
+        {
+            <div class="history-empty">
+                Seçilen aralıkta uygun kayıt bulunmuyor.
+            </div>
+        }
+
+        @foreach (var row in Model.Rows)
+        {
+            <article class="history-record">
+                <div class="history-main">
+                    <div>
+                        @(row.CreatedAtUtc.AddHours(3)
+                            .ToString("dd.MM.yyyy HH:mm", culture))
+                    </div>
+
+                    <div>@row.UserName</div>
+
+                    <div>
+                        @row.Title
+                        <span class="history-small">@row.Category</span>
+                    </div>
+
+                    <div>
+                        @(string.IsNullOrWhiteSpace(row.ProductName)
+                            ? "—" : row.ProductName)
+
+                        <span class="history-small">@row.ProductCode</span>
+                    </div>
+
+                    <div>
+                        @(string.IsNullOrWhiteSpace(row.Quantity)
+                            ? "—" : row.Quantity)
+                    </div>
+                </div>
+
+                <details class="history-details" name="history-record-details">
+                    <summary>Detay ve ilgili kayıt</summary>
+
+                    <div class="history-detail-body">
+                        @if (!string.IsNullOrWhiteSpace(row.Reference))
+                        {
+                            <p><strong>Kayıt:</strong> @row.Reference</p>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(row.BeforeValue))
+                        {
+                            <p><strong>Önce:</strong> @row.BeforeValue</p>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(row.AfterValue))
+                        {
+                            <p><strong>Sonra:</strong> @row.AfterValue</p>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(row.Notes))
+                        {
+                            <p><strong>Açıklama:</strong> @row.Notes</p>
+                        }
+
+                        <div class="history-links">
+                            @if (row.PalletId.HasValue &&
+                                OperationAuthorization.Can(
+                                    User, AppPermissions.PalletsView))
+                            {
+                                <a asp-controller="Pallets"
+                                   asp-action="Index"
+                                   asp-route-palletId="@row.PalletId"
+                                   asp-fragment="pallet-content"
+                                   class="btn btn-outline-secondary">
+                                    Paleti aç
+                                </a>
+                            }
+
+                            @if (row.ShipmentId.HasValue &&
+                                OperationAuthorization.Can(
+                                    User, AppPermissions.ShipmentsView))
+                            {
+                                <a asp-controller="Shipments"
+                                   asp-action="Index"
+                                   asp-route-shipmentId="@row.ShipmentId"
+                                   asp-fragment="selected-shipment"
+                                   class="btn btn-outline-secondary">
+                                    Sevkiyatı aç
+                                </a>
+                            }
+
+                            @if (OperationAuthorization.Can(
+                                User, AppPermissions.ReturnsView) &&
+                                row.Category == "İade")
+                            {
+                                <a asp-controller="Returns"
+                                   asp-action="Index"
+                                   asp-route-search="@row.Reference"
+                                   class="btn btn-outline-secondary">
+                                    İade ekranı
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </details>
+            </article>
+        }
+
+        <div class="history-pagination">
+            <span class="history-note">
+                @Model.TotalCount kayıt ·
+                Sayfa @Model.Page / @Model.TotalPages
+            </span>
+
+            <div class="history-links">
+                @if (Model.Page > 1)
+                {
+                    <a asp-action="Index"
+                       asp-route-page="@(Model.Page - 1)"
+                       asp-route-search="@Model.Search"
+                       asp-route-category="@Model.Category"
+                       asp-route-userId="@Model.UserId"
+                       asp-route-start="@Model.Start.ToString("yyyy-MM-dd")"
+                       asp-route-end="@Model.End.ToString("yyyy-MM-dd")"
+                       class="btn btn-outline-secondary">
+                        Önceki
+                    </a>
+                }
+
+                @if (Model.Page < Model.TotalPages)
+                {
+                    <a asp-action="Index"
+                       asp-route-page="@(Model.Page + 1)"
+                       asp-route-search="@Model.Search"
+                       asp-route-category="@Model.Category"
+                       asp-route-userId="@Model.UserId"
+                       asp-route-start="@Model.Start.ToString("yyyy-MM-dd")"
+                       asp-route-end="@Model.End.ToString("yyyy-MM-dd")"
+                       class="btn btn-outline-secondary">
+                        Sonraki
+                    </a>
+                }
+            </div>
+        </div>        </div>
+    </details>
+    </section>
+
+    @if (User.IsInRole(AppRoles.Admin))
+    {
+        <details style="margin-top:14px;">
+            <summary style="cursor:pointer;font-size:12px;">
+                Mevcut eski kayıtları aktar
+            </summary>
+
+            <p class="history-note" style="margin:8px 0;">
+                İlk kurulumda mevcut stok, sevkiyat ve iade kayıtlarını
+                bu listeye getirir. Tekrar çalıştırmak kayıtları çoğaltmaz.
+                Eski konum değişiklikleri kaydedilmediği için aktarılamaz.
+            </p>
+
+            <form asp-controller="History"
+                  asp-action="Import"
+                  method="post">
+                <button type="submit" class="btn btn-outline-secondary">
+                    Eski kayıtları geçmişe aktar
+                </button>
+            </form>
+        </details>
+    }
+</div>
+<script>
+(() => {
+    const page = document.querySelector(".history-page");
+    const start = document.getElementById("history-start");
+    const end = document.getElementById("history-end");
+    if (!page || !start || !end) return;
+
+    const form = start.form;
+
+    function validateDates() {
+        end.setCustomValidity(
+            start.value && end.value && start.value > end.value
+                ? "Bitiş tarihi başlangıç tarihinden önce olamaz."
+                : ""
+        );
+    }
+
+    start.addEventListener("input", validateDates);
+    end.addEventListener("input", validateDates);
+
+    form.addEventListener("submit", event => {
+        validateDates();
+        if (!form.reportValidity()) event.preventDefault();
+    });
+
+    function turkeyToday() {
+        const parts = new Intl.DateTimeFormat("en-US", {
+            timeZone: "Europe/Istanbul",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).formatToParts(new Date());
+
+        const get = type => parts.find(part => part.type === type).value;
+        return `${get("year")}-${get("month")}-${get("day")}`;
+    }
+
+    page.querySelectorAll("[data-history-days]").forEach(button => {
+        button.addEventListener("click", () => {
+            const today = turkeyToday();
+            const date = new Date(`${today}T12:00:00Z`);
+
+            date.setUTCDate(
+                date.getUTCDate() - Number(button.dataset.historyDays) + 1
+            );
+
+            start.value = date.toISOString().slice(0, 10);
+            end.value = today;
+            validateDates();
+            form.requestSubmit();
+        });
+    });
+
+    const details = [...page.querySelectorAll(".history-details")];
+
+    details.forEach(current => {
+        current.addEventListener("toggle", () => {
+            if (!current.open) return;
+            details.forEach(other => {
+                if (other !== current) other.open = false;
+            });
+        });
+    });
+
+    validateDates();
+})();
+</script>

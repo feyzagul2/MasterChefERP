@@ -1,0 +1,982 @@
+@model MasterChefTakip.ViewModels.ProductionDashboardViewModel
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Genel Bakış";
+
+    var culture = CultureInfo.GetCultureInfo("tr-TR");
+
+    var pendingShipments =
+        Model.DraftShipments + Model.ReadyShipments;
+
+       var canViewDailyHistory =
+        ViewData["CanViewDailyHistory"] is true;
+
+    var dailyHistory =
+        ViewData["DailyHistory"]
+            as List<MasterChefTakip.Models.HistoryEntry>
+        ?? new List<MasterChefTakip.Models.HistoryEntry>();
+
+    var hasAccess =
+        Model.CanViewStock ||
+        Model.CanViewPackaging ||
+        Model.CanViewShipments ||
+        Model.CanViewReturns ||
+        canViewDailyHistory;
+}
+
+<style>
+    .pd-page {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        color: #18365f;
+    }
+
+    .pd-page * {
+        box-sizing: border-box;
+    }
+
+    .pd-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .pd-header h1 {
+        margin: 0 0 5px;
+        font-size: 28px;
+    }
+
+    .pd-description {
+        margin: 0;
+        font-size: 13px;
+        color: #64748b;
+    }
+
+    .pd-date {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .pd-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .pd-stat {
+        min-width: 0;
+        padding: 13px 15px;
+        background: white;
+        border: 1px solid #d8e1ed;
+        border-radius: 9px;
+    }
+
+    .pd-stat-label {
+        display: block;
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .pd-stat-value {
+        display: block;
+        margin: 7px 0 4px;
+        font-size: 23px;
+        font-weight: 600;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .pd-stat-note {
+        display: block;
+        font-size: 11px;
+        color: #64748b;
+    }
+
+    .pd-panel {
+        min-width: 0;
+        margin-bottom: 14px;
+        border: 1px solid #d8e1ed;
+        border-radius: 9px;
+        background: white;
+        overflow: hidden;
+    }
+
+    .pd-panel > summary {
+        padding: 13px 14px;
+        background: #f6f8fc;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .pd-panel[open] > summary {
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .pd-count {
+        margin-left: 7px;
+        font-size: 11px;
+        font-weight: 400;
+        color: #64748b;
+    }
+
+    .pd-tools {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 12px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .pd-search {
+        flex: 1;
+        min-width: 0;
+        min-height: 44px;
+        padding: 8px 10px;
+        border: 1px solid #d8e1ed;
+        border-radius: 6px;
+        font-size: 16px;
+    }
+
+    .pd-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 6px 10px;
+        border: 1px solid #d8e1ed;
+        border-radius: 6px;
+        color: #18365f;
+        background: white;
+        font-size: 12px;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .pd-link:hover {
+        background: #edf2f8;
+        color: #18365f;
+    }
+
+    .pd-product-head,
+    .pd-product-row {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1.6fr)
+            minmax(0, 1fr)
+            minmax(0, 1.2fr)
+            minmax(0, .9fr);
+        align-items: center;
+        gap: 12px;
+        padding: 9px 14px;
+    }
+
+    .pd-product-head {
+        background: #edf2f8;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .pd-product-row {
+        border-top: 1px solid #e8edf4;
+        font-size: 12px;
+    }
+
+    .pd-product-row > div {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .pd-name {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .pd-small {
+        display: block;
+        margin-top: 3px;
+        color: #64748b;
+        font-size: 10px;
+        line-height: 1.4;
+    }
+
+    .pd-badge {
+        display: inline-block;
+        padding: 4px 7px;
+        border-radius: 5px;
+        background: #edf2f8;
+        font-size: 10px;
+        line-height: 1.4;
+    }
+
+    .pd-good {
+        color: #176956;
+        background: #eaf6f1;
+    }
+
+    .pd-warning {
+        color: #8a5700;
+        background: #fff4da;
+    }
+
+    .pd-status-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1px;
+        background: #e2e8f0;
+    }
+
+    .pd-status-cell {
+        min-width: 0;
+        padding: 13px;
+        background: white;
+    }
+
+    .pd-status-cell span {
+        display: block;
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .pd-status-cell strong {
+        display: block;
+        margin-top: 5px;
+        font-size: 21px;
+        font-weight: 600;
+    }
+
+    .pd-work-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+        gap: 14px;
+        align-items: start;
+    }
+
+    .pd-work-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 12px;
+        border-bottom: 1px solid #e8edf4;
+    }
+
+    .pd-work-row > div {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .pd-work-row:last-child {
+        border-bottom: 0;
+    }
+
+    .pd-work-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 5px;
+        font-size: 11px;
+    }
+
+    .pd-footer,
+    .pd-empty {
+        padding: 11px 14px;
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .pd-notice {
+        margin-bottom: 12px;
+        padding: 10px 12px;
+        border: 1px solid #eedaa6;
+        border-radius: 7px;
+        background: #fff9eb;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .pd-mobile-label {
+        display: none;
+    }
+
+    .pd-damage-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 11px 14px;
+        font-size: 12px;
+    }
+
+    .pd-damage-row + .pd-damage-row {
+        border-top: 1px solid #e8edf4;
+    }
+
+    .pd-page [hidden] {
+        display: none !important;
+    }
+
+    @@media (max-width: 767px) {
+        .pd-header h1 {
+            font-size: 24px;
+        }
+
+        .pd-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 7px;
+        }
+
+        .pd-stat {
+            padding: 10px;
+        }
+
+        .pd-stat-value {
+            font-size: 19px;
+        }
+
+        .pd-stat-label,
+        .pd-stat-note {
+            font-size: 10px;
+        }
+
+        .pd-product-head {
+            display: none;
+        }
+
+        .pd-product-row {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px 10px;
+            padding: 9px 11px;
+        }
+
+        .pd-product-row > div:first-child {
+            grid-column: 1 / -1;
+        }
+
+        .pd-product-row > div:last-child {
+            grid-column: 1 / -1;
+        }
+
+        .pd-mobile-label {
+            display: block;
+            margin-bottom: 3px;
+            color: #64748b;
+            font-size: 10px;
+        }
+
+        .pd-status-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .pd-status-cell {
+            padding: 10px;
+        }
+
+        .pd-work-grid {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 0;
+        }
+
+        .pd-panel > summary {
+            padding: 12px;
+            font-size: 13px;
+        }
+    }
+</style>
+
+<div class="pd-page">
+    <header class="pd-header">
+        <div>
+            <h1>Genel Bakış</h1>
+            <p class="pd-description">
+                Üretim, depo ve bekleyen işlemler.
+            </p>
+        </div>
+
+        <span class="pd-date">
+            @Model.LocalDate.ToString("dd.MM.yyyy", culture)
+        </span>
+    </header>
+
+    <partial name="_DailyActions" model="Model" />
+
+    
+
+    @if (!hasAccess)
+    {
+        <div class="pd-panel pd-empty">
+            Bu ekranda gösterilecek işlem yetkiniz bulunmuyor.
+            Yetkileriniz için yöneticinizle görüşün.
+        </div>
+    }
+    else
+    {
+        <section class="pd-stats" aria-label="İş özeti">
+            @if (Model.CanViewPackaging)
+            {
+                <article class="pd-stat">
+                    <span class="pd-stat-label">Bugün paketlenen</span>
+                    <strong class="pd-stat-value">
+                        @Model.Prepared.Display
+                    </strong>
+                    <span class="pd-stat-note">
+                        @Model.Prepared.Boxes.ToString("N0", culture) tam koli
+                    </span>
+                </article>
+            }
+
+            @if (Model.CanViewStock)
+            {
+                <article class="pd-stat">
+                    <span class="pd-stat-label">Güncel stok</span>
+                    <strong class="pd-stat-value">
+                        @Model.Stock.Display
+                    </strong>
+                    <span class="pd-stat-note">
+                        Aktif ürünler ve aktif paletler
+                    </span>
+                </article>
+            }
+
+            @if (Model.CanViewShipments)
+            {
+                <article class="pd-stat">
+                    <span class="pd-stat-label">Bekleyen sevkiyat</span>
+                    <strong class="pd-stat-value">
+                        @pendingShipments.ToString("N0", culture)
+                    </strong>
+                    <span class="pd-stat-note">
+                        Taslak ve gönderime hazır
+                    </span>
+                </article>
+            }
+
+            @if (Model.CanViewReturns)
+            {
+                <article class="pd-stat">
+                    <span class="pd-stat-label">Bekleyen iade</span>
+                    <strong class="pd-stat-value">
+                        @Model.PendingReturnLines.ToString("N0", culture) satır
+                    </strong>
+                    <span class="pd-stat-note">
+                        @Model.PendingReturnUnits.ToString("N0", culture) ürün
+                    </span>
+                </article>
+            }
+        </section>
+        @if (canViewDailyHistory)
+        {
+            <partial name="_DailyHistory" model="dailyHistory" />
+        }
+
+
+        @if (Model.CanViewStock &&
+            (Model.LowStockProductCount > 0 ||
+             Model.UnknownStockProductCount > 0))
+        {
+            <div class="pd-notice">
+                @if (Model.LowStockProductCount > 0)
+                {
+                    <span>
+                        <strong>@Model.LowStockProductCount ürün</strong>
+                        düşük stok sınırının altında.
+                    </span>
+                }
+
+                @if (Model.UnknownStockProductCount > 0)
+                {
+                    <span>
+                        <strong>@Model.UnknownStockProductCount ürünün</strong>
+                        koli kapasitesi kontrol edilmeli.
+                    </span>
+                }
+            </div>
+        }
+
+        @if (Model.CanViewStock || Model.CanViewPackaging)
+        {
+            <details class="pd-panel" open>
+                <summary>
+                    Ürün ve stok özeti
+                    <span class="pd-count">
+                        @Model.Products.Count ürün
+                    </span>
+                </summary>
+
+                <div class="pd-tools">
+                    <input id="pd-product-search"
+                           class="pd-search"
+                           type="search"
+                           placeholder="Ürün adı veya kodu ara"
+                           aria-label="Ürün adı veya kodu ara" />
+
+                    @if (Model.CanViewProducts)
+                    {
+                        <a class="pd-link"
+                           asp-controller="Products"
+                           asp-action="Index">
+                            Ürünler
+                        </a>
+                    }
+
+                    @if (Model.CanViewPackaging)
+                    {
+                        <a class="pd-link"
+                           asp-controller="Packaging"
+                           asp-action="Index">
+                            Paketleme
+                        </a>
+                    }
+                </div>
+
+                @if (Model.Products.Count == 0)
+                {
+                    <div class="pd-empty">
+                        Gösterilecek ürün bulunmuyor.
+                    </div>
+                }
+                else
+                {
+                    <div class="pd-product-head" aria-hidden="true">
+                        <div>Ürün</div>
+                        <div>Bugün paketlenen</div>
+                        <div>Güncel stok</div>
+                        <div>Stok durumu</div>
+                    </div>
+
+                    @foreach (var product in Model.Products)
+                    {
+                        <div class="pd-product-row"
+                             data-product-row
+                             data-search="@($"{product.Name} {product.Code}")">
+                            <div>
+                                <span class="pd-name">@product.Name</span>
+                                <span class="pd-small">@product.Code</span>
+
+@if (Model.CanViewStock)
+{
+    <details class="pd-stock-details"
+             data-stock-details
+             data-url="@Url.Action("ProductStockDetails", "Home", new { productId = product.Id })">
+        <summary>Stok detayları</summary>
+        <div class="pd-stock-content" aria-live="polite">
+            Açıldığında palet bilgileri gösterilir.
+        </div>
+    </details>
+}
+                            </div>
+
+                            <div>
+                                <span class="pd-mobile-label">
+                                    Bugün paketlenen
+                                </span>
+
+                                @if (Model.CanViewPackaging)
+                                {
+                                    <span>@product.Prepared.Display</span>
+                                    <span class="pd-small">
+                                        @product.Prepared.Boxes.ToString("N0", culture)
+                                        tam koli
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>—</span>
+                                }
+                            </div>
+
+                            <div>
+                                <span class="pd-mobile-label">
+                                    Güncel stok
+                                </span>
+
+                                @if (Model.CanViewStock)
+                                {
+                                    <span>@product.Stock.Display</span>
+                                    <span class="pd-small">
+                                        @product.Stock.Boxes.ToString("N0", culture)
+                                        kapalı koli ·
+                                        @product.Stock.OpenUnits.ToString("N0", culture)
+                                        adet açık kolilerde ·
+                                        @product.Stock.LooseUnits.ToString("N0", culture)
+                                        tekli adet
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>—</span>
+                                }
+                            </div>
+
+                            <div>
+                                @if (Model.CanViewStock)
+                                {
+                                    if (!product.Stock.IsComplete)
+                                    {
+                                        <span class="pd-badge pd-warning">
+                                            Koli kapasitesi eksik
+                                        </span>
+                                    }
+                                    else if (product.IsLowStock)
+                                    {
+                                        <span class="pd-badge pd-warning">
+                                            Düşük stok
+                                        </span>
+                                    }
+                                    else if (product.LowStockThresholdUnits.HasValue)
+                                    {
+                                        <span class="pd-badge pd-good">
+                                            Stok yeterli
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="pd-badge">
+                                            Minimum stok seviyesi belirlenmedi
+                                        </span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="pd-small">
+                                        Stok görüntüleme izni gerekli
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div id="pd-search-empty" class="pd-empty" hidden>
+                        Aramanıza uygun ürün bulunamadı.
+                    </div>
+                }
+            </details>
+        }
+
+        @if (Model.CanViewShipments)
+        {
+            <details class="pd-panel" open>
+                <summary>Sevkiyat durumları</summary>
+
+                <div class="pd-status-grid">
+                    <div class="pd-status-cell">
+                        <span>Taslak</span>
+                        <strong>@Model.DraftShipments.ToString("N0", culture)</strong>
+                    </div>
+
+                    <div class="pd-status-cell">
+                        <span>Gönderime hazır</span>
+                        <strong>@Model.ReadyShipments.ToString("N0", culture)</strong>
+                    </div>
+
+                    <div class="pd-status-cell">
+                        <span>Gönderildi</span>
+                        <strong>@Model.ShippedShipments.ToString("N0", culture)</strong>
+                    </div>
+
+                    <div class="pd-status-cell">
+                        <span>Teslim edildi</span>
+                        <strong>@Model.DeliveredShipments.ToString("N0", culture)</strong>
+                    </div>
+                </div>
+
+                <div class="pd-footer">
+                    Sayılar tüm kayıtların güncel durumunu gösterir.
+                    İptal edilen sevkiyatlar dahil değildir.
+                </div>
+            </details>
+        }
+
+        <div class="pd-work-grid">
+            @if (Model.CanViewShipments)
+            {
+                <details class="pd-panel" open>
+                    <summary>
+                        Hazırlanacak sevkiyatlar
+                        <span class="pd-count">@pendingShipments kayıt</span>
+                    </summary>
+
+                    @if (Model.PendingShipments.Count == 0)
+                    {
+                        <div class="pd-empty">
+                            Bekleyen sevkiyat bulunmuyor.
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var shipment in Model.PendingShipments)
+                        {
+                            <div class="pd-work-row">
+                                <div>
+                                    <span class="pd-name">
+                                        @shipment.RecipientName
+                                    </span>
+                                    <span class="pd-small">
+                                        @shipment.Number
+                                    </span>
+
+                                    <div class="pd-work-meta">
+                                        <span class="pd-badge">
+                                            @shipment.Status
+                                        </span>
+                                        <span>
+                                            @(shipment.CreatedAtUtc.AddHours(3).ToString("dd.MM.yyyy HH:mm", culture))
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <a class="pd-link"
+                                   asp-controller="Shipments"
+                                   asp-action="Index"
+                                   asp-route-shipmentId="@shipment.Id"
+                                   asp-fragment="selected-shipment">
+                                    Aç
+                                </a>
+                            </div>
+                        }
+                    }
+
+                    <div class="pd-tools">
+                        <span class="pd-small">
+                            En eski 10 bekleyen kayıt gösterilir.
+                        </span>
+                        <a class="pd-link"
+                           asp-controller="Shipments"
+                           asp-action="Index">
+                            Tüm sevkiyatlar
+                        </a>
+                    </div>
+                </details>
+            }
+
+            @if (Model.CanViewReturns)
+            {
+                <details class="pd-panel" open>
+                    <summary>
+                        Kontrol ve yerleştirme bekleyen iadeler
+                        <span class="pd-count">
+                            @Model.PendingReturnLines satır
+                        </span>
+                    </summary>
+
+                    @if (Model.PendingReturns.Count == 0)
+                    {
+                        <div class="pd-empty">
+                            Bekleyen iade bulunmuyor.
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model.PendingReturns)
+                        {
+                            <div class="pd-work-row">
+                                <div>
+                                    <span class="pd-name">
+                                        @item.ProductName
+                                    </span>
+                                    <span class="pd-small">
+                                        @item.RecipientName ·
+                                        @item.ShipmentNumber
+                                    </span>
+
+                                    <div class="pd-work-meta">
+                                        <span class="pd-badge">
+                                            @item.Status
+                                        </span>
+                                        <span>
+                                            @item.ReceivedUnits.ToString("N0", culture)
+                                            adet · Kayıt #@item.Id
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <a class="pd-link"
+                                   asp-controller="Returns"
+                                   asp-action="Index">
+                                    İadeler
+                                </a>
+                            </div>
+                        }
+                    }
+
+                    <div class="pd-footer">
+                        En eski 10 bekleyen ürün satırı gösterilir.
+                    </div>
+                </details>
+            }
+        </div>
+
+        @if (Model.CanViewReturns)
+        {
+            <details class="pd-panel">
+                <summary>Bugünkü hasar özeti</summary>
+
+                <div class="pd-damage-row">
+                    <span>Depoda hasar nedeniyle stoktan düşülen</span>
+                    <strong>@Model.TodayWarehouseDamage.Display</strong>
+                </div>
+
+                <div class="pd-damage-row">
+                    <span>İade kontrolünde hasarlı bulunan</span>
+                    <strong>
+                        @Model.TodayInspectedDamageUnits.ToString("N0", culture)
+                        adet
+                    </strong>
+                </div>
+
+                <div class="pd-tools">
+                    <span class="pd-small">
+                        Depo hasarı ve iade hasarı ayrı gösterilir.
+                    </span>
+                    <a class="pd-link"
+                       asp-controller="Returns"
+                       asp-action="Index">
+                        İade ve hasar
+                    </a>
+                </div>
+            </details>
+        }
+    }
+</div>
+
+<style>
+    .pd-stock-details {
+        margin-top: 5px;
+    }
+
+    .pd-stock-details > summary {
+        display: list-item;
+        width: fit-content;
+        padding: 8px 0;
+        min-height: 44px;
+        cursor: pointer;
+        color: #18365f;
+        font-size: 12px;
+    }
+
+    .pd-stock-content {
+        padding: 8px;
+        border: 1px solid #d8e1ed;
+        border-radius: 6px;
+        background: #f8fafc;
+        font-size: 11px;
+    }
+
+    .pd-stock-pallet {
+        padding: 7px 0;
+        border-bottom: 1px solid #e2e8f0;
+        overflow-wrap: anywhere;
+    }
+
+    .pd-stock-pallet:first-child {
+        padding-top: 0;
+    }
+
+    .pd-stock-pallet strong,
+    .pd-stock-pallet span {
+        display: block;
+    }
+
+    .pd-stock-pallet span {
+        margin-top: 3px;
+        line-height: 1.5;
+    }
+
+    .pd-stock-total {
+        margin-top: 8px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+</style>
+
+<script>
+    (() => {
+        document.querySelectorAll("[data-stock-details]").forEach(details => {
+            let loading = false;
+            let loaded = false;
+
+            details.addEventListener("toggle", async () => {
+                if (!details.open || loading || loaded) return;
+
+                const content = details.querySelector(".pd-stock-content");
+                loading = true;
+                content.textContent = "Stok bilgileri yükleniyor…";
+
+                try {
+                    const response = await fetch(details.dataset.url, {
+                        credentials: "same-origin",
+                        headers: { "X-Requested-With": "XMLHttpRequest" },
+                        cache: "no-store"
+                    });
+
+                    if (!response.ok || response.redirected) {
+                        throw new Error("Stok bilgileri alınamadı.");
+                    }
+
+                    content.innerHTML = await response.text();
+                    loaded = true;
+                } catch {
+                    content.textContent =
+                        "Bilgiler yüklenemedi. Kapatıp tekrar açın.";
+                } finally {
+                    loading = false;
+                }
+            });
+        });
+    })();
+</script>
+
+@section Scripts {
+    <script>
+        (() => {
+            const search = document.getElementById("pd-product-search");
+            const empty = document.getElementById("pd-search-empty");
+
+            const rows = Array.from(
+                document.querySelectorAll("[data-product-row]")
+            );
+
+            if (!search) return;
+
+            const normalize = value =>
+                (value || "")
+                    .toLocaleLowerCase("tr-TR")
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/ı/g, "i");
+
+            search.addEventListener("input", () => {
+                const words = normalize(search.value)
+                    .split(/\s+/)
+                    .filter(Boolean);
+
+                let visible = 0;
+
+                rows.forEach(row => {
+                    const text = normalize(row.dataset.search);
+                    const matches = words.every(word => text.includes(word));
+
+                    row.hidden = !matches;
+
+                    if (matches) visible++;
+                });
+
+                if (empty) empty.hidden = visible > 0;
+            });
+
+            search.addEventListener("keydown", event => {
+                if (event.key === "Enter") event.preventDefault();
+            });
+        })();
+    </script>
+}

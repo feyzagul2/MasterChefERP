@@ -1,0 +1,128 @@
+@model MasterChefTakip.ViewModels.CreateRoleViewModel
+@using MasterChefTakip.Models
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@{
+    ViewData["Title"] = "Yeni Rol";
+
+    var canCreateUser = (await AuthorizationService.AuthorizeAsync(
+        User,
+        AppPermissions.UsersCreate)).Succeeded;
+}
+
+<div class="page-heading">
+    <h1>Yeni rol</h1>
+    <p>Rol adını belirleyin ve bu rolün yapabileceği işlemleri seçin.</p>
+</div>
+
+@if (TempData["RoleSuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success" role="status">
+        @successMessage
+    </div>
+}
+
+<div class="row">
+    <div class="col-12 col-lg-10 col-xl-8">
+        <div class="welcome-card">
+            <span class="section-label mb-4">ROL BİLGİLERİ</span>
+
+            <form asp-area=""
+                  asp-controller="Roles"
+                  asp-action="Create"
+                  method="post">
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3"
+                     role="alert"></div>
+
+                <div class="mb-4">
+                    <label asp-for="Name"
+                           class="form-label fw-semibold"></label>
+
+                    <input asp-for="Name"
+                           class="form-control form-control-lg"
+                           autocomplete="off"
+                           maxlength="100" />
+
+                    <span asp-validation-for="Name"
+                          class="text-danger small"></span>
+                </div>
+
+                <fieldset class="mb-4">
+                    <legend class="h6 fw-semibold">İşlem yetkileri</legend>
+
+                    <p class="small text-muted">
+                        Yetki seçmezseniz bu rol, kendi başına
+                        bu işlemlere erişim sağlamaz.
+                    </p>
+
+                    <div class="row g-3">
+                        @for (var i = 0; i < AppPermissions.All.Count; i++)
+                        {
+                            var permission = AppPermissions.All[i];
+                            if (AppPermissions.IsAdministration(permission.Value))
+                            {
+                                continue;
+                            }
+                            var canGrant = (await AuthorizationService.AuthorizeAsync(
+                                User,
+                                permission.Value)).Succeeded;
+
+                            if (!canGrant)
+                            {
+                                continue;
+                            }
+
+                            var inputId = $"permission-{i}";
+                            var isSelected =
+                                Model.SelectedPermissions?.Contains(permission.Value) == true;
+
+                            <div class="col-12">
+                                <div class="border rounded-3 p-3 bg-white">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="@inputId"
+                                               name="SelectedPermissions"
+                                               value="@permission.Value"
+                                               checked="@isSelected" />
+
+                                        <label class="form-check-label"
+                                               for="@inputId">
+                                            @permission.Label
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <span asp-validation-for="SelectedPermissions"
+                          class="text-danger small d-block mt-2"></span>
+                </fieldset>
+
+                <div class="d-flex flex-wrap gap-3 border-top pt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Rol Oluştur
+                    </button>
+
+                    @if (canCreateUser)
+                    {
+                        <a asp-area=""
+                           asp-controller="Users"
+                           asp-action="Create"
+                           class="btn btn-outline-secondary btn-lg">
+                            Kullanıcı Oluşturmaya Git
+                        </a>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

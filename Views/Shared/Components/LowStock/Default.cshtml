@@ -1,0 +1,217 @@
+@model MasterChefTakip.ViewModels.LowStockViewModel
+
+@{
+    var alerts = Model.Alerts;
+}
+
+<style>
+    .low-stock-panel {
+        margin: 0 0 18px;
+        border: 1px solid #18365f;
+        border-radius: 10px;
+        background: white;
+        color: #18365f;
+        overflow: hidden;
+    }
+
+    .low-stock-panel .ls-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: #f7f9fc;
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .low-stock-panel h2 {
+        margin: 0;
+        font-size: 15px;
+    }
+
+    .low-stock-panel .ls-count {
+        padding: 4px 8px;
+        background: #eef2f7;
+        border-radius: 6px;
+        font-size: 11px;
+    }
+
+    .low-stock-panel .ls-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 16px;
+        border-bottom: 1px solid #edf1f5;
+        font-size: 12px;
+    }
+
+    .low-stock-panel .ls-code {
+        display: block;
+        margin-top: 3px;
+        color: #64748b;
+        font-size: 11px;
+        overflow-wrap: anywhere;
+    }
+
+    .low-stock-panel .ls-amount {
+        padding: 5px 8px;
+        border-radius: 6px;
+        background: #fff5e5;
+        color: #8a5b12;
+        white-space: nowrap;
+    }
+
+    .low-stock-panel .ls-note {
+        padding: 12px 16px;
+        margin: 0;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .low-stock-panel summary {
+        padding: 12px 16px;
+        cursor: pointer;
+        font-size: 12px;
+        background: #f7f9fc;
+    }
+
+    .low-stock-panel input {
+        width: 110px;
+        max-width: 100%;
+        min-height: 36px;
+        padding: 6px 8px;
+        border: 1px solid #d8e1ed;
+        border-radius: 6px;
+        font-size: 13px;
+    }
+
+    .low-stock-panel button {
+        padding: 8px 10px;
+        border: 0;
+        border-radius: 6px;
+        background: #18365f;
+        color: white;
+        font-size: 12px;
+    }
+
+    @@media (max-width: 600px) {
+        .low-stock-panel .ls-row {
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 8px;
+        }
+
+        .low-stock-panel .ls-row > :first-child {
+            grid-column: 1 / -1;
+        }
+
+        .low-stock-panel input {
+            font-size: 16px;
+        }
+    }
+</style>
+
+<section class="low-stock-panel">
+    <div class="ls-heading">
+        <h2>Düşük stok</h2>
+        <span class="ls-count">@alerts.Count ürün</span>
+    </div>
+
+    @if (TempData["StockAlertSuccess"] is string success)
+    {
+        <p class="ls-note" role="status">@success</p>
+    }
+
+    @if (TempData["StockAlertError"] is string error)
+    {
+        <p class="ls-note" role="alert">@error</p>
+    }
+
+    @if (alerts.Count == 0)
+    {
+        <p class="ls-note">
+            Ayarlanan sınırlara göre düşük stokta ürün bulunmuyor.
+        </p>
+    }
+    else
+    {
+        @foreach (var product in alerts)
+        {
+            <div class="ls-row">
+                <div>
+                    <strong>@product.Name</strong>
+                    <span class="ls-code">@product.Code</span>
+                </div>
+
+                <span class="ls-amount">
+                    @product.TotalUnits adet
+                </span>
+
+                <span>Sınır: @product.Threshold adet</span>
+            </div>
+        }
+    }
+
+    @if (Model.Products.Any(p =>
+        p.Threshold.HasValue && !p.TotalUnits.HasValue))
+    {
+        <p class="ls-note">
+            Bazı ürünlerin koli içi adet bilgisi eksik.
+            Bu ürünlerde kesin toplam ve düşük stok durumu hesaplanamadı.
+        </p>
+    }
+
+    <details>
+        <summary>Düşük stok sınırlarını ayarla</summary>
+
+        <p class="ls-note">
+            Sınır adet cinsindendir. Boş bırakıp kaydederseniz uyarı kapanır.
+            Kullanılabilir stok: aktif paletlerdeki kapalı koliler,
+            açık koli içeriği ve bağımsız tekli ürünlerin toplamıdır.
+        </p>
+
+        @if (Model.Products.Count == 0)
+        {
+            <p class="ls-note">Henüz aktif ürün bulunmuyor.</p>
+        }
+
+        @foreach (var product in Model.Products)
+        {
+            <form asp-controller="StockAlerts"
+                  asp-action="SaveThreshold"
+                  method="post"
+                  class="ls-row">
+
+                <input type="hidden"
+                       name="productId"
+                       value="@product.ProductId" />
+
+                <input type="hidden"
+                       name="concurrencyStamp"
+                       value="@product.ConcurrencyStamp" />
+
+                <div>
+                    <strong>@product.Name</strong>
+
+                    <span class="ls-code">
+                        @product.Code ·
+                        @(product.TotalUnits.HasValue
+                            ? $"Mevcut: {product.TotalUnits.Value} adet"
+                            : "Mevcut toplam bilinmiyor")
+                    </span>
+                </div>
+
+                <input type="number"
+                       name="threshold"
+                       value="@product.Threshold"
+                       min="0"
+                       max="2147483647"
+                       step="1"
+                       aria-label="@($"{product.Name} düşük stok sınırı")"
+                       placeholder="Kapalı" />
+
+                <button type="submit">Kaydet</button>
+            </form>
+        }
+    </details>
+</section>

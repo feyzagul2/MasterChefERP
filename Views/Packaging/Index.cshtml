@@ -1,0 +1,1954 @@
+@model MasterChefTakip.ViewModels.PackagingIndexViewModel
+
+@{
+    ViewData["Title"] = "Paketleme";
+    var canSave = Model.Products.Count > 0 && Model.Pallets.Count > 0;
+
+    string PgValue(string key, object? fallback)
+    {
+        if (ViewData.ModelState.TryGetValue(key, out var entry))
+            return entry.AttemptedValue ?? "";
+
+        return Convert.ToString(
+            fallback,
+            System.Globalization.CultureInfo.InvariantCulture) ?? "";
+    }
+}
+
+<style>
+    .packaging-page {
+        width: 100%;
+        min-width: 0;
+        color: #18365f;
+    }
+
+    .packaging-page,
+    .packaging-page * {
+        box-sizing: border-box;
+    }
+
+    .pg-heading,
+    .pg-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .pg-heading {
+        margin-bottom: 16px;
+    }
+
+    .packaging-page h1 {
+        margin: 0 0 5px;
+        font-size: 26px;
+    }
+
+    .pg-help {
+        margin: 0;
+        color: #64748b;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .pg-surface {
+        padding: 14px;
+        border: 1px solid #d3ddeb;
+        border-radius: 10px;
+        background: white;
+    }
+
+    .packaging-page label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12px;
+    }
+
+    .packaging-page .form-control,
+    .packaging-page .form-select {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    .packaging-page .btn {
+        min-height: 44px;
+        padding: 8px 12px;
+        font-size: 13px;
+        border-radius: 7px;
+    }
+
+    .packaging-page .btn-primary {
+        background: #18365f;
+        border-color: #18365f;
+    }
+
+    .pg-row {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1.5fr) minmax(0, 1fr) 95px 110px auto;
+        gap: 8px;
+        align-items: start;
+        padding: 12px 0;
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .pg-row > div {
+        min-width: 0;
+    }
+
+    .pg-remove {
+        margin-top: 22px;
+    }
+
+    .pg-row-total {
+        grid-column: 1 / -1;
+        margin: 0;
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .pg-row-total.invalid {
+        color: #b42318;
+    }
+
+    .pg-preview {
+        margin: 12px 0;
+        padding: 10px 12px;
+        background: #f7f9fc;
+        border: 1px solid #dce4ef;
+        border-radius: 7px;
+        font-size: 13px;
+    }
+
+    .pg-preview ul {
+        margin: 8px 0 0;
+        padding-left: 20px;
+    }
+
+    .pg-preview li {
+        margin: 4px 0;
+        overflow-wrap: anywhere;
+    }
+
+    .pg-note {
+        margin: 12px 0;
+        font-size: 13px;
+    }
+
+    .pg-note textarea {
+        margin-top: 8px;
+        resize: vertical;
+    }
+
+    .pg-actions {
+        margin-top: 12px;
+    }
+
+    .pg-footer {
+        margin-top: 12px;
+    }
+
+    @@media (max-width: 900px) {
+        .pg-row {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+        }
+
+        .pg-product,
+        .pg-pallet {
+            grid-column: 1 / -1;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .pg-surface {
+            padding: 10px;
+        }
+
+        .packaging-page h1 {
+            font-size: 24px;
+        }
+
+        .pg-actions .btn {
+            flex: 1 1 auto;
+        }
+    }
+</style>
+
+<div class="packaging-page">
+    <header class="pg-heading">
+        <div>
+            <h1>Paketleme kaydet</h1>
+            <p class="pg-help">
+                Yeni hazırlanan ürünleri ve yerleştirdiğiniz paleti girin.
+            </p>
+        </div>
+
+        
+    </header>
+
+    @if (TempData["PackagingSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">@success</div>
+    }
+
+    @if (!canSave)
+    {
+        <div class="alert alert-warning">
+            Kayıt için aktif ürün ve aktif palet bulunmalıdır.
+        </div>
+    }
+
+    <form asp-controller="Packaging"
+          asp-action="Save"
+          method="post"
+          id="packagingForm"
+          class="pg-surface">
+
+        <input asp-for="Form.RequestId" type="hidden" />
+
+        <div asp-validation-summary="All"
+             class="text-danger"
+             role="alert"></div>
+
+        <label for="packagingSearch">Ürün ara / barkod numarası gir</label>
+        <div class="pg-search-inline">
+<input id="packagingSearch"
+               class="form-control"
+               type="search"
+               autocomplete="off"
+               placeholder="Ürün adı, kodu veya barkod numarası" />
+<button type="button"
+                    id="pgFindProduct"
+                    class="btn btn-outline-secondary">
+                Ürünü seç / okut
+            </button>
+</div>
+<div class="pg-search-feedback"><span id="pgSearchFeedback"
+                  class="pg-help"
+                  role="status"></span></div>
+
+                @* MC_PALLET_BARCODE_SCAN_V1 *@
+        <div class="pg-pallet-scan" style="margin:12px 0 16px">
+            <label for="pgPalletBarcode">Palet barkodu okut / gir</label>
+
+            <div class="pg-search-inline">
+                <input id="pgPalletBarcode"
+                       type="search"
+                       class="form-control"
+                       autocomplete="off"
+                       placeholder="Palet barkodunu okutun veya yazın" />
+
+                <button type="button"
+                        id="pgFindPallet"
+                        class="btn btn-outline-secondary">
+                    Paleti seç
+                </button>
+            </div>
+
+            <small id="pgPalletFeedback"
+                   class="pg-help"
+                   role="status"></small>
+        </div>
+<div id="packagingRows">
+            @for (var index = 0; index < Model.Form.Rows.Count; index++)
+            {
+                var row = Model.Form.Rows[index];
+
+                <div class="pg-row">
+                    <div class="pg-product">
+                        <label>Ürün</label>
+                        <select name="Form.Rows[@index].ProductId"
+                                data-field="ProductId"
+                                class="form-select"
+                                required>
+                            <option value="">Ürün seçin</option>
+
+                            @foreach (var product in Model.Products)
+                            {
+                                <option value="@product.Id"
+                                        data-code="@product.Code"
+                                        data-barcode="@product.Barcode"
+                                        data-search="@($"{product.Name} {product.Code} {product.Barcode}")"
+                                        selected="@(row.ProductId == product.Id)">
+                                    @product.Name — @product.Code
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="pg-pallet">
+                        <label>Yerleştirilen palet / konum</label>
+                        <select name="Form.Rows[@index].PalletId"
+                                data-field="PalletId" data-pallet-barcode-select
+                                class="form-select"
+                                required>
+                            <option value="">Palet seçin</option>
+
+                            @foreach (var pallet in Model.Pallets)
+                            {
+                                <option data-barcode="@pallet.Barcode" value="@pallet.Id"
+                                        selected="@(row.PalletId == pallet.Id)">
+                                    Palet #@pallet.Id —
+                                    @(string.IsNullOrWhiteSpace(pallet.Location)
+                                        ? "Konum belirtilmedi" : pallet.Location)
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Koli sayısı</label>
+                        <input name="Form.Rows[@index].BoxCount"
+                               data-field="BoxCount"
+                               value="@(PgValue($"Form.Rows[{index}].BoxCount", row.BoxCount))"
+                               class="form-control"
+                               type="number"
+                               inputmode="numeric"
+                               min="1"
+                               max="2147483647"
+                               step="1"
+                               required />
+                    </div>
+
+                    <div>
+                        <label>Her kolide adet</label>
+                        <input name="Form.Rows[@index].UnitsPerBox"
+                               data-field="UnitsPerBox"
+                               value="@(PgValue($"Form.Rows[{index}].UnitsPerBox", row.UnitsPerBox))"
+                               class="form-control"
+                               type="number"
+                               inputmode="numeric"
+                               min="1"
+                               max="2147483647"
+                               step="1"
+                               required />
+                    </div>
+
+                    <button type="button"
+                            class="btn btn-outline-danger pg-remove"
+                            data-remove>
+                        Sil
+                    </button>
+
+                    <p class="pg-row-total"
+                       data-row-total
+                       aria-live="polite"></p>
+                </div>
+            }
+        </div>
+
+        <div class="pg-actions">
+            <button type="button"
+                    id="addPackagingRow"
+                    class="btn btn-outline-secondary">
+                + Ürün ekle
+            </button>
+        </div>
+
+        <details class="pg-note"
+                 open="@(!string.IsNullOrWhiteSpace(Model.Form.Notes))">
+            <summary>Not ekle (isteğe bağlı)</summary>
+            <label asp-for="Form.Notes" style="margin-top:8px">
+                İşlem notu
+            </label>
+            <textarea asp-for="Form.Notes"
+                      class="form-control"
+                      rows="2"
+                      maxlength="500"></textarea>
+        </details>
+
+        <div id="packagingPreview"
+             class="pg-preview"
+             aria-live="polite"></div>
+
+        <button type="submit"
+                id="savePackaging"
+                class="btn btn-primary"
+                disabled="@(!canSave)">
+            Kontrol et ve stoğa ekle
+        </button>
+
+        <p class="pg-help pg-footer">
+            Aynı üründe koli içi adetler farklıysa ayrı satır girin.
+            Yalnızca yeni hazırlanan ürünleri kaydedin.
+        </p>
+    </form>
+</div>
+
+@* PackagingFrontendV2 *@
+<style>
+    .packaging-page .pg-search-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        margin: 8px 0 4px;
+    }
+
+    .packaging-page .pg-row {
+        grid-template-columns:
+            minmax(0, 1.5fr) minmax(0, 1.2fr) 100px 130px auto;
+    }
+
+    .packaging-page .pg-preview details {
+        margin-top: 5px;
+    }
+
+    .packaging-page .pg-preview summary {
+        display: list-item;
+        width: fit-content;
+        min-height: 36px;
+        padding: 8px 0;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .pg-review {
+        width: calc(100% - 24px);
+        max-width: 760px;
+        max-height: 85vh;
+        max-height: 85dvh;
+        padding: 0;
+        border: 1px solid #d3ddeb;
+        border-radius: 12px;
+        color: #18365f;
+        background: white;
+    }
+
+    .pg-review::backdrop {
+        background: rgba(15, 23, 42, .45);
+    }
+
+    .pg-review-header,
+    .pg-review-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px 16px;
+    }
+
+    .pg-review-header {
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .pg-review-header h2 {
+        margin: 0;
+        font-size: 19px;
+    }
+
+    .pg-review-body {
+        max-height: 55vh;
+        overflow-y: auto;
+        padding: 14px 16px;
+    }
+
+    .pg-review-body li {
+        margin: 12px 0;
+        overflow-wrap: anywhere;
+    }
+
+    .pg-review-body p {
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
+
+    .pg-review-footer {
+        border-top: 1px solid #e5eaf1;
+    }
+
+    .pg-review .btn {
+        min-height: 44px;
+    }
+
+    @@media (max-width: 900px) {
+        .packaging-page .pg-row {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .pg-review-footer .btn {
+            flex: 1 1 auto;
+        }
+
+        .packaging-page .pg-search-actions .pg-help {
+            flex-basis: 100%;
+        }
+    }
+</style>
+
+<dialog id="pgReview"
+        class="pg-review"
+        aria-labelledby="pgReviewTitle">
+    <div class="pg-review-header">
+        <h2 id="pgReviewTitle">Stoğa eklemeden önce kontrol et</h2>
+        <button type="button"
+                class="btn btn-outline-secondary"
+                data-review-close>
+            Kapat
+        </button>
+    </div>
+
+    <div class="pg-review-body">
+        <p>
+            <strong id="pgReviewTotal"></strong>
+        </p>
+
+        <ul id="pgReviewList"></ul>
+
+        <p id="pgReviewNote"></p>
+
+        <p>
+            Kaydettiğinizde bu ürünler seçilen paletlerin stoğuna eklenir.
+        </p>
+    </div>
+
+    <div class="pg-review-footer">
+        <button type="button"
+                class="btn btn-outline-secondary"
+                data-review-close>
+            Geri dön, düzenle
+        </button>
+
+        <button type="button"
+                id="pgReviewConfirm"
+                class="btn btn-dark">
+            Onayla ve stoğa ekle
+        </button>
+    </div>
+</dialog>
+
+@section Scripts {
+
+<style>
+    /* MC_PRODUCT_PICKER_V1 */
+
+    .mc-picker-trigger {
+        width: 100%;
+        min-height: 42px;
+        padding: 9px 12px;
+        border: 1px solid #d7e0ec;
+        border-radius: 7px;
+        background: #fff;
+        color: #18365f;
+        text-align: left;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .mc-picker-trigger:hover {
+        border-color: #285b9c;
+        background: #f8fbff;
+    }
+
+    .mc-picker-trigger:focus-visible {
+        outline: 2px solid #285b9c;
+        outline-offset: 2px;
+    }
+
+    .mc-picker-search {
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 1px solid #d7e0ec;
+        border-radius: 7px;
+        font-size: 16px;
+    }
+
+    .mc-picker-results {
+        max-height: min(55vh, 450px);
+        overflow-y: auto;
+        border: 1px solid #e4eaf2;
+        border-radius: 7px;
+    }
+
+    .mc-picker-option {
+        display: block;
+        width: 100%;
+        padding: 11px 13px;
+        border: 0;
+        border-bottom: 1px solid #edf1f6;
+        background: #fff;
+        color: #18365f;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .mc-picker-option:hover,
+    .mc-picker-option:focus-visible {
+        background: #eef5ff;
+    }
+
+    .mc-picker-option small {
+        display: block;
+        margin-top: 3px;
+        color: #64748b;
+    }
+
+    .mc-picker-empty {
+        padding: 18px;
+        text-align: center;
+        color: #64748b;
+    }
+
+    @@media (max-width: 767px) {
+        .mc-picker-results {
+            max-height: 55vh;
+        }
+
+        .mc-picker-option {
+            padding: 13px;
+        }
+    }
+</style>
+
+<div class="modal fade"
+     id="mcProductPickerModal"
+     tabindex="-1"
+     aria-labelledby="mcProductPickerTitle"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="mcProductPickerTitle">
+                    Ürün Seçimi
+                </h2>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Kapat"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="search"
+                       id="mcProductPickerSearch"
+                       class="mc-picker-search"
+                       placeholder="Ürün adı veya stok kodu ara..."
+                       autocomplete="off"
+                       aria-label="Ürün ara" />
+
+                <div class="d-flex justify-content-between align-items-center my-3">
+                    <span class="small text-secondary">
+                        Ürün seçmek için satıra tıklayın.
+                    </span>
+
+                    <span id="mcProductPickerCount"
+                          class="small text-secondary"></span>
+                </div>
+
+                <div id="mcProductPickerResults"
+                     class="mc-picker-results"></div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                    Kapat
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+(() => {
+    // MC_PRODUCT_PICKER_V1
+    // Gercek ProductId select elemanlari korunur.
+    // Sadece kullaniciya gosterilen secim arayuzu yenilenir.
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+        const modalElement =
+            document.getElementById("mcProductPickerModal");
+
+        const search =
+            document.getElementById("mcProductPickerSearch");
+
+        const results =
+            document.getElementById("mcProductPickerResults");
+
+        const count =
+            document.getElementById("mcProductPickerCount");
+
+        if (!modalElement ||
+            !search ||
+            !results ||
+            !window.bootstrap) {
+            return;
+        }
+
+        const modal =
+            bootstrap.Modal.getOrCreateInstance(modalElement);
+
+        let activeSelect = null;
+        let allProducts = [];
+
+        const normalize = value =>
+            String(value || "")
+                .toLocaleLowerCase("tr-TR")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/ı/g, "i");
+
+        function collectProducts() {
+            const map = new Map();
+
+            document
+                .querySelectorAll('.pg-row select[data-field="ProductId"]')
+                .forEach(select => {
+
+                    [...select.options].forEach(option => {
+
+                        if (!option.value) return;
+
+                        if (!map.has(option.value)) {
+                            map.set(option.value, {
+                                id: option.value,
+                                name: option.textContent.trim()
+                            });
+                        }
+                    });
+                });
+
+            for (const product of map.values()) {
+                if (!allProducts.some(p => p.id === product.id)) {
+                    allProducts.push(product);
+                }
+            }
+
+            allProducts.sort((a, b) =>
+                a.name.localeCompare(b.name, "tr-TR"));
+        }
+
+        function selectedText(select) {
+            const id = select.value;
+
+            if (!id) return "Ürün seçin";
+
+            const found = allProducts.find(p => p.id === id);
+
+            return found
+                ? found.name
+                : select.selectedOptions[0]?.textContent.trim()
+                    || "Ürün seçin";
+        }
+
+        function syncButtons() {
+            document.querySelectorAll(".mc-picker-trigger")
+                .forEach(button => {
+
+                    const row = button.closest(".pg-row");
+                    const select =
+                        row?.querySelector(
+                            'select[data-field="ProductId"]'
+                        );
+
+                    if (select) {
+                        button.textContent = selectedText(select);
+                    }
+                });
+        }
+
+        function enhanceRows() {
+            collectProducts();
+
+            document
+                .querySelectorAll('.pg-row select[data-field="ProductId"]')
+                .forEach(select => {
+
+                    if (select.dataset.mcPickerEnhanced === "1")
+                        return;
+
+                    select.dataset.mcPickerEnhanced = "1";
+
+                    const button = document.createElement("button");
+
+                    button.type = "button";
+                    button.className = "mc-picker-trigger";
+                    button.textContent = selectedText(select);
+                    button.setAttribute(
+                        "aria-label",
+                        "Ürün seçme penceresini aç"
+                    );
+
+                    select.insertAdjacentElement("afterend", button);
+
+                    // Mevcut select, form ve JavaScript icin DOM'da kalir.
+                    select.hidden = true;
+
+                    button.addEventListener("click", () => {
+                        activeSelect = select;
+
+                        collectProducts();
+
+                        search.value = "";
+                        render();
+
+                        modal.show();
+                    });
+
+                    select.addEventListener("change", syncButtons);
+                });
+
+            syncButtons();
+        }
+
+        function render() {
+            const query = normalize(search.value.trim());
+
+            const found = allProducts.filter(product =>
+                normalize(product.name).includes(query));
+
+            count.textContent =
+                `${found.length} / ${allProducts.length} ürün`;
+
+            results.replaceChildren();
+
+            if (!found.length) {
+                const empty = document.createElement("div");
+
+                empty.className = "mc-picker-empty";
+                empty.textContent = "Aradığınız ürün bulunamadı.";
+
+                results.appendChild(empty);
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+
+            found.forEach(product => {
+
+                const button = document.createElement("button");
+
+                button.type = "button";
+                button.className = "mc-picker-option";
+
+                const title = document.createElement("span");
+                title.textContent = product.name;
+
+                button.appendChild(title);
+
+                button.addEventListener("click", () => {
+                    if (!activeSelect) return;
+
+                    const oldValue = activeSelect.value;
+
+                    // Mevcut arama filtresi secilen urunu select
+                    // listesinden cikarmissa tekrar eklenir.
+                    if (![...activeSelect.options].some(
+                        option => option.value === product.id
+                    )) {
+                        activeSelect.add(
+                            new Option(product.name, product.id)
+                        );
+                    }
+
+                    activeSelect.value = product.id;
+
+                    activeSelect.dataset.previous = oldValue;
+
+                    activeSelect.dispatchEvent(
+                        new Event("change", { bubbles: true })
+                    );
+
+                    syncButtons();
+
+                    modal.hide();
+                });
+
+                fragment.appendChild(button);
+            });
+
+            results.appendChild(fragment);
+        }
+
+        search.addEventListener("input", render);
+
+        modalElement.addEventListener("shown.bs.modal", () => {
+            search.focus();
+        });
+
+        // Paketleme ekraninda yeni urun satiri eklenirse
+        // ayni secim butonu otomatik hazirlanir.
+        const firstRow = document.querySelector(".pg-row");
+
+        if (firstRow?.parentElement) {
+            const observer = new MutationObserver(mutations => {
+                if (mutations.some(mutation =>
+                    [...mutation.addedNodes].some(node =>
+                        node.nodeType === 1 &&
+                        (node.matches?.(".pg-row") ||
+                         node.querySelector?.(".pg-row"))
+                    ))) {
+                    enhanceRows();
+                }
+            });
+
+            observer.observe(firstRow.parentElement, {
+                childList: true
+            });
+        }
+
+        enhanceRows();
+    });
+})();
+</script>
+<script>
+(() => {
+    const form = document.getElementById("packagingForm");
+    const rows = document.getElementById("packagingRows");
+    const add = document.getElementById("addPackagingRow");
+    const save = document.getElementById("savePackaging");
+    const search = document.getElementById("packagingSearch");
+    const find = document.getElementById("pgFindProduct");
+    const feedback = document.getElementById("pgSearchFeedback");
+    const preview = document.getElementById("packagingPreview");
+    const dialog = document.getElementById("pgReview");
+    const confirmButton = document.getElementById("pgReviewConfirm");
+    const reviewList = document.getElementById("pgReviewList");
+    const reviewTotal = document.getElementById("pgReviewTotal");
+    const reviewNote = document.getElementById("pgReviewNote");
+    const first = rows?.firstElementChild;
+
+    if (!form || !first || !find || !dialog) return;
+
+    const template = first.cloneNode(true);
+    const options = [...first.querySelector(
+        '[data-field="ProductId"]').options]
+        .map(option => option.cloneNode(true));
+
+    // MC_PALLET_ENABLE_SAVE_V3
+    // MC_PACKAGING_PALLET_FIX_V4
+    let unavailable = save.disabled;
+
+    window.mcPackagingPalletCreated = function () {
+        unavailable = false;
+        save.disabled = false;
+
+        // Yeni satirlarin palet listesi guncel kalsin.
+        const source = rows.querySelector(
+            '[data-field="PalletId"]'
+        );
+
+        if (source) {
+            const templateSelect = template.querySelector(
+                '[data-field="PalletId"]'
+            );
+
+            if (templateSelect) {
+                templateSelect.replaceChildren(
+                    ...Array.from(source.options).map(
+                        option => option.cloneNode(true)
+                    )
+                );
+            }
+        }
+
+        update();
+    };
+    let active = first;
+    let submitting = false;
+    let approved = false;
+    let valid = false;
+    let lines = [];
+    let totalText = "";
+
+    const normalize = value => String(value ?? "").trim()
+        .toLocaleLowerCase("tr-TR").normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "").replace(/ı/g, "i");
+
+    const integer = value => {
+        const text = String(value ?? "").trim();
+        const n = Number(text);
+        return text && Number.isInteger(n)
+            && n > 0 && n <= 2147483647 ? n : null;
+    };
+
+    const format = value => value.toLocaleString("tr-TR");
+    const field = (row, name) =>
+        row.querySelector(`[data-field="${name}"]`);
+
+    function matches() {
+        const words = normalize(search.value)
+            .split(/\s+/).filter(Boolean);
+
+        return options.filter(o => o.value && words.every(word =>
+            normalize(o.dataset.search ?? o.textContent)
+                .includes(word)));
+    }
+
+    function filter() {
+        const found = matches();
+        const ids = new Set(found.map(o => o.value));
+
+        rows.querySelectorAll('[data-field="ProductId"]')
+            .forEach(select => {
+                const selected = select.value;
+
+                select.replaceChildren(...options.filter(o =>
+                    !o.value || o.value === selected || ids.has(o.value))
+                    .map(o => o.cloneNode(true)));
+
+                select.value = selected;
+            });
+
+        feedback.textContent = search.value.trim()
+            ? found.length
+                ? `${found.length} ürün bulundu. Ürünü seçebilir veya listeden bakabilirsiniz.`
+                : "Ürün bulunamadı. Ürün kodunu veya barkodu kontrol edin."
+            : "Barkod okuyucu için bu kutuya tıklayıp okutun. Miktarları siz gireceksiniz.";
+    }
+
+    function update() {
+        const current = [...rows.querySelectorAll(".pg-row")];
+        valid = current.length > 0 && current.length <= 100;
+        let boxesTotal = 0n;
+        let unitsTotal = 0n;
+        lines = [];
+
+        current.forEach((row, index) => {
+            row.querySelectorAll("[data-field]").forEach(input => {
+                input.name =
+                    `Form.Rows[${index}].${input.dataset.field}`;
+                input.id =
+                    `packaging-${index}-${input.dataset.field}`;
+                input.setCustomValidity("");
+
+                const label =
+                    input.parentElement.querySelector("label");
+                if (label) label.htmlFor = input.id;
+            });
+
+            const remove = row.querySelector("[data-remove]");
+            remove.disabled = current.length <= 1 || submitting;
+            remove.setAttribute("aria-label",
+                `${index + 1}. ürün satırını kaldır`);
+
+            const product = field(row, "ProductId");
+            const pallet = field(row, "PalletId");
+            const boxInput = field(row, "BoxCount");
+            const capacityInput = field(row, "UnitsPerBox");
+
+            if (product.dataset.previous === undefined)
+                product.dataset.previous = product.value;
+
+            const boxes = integer(boxInput.value);
+            const capacity = integer(capacityInput.value);
+            const message = row.querySelector("[data-row-total]");
+            const errors = [];
+
+            function error(input, text) {
+                input.setCustomValidity(text);
+                errors.push(text);
+                valid = false;
+            }
+
+            if (!product.value)
+                error(product, "Ürünü seçin.");
+            if (!pallet.value)
+                error(pallet, "Yerleştirilen paleti seçin.");
+            if (boxes === null)
+                error(boxInput, "Koli sayısı en az 1 olmalı.");
+            if (capacity === null)
+                error(capacityInput,
+                    "Bu üründen her kolide kaç adet olduğunu girin.");
+
+            /* MC_PACKAGING_VALIDATION_V1 */
+            const showErrors = form.dataset.validationShown === "true";
+
+            message.classList.toggle(
+                "invalid",
+                showErrors && errors.length > 0
+            );
+
+            if (errors.length) {
+                message.textContent = showErrors
+                    ? `${index + 1}. satır: ${errors.join(" ")}`
+                    : "";
+                return;
+            }
+
+            const units = BigInt(boxes) * BigInt(capacity);
+            boxesTotal += BigInt(boxes);
+            unitsTotal += units;
+
+            lines.push(
+                `${product.selectedOptions[0].textContent.trim()}: `
+                + `${format(boxes)} koli × ${format(capacity)} adet`
+                + ` = ${format(units)} ürün`
+                + ` · ${pallet.selectedOptions[0].textContent.trim()}`
+            );
+
+            message.textContent =
+                `${format(boxes)} koli × ${format(capacity)} adet`
+                + ` = ${format(units)} ürün`;
+        });
+
+        if (unitsTotal > 9223372036854775807n) {
+            valid = false;
+            const input = field(current.at(-1), "BoxCount");
+            input.setCustomValidity(
+                "Toplam miktar sistem sınırını aşıyor.");
+            current.at(-1).querySelector("[data-row-total]")
+                .textContent = "Toplam miktar sistem sınırını aşıyor.";
+        }
+
+        totalText =
+            `${format(boxesTotal)} koli · ${format(unitsTotal)} adet ürün`;
+
+        preview.replaceChildren();
+        const title = document.createElement("strong");
+        title.textContent = valid
+            ? `Stoğa eklenecek: ${totalText}`
+            : "Kaydetmeden önce eksik alanları tamamlayın.";
+        preview.append(title);
+
+        if (lines.length) {
+            const details = document.createElement("details");
+            const summary = document.createElement("summary");
+            summary.textContent =
+                `${lines.length} tamamlanmış satırı göster`;
+
+            const list = document.createElement("ul");
+
+            lines.forEach(text => {
+                const li = document.createElement("li");
+                li.textContent = text;
+                list.append(li);
+            });
+
+            details.append(summary, list);
+            preview.append(details);
+        }
+
+        add.disabled =
+            unavailable || current.length >= 100 || submitting;
+        find.disabled = unavailable || submitting;
+    }
+
+    function addRow(focus = true) {
+        if (submitting || unavailable || rows.children.length >= 100)
+            return null;
+
+        const previousPallet =
+            field(rows.lastElementChild, "PalletId").value;
+
+        const row = template.cloneNode(true);
+        row.querySelectorAll("input, select").forEach(input => {
+            input.value = "";
+            input.setCustomValidity("");
+        });
+
+        field(row, "PalletId").value = previousPallet;
+        rows.append(row);
+        active = row;
+        search.value = "";
+        filter();
+        update();
+
+        if (focus) field(row, "ProductId").focus();
+        return row;
+    }
+
+    function chooseProduct() {
+        if (submitting || unavailable) return;
+
+        const word = normalize(search.value);
+
+        if (!word) {
+            feedback.textContent =
+                "Ürün adı, kodu veya barkodu girin.";
+            search.focus();
+            return;
+        }
+
+        const exact = options.filter(o => o.value && (
+            normalize(o.dataset.code) === word
+            || normalize(o.dataset.barcode) === word));
+
+        const found = exact.length ? exact : matches();
+
+        if (found.length !== 1) {
+            filter();
+
+            if (found.length > 1) {
+                feedback.textContent =
+                    "Birden fazla ürün bulundu. Doğru ürünü listeden seçin.";
+                field(active, "ProductId").focus();
+            }
+            return;
+        }
+
+        const option = found[0];
+        let row = active;
+        const selected = field(row, "ProductId").value;
+
+        if (selected && selected !== option.value) {
+            row = [...rows.children].find(r =>
+                !field(r, "ProductId").value)
+                ?? addRow(false);
+        }
+
+        if (!row) {
+            feedback.textContent =
+                "En fazla 100 ürün satırı eklenebilir.";
+            return;
+        }
+
+        active = row;
+        search.value = "";
+        filter();
+
+        field(row, "ProductId").value = option.value;
+        field(row, "ProductId").dataset.previous = option.value;
+        update();
+
+        feedback.textContent =
+            `${option.textContent.trim()} seçildi. Gerçek miktarları girin.`;
+
+        const destination = field(row, "PalletId");
+        (destination.value
+            ? field(row, "BoxCount")
+            : destination).focus();
+    }
+
+    add.addEventListener("click", () => addRow());
+    find.addEventListener("click", chooseProduct);
+    search.addEventListener("input", filter);
+
+    search.addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            chooseProduct();
+        }
+    });
+
+    rows.addEventListener("focusin", event => {
+        active = event.target.closest(".pg-row") ?? active;
+    });
+
+    rows.addEventListener("input", update);
+
+    rows.addEventListener("change", event => {
+        const product =
+            event.target.closest('[data-field="ProductId"]');
+
+        if (product && product.dataset.previous
+            && product.dataset.previous !== product.value) {
+            field(product.closest(".pg-row"), "UnitsPerBox").value = "";
+        }
+
+        if (product) product.dataset.previous = product.value;
+        update();
+    });
+
+    rows.addEventListener("click", event => {
+        const button = event.target.closest("[data-remove]");
+
+        if (!button || submitting || rows.children.length <= 1)
+            return;
+
+        const row = button.closest(".pg-row");
+
+        if ((field(row, "ProductId").value
+            || field(row, "BoxCount").value)
+            && !window.confirm("Bu ürün satırı formdan kaldırılsın mı?"))
+            return;
+
+        row.remove();
+        active = rows.lastElementChild;
+        update();
+    });
+
+    form.noValidate = true;
+
+    form.addEventListener("submit", event => {
+        if (submitting || unavailable) {
+            event.preventDefault();
+            return;
+        }
+
+        form.dataset.validationShown = "true";
+
+        update();
+
+        if (!form.reportValidity() || !valid) {
+            event.preventDefault();
+            approved = false;
+            return;
+        }
+
+        if (!approved) {
+            event.preventDefault();
+            reviewTotal.textContent = totalText;
+            reviewList.replaceChildren();
+
+            lines.forEach(text => {
+                const li = document.createElement("li");
+                li.textContent = text;
+                reviewList.append(li);
+            });
+
+            const note = document.getElementById("Form_Notes")
+                ?.value.trim();
+            reviewNote.textContent = note ? `Not: ${note}` : "";
+
+            if (typeof dialog.showModal === "function") {
+                dialog.showModal();
+            }
+            else if (window.confirm(
+                `${lines.join("\n")}\n\n${totalText} stoğa eklensin mi?`
+            )) {
+                approved = true;
+                form.requestSubmit();
+            }
+            return;
+        }
+
+        submitting = true;
+        save.disabled = true;
+        save.textContent = "Kaydediliyor...";
+        confirmButton.disabled = true;
+        confirmButton.textContent = "Kaydediliyor...";
+        add.disabled = true;
+        find.disabled = true;
+
+        rows.querySelectorAll("[data-remove]").forEach(button => {
+            button.disabled = true;
+        });
+    });
+
+    dialog.querySelectorAll("[data-review-close]").forEach(button => {
+        button.addEventListener("click", () => {
+            approved = false;
+            dialog.close();
+            save.focus();
+        });
+    });
+
+    confirmButton.addEventListener("click", () => {
+        if (submitting) return;
+        approved = true;
+        form.requestSubmit();
+
+        if (!submitting) {
+            approved = false;
+            dialog.close();
+        }
+    });
+
+    dialog.addEventListener("cancel", () => { approved = false; });
+
+    window.addEventListener("pageshow", event => {
+        if (event.persisted) window.location.reload();
+    });
+
+    filter();
+    update();
+})();
+</script>
+}
+
+@* PackagingSearchInlineV1 *@
+<style>
+    .packaging-page .pg-search-inline {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .packaging-page .pg-search-inline #packagingSearch {
+        min-width: 0;
+        margin: 0;
+    }
+
+    .packaging-page .pg-search-inline #pgFindProduct {
+        align-self: stretch;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .packaging-page .pg-search-feedback {
+        margin: 6px 0 10px;
+        font-size: 12px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+</style>
+<script>
+/* MC_PALLET_BARCODE_SCAN_V1 */
+document.addEventListener("DOMContentLoaded", function () {
+
+    const input = document.getElementById("pgPalletBarcode");
+    const button = document.getElementById("pgFindPallet");
+    const feedback = document.getElementById("pgPalletFeedback");
+    const rows = document.getElementById("packagingRows");
+
+    if (!input || !button || !feedback || !rows) return;
+
+    function normalize(value) {
+        return String(value || "").trim().toLocaleLowerCase("tr-TR");
+    }
+
+    function selectPallet() {
+        const barcode = normalize(input.value);
+
+        if (!barcode) {
+            feedback.textContent = "Palet barkodunu girin.";
+            input.focus();
+            return;
+        }
+
+        const selects = Array.from(
+            rows.querySelectorAll('[data-field="PalletId"]')
+        );
+
+        if (!selects.length) return;
+
+        let selectedOption = null;
+
+        for (const option of selects[0].options) {
+            if (
+                option.value &&
+                normalize(option.dataset.barcode) === barcode
+            ) {
+                selectedOption = option;
+                break;
+            }
+        }
+
+        if (!selectedOption) {
+            feedback.textContent = "Bu barkoda ait aktif palet bulunamadı.";
+            return;
+        }
+
+        const activeRow = document.activeElement?.closest(".pg-row");
+
+        const targetSelect =
+            activeRow?.querySelector('[data-field="PalletId"]')
+            || selects.find(s => !s.value)
+            || selects[selects.length - 1];
+
+        targetSelect.value = selectedOption.value;
+
+        targetSelect.dispatchEvent(
+            new Event("change", { bubbles: true })
+        );
+
+        feedback.textContent =
+            "Palet seçildi: " + selectedOption.textContent.trim();
+
+        input.value = "";
+
+        const boxInput = targetSelect.closest(".pg-row")
+            ?.querySelector('[data-field="BoxCount"]');
+
+        if (boxInput) boxInput.focus();
+    }
+
+    button.addEventListener("click", selectPallet);
+
+    input.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            selectPallet();
+        }
+    });
+
+});
+</script>
+<!-- MC_CAMERA_SCANNER_V1 -->
+<div id="mcCameraScanner"
+     style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);padding:16px;align-items:center;justify-content:center">
+
+    <div style="width:100%;max-width:480px;background:white;border-radius:12px;padding:16px">
+
+        <h3 id="mcCameraTitle" style="font-size:18px;margin-bottom:12px">
+            Barkod okut
+        </h3>
+
+        <video id="mcCameraVideo"
+               autoplay
+               muted
+               playsinline
+               style="width:100%;max-height:350px;background:#111;border-radius:8px">
+        </video>
+
+        <p id="mcCameraStatus"
+           style="font-size:13px;margin-top:10px;color:#475569">
+            Kamera hazırlanıyor...
+        </p>
+
+        <button type="button"
+                id="mcCameraClose"
+                class="btn btn-outline-secondary w-100 mt-2">
+            Kamerayı kapat
+        </button>
+
+    </div>
+</div>
+
+<!-- MC_ZXING_CAMERA_V2 -->
+<script src="/lib/zxing/zxing.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const overlay = document.getElementById("mcCameraScanner");
+    const video = document.getElementById("mcCameraVideo");
+    const status = document.getElementById("mcCameraStatus");
+    const title = document.getElementById("mcCameraTitle");
+    const closeButton = document.getElementById("mcCameraClose");
+
+    const productInput = document.getElementById("packagingSearch");
+    const palletInput = document.getElementById("pgPalletBarcode");
+
+    const productButton = document.getElementById("pgFindProduct");
+    const palletButton = document.getElementById("pgFindPallet");
+
+    if (!overlay || !video || !productInput || !palletInput) return;
+
+    let reader = null;
+    let active = false;
+    let session = 0;
+
+    // Eski kodun ekledigi kamera butonlarini temizle.
+    document.querySelectorAll(".mc-camera-button").forEach(b => b.remove());
+
+    function stopCamera() {
+        active = false;
+        session++;
+
+        if (reader) {
+            try { reader.reset(); } catch (e) {}
+            reader = null;
+        }
+
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+        }
+
+        overlay.style.display = "none";
+    }
+
+    async function openCamera(type) {
+
+        if (!window.ZXing) {
+            alert("Barkod okuyucu kutuphanesi yuklenemedi.");
+            return;
+        }
+
+        if (!navigator.mediaDevices?.getUserMedia) {
+            alert("Kamera icin HTTPS baglantisi gerekiyor.");
+            return;
+        }
+
+        stopCamera();
+
+        const currentSession = session;
+        active = true;
+
+        overlay.style.display = "flex";
+
+        title.textContent = type === "product"
+            ? "Ürün barkodunu okut"
+            : "Palet barkodunu okut";
+
+        status.textContent = "Kamera açılıyor...";
+
+        try {
+
+            reader = new ZXing.BrowserMultiFormatReader();
+
+            await reader.decodeFromVideoDevice(
+                null,
+                video,
+                function(result, error) {
+
+                    if (!active || currentSession !== session) return;
+
+                    if (!result) return;
+
+                    const barcode = result.getText();
+
+                    stopCamera();
+
+                    if (type === "product") {
+
+                        productInput.value = barcode;
+
+                        productInput.dispatchEvent(
+                            new Event("input", { bubbles: true })
+                        );
+
+                        productButton.click();
+
+                    } else {
+
+                        palletInput.value = barcode;
+                        palletButton.click();
+
+                    }
+                }
+            );
+
+            if (active && currentSession === session) {
+                status.textContent = "Barkodu kameraya gösterin.";
+            }
+
+        } catch (error) {
+
+            console.error("Kamera hatasi:", error);
+
+            stopCamera();
+
+            alert("Kamera açılamadı. Kamera iznini ve HTTPS bağlantısını kontrol edin.");
+        }
+    }
+
+    function addButton(input, type) {
+
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className =
+            "btn btn-outline-primary mc-camera-button";
+
+        button.textContent = "📷 Kamera ile okut";
+
+        button.style.margin = "8px 0";
+
+        button.addEventListener("click", function() {
+            openCamera(type);
+        });
+
+        input.closest(".pg-search-inline")?.appendChild(button);
+    }
+
+    addButton(productInput, "product");
+    addButton(palletInput, "pallet");
+
+    closeButton.addEventListener("click", stopCamera);
+
+    overlay.addEventListener("click", function(event) {
+        if (event.target === overlay) stopCamera();
+    });
+
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Escape") stopCamera();
+    });
+
+    window.addEventListener("pagehide", stopCamera);
+
+});
+</script>
+
+@* MC_CAMERA_INLINE_V1 *@
+<style>
+    /* Barkod arama ve kamera butonlari ayni satirda */
+
+    .packaging-page .pg-search-inline {
+        display: flex !important;
+        align-items: stretch !important;
+        flex-wrap: nowrap !important;
+        gap: 8px !important;
+    }
+
+    .packaging-page .pg-search-inline .form-control {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .packaging-page .pg-search-inline .btn {
+        flex: 0 0 auto;
+        margin: 0 !important;
+        min-height: 44px;
+        white-space: nowrap;
+    }
+
+    .packaging-page .mc-camera-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @@media (max-width: 600px) {
+        .packaging-page .pg-search-inline {
+            gap: 5px !important;
+        }
+
+        .packaging-page .pg-search-inline .btn {
+            padding: 8px 6px;
+            font-size: 11px;
+        }
+
+        .packaging-page .mc-camera-button {
+            font-size: 0 !important;
+        }
+
+        .packaging-page .mc-camera-button::after {
+            content: "📷";
+            font-size: 20px;
+        }
+    }
+</style>
+<!-- MC_PALLET_QUICK_CREATE_V1 -->
+<style>
+.mc-pallet-quick-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,.65);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+}
+.mc-pallet-quick-box {
+    width: 100%;
+    max-width: 460px;
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.mc-pallet-quick-box h3 {
+    font-size: 20px;
+    margin-bottom: 18px;
+}
+.mc-pallet-quick-box label {
+    display: block;
+    font-weight: 600;
+    margin: 12px 0 5px;
+}
+.mc-pallet-quick-box input,
+.mc-pallet-quick-box textarea {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 11px;
+}
+.mc-pallet-quick-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+</style>
+
+<div id="mcQuickPalletOverlay" class="mc-pallet-quick-overlay">
+    <div class="mc-pallet-quick-box">
+        <h3>Yeni Palet Oluştur</h3>
+
+        <label for="mcQuickPalletLocation">Palet Konumu</label>
+        <input id="mcQuickPalletLocation"
+               placeholder="Örneğin: A Blok - Raf 3">
+
+        <label for="mcQuickPalletNotes">Açıklama</label>
+        <textarea id="mcQuickPalletNotes"
+                  rows="3"
+                  placeholder="İsteğe bağlı"></textarea>
+
+        <div class="mc-pallet-quick-actions">
+            <button type="button"
+                    id="mcQuickPalletCancel"
+                    class="btn btn-outline-secondary">
+                Vazgeç
+            </button>
+
+            <button type="button"
+                    id="mcQuickPalletSave"
+                    class="btn btn-primary">
+                Palet Oluştur
+            </button>
+        </div>
+
+        <div id="mcQuickPalletMessage"
+             style="margin-top:12px;font-size:13px"></div>
+    </div>
+</div>
+
+<!-- MC_PALLET_QUICK_SAVE_V2 -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const overlay = document.getElementById("mcQuickPalletOverlay");
+    const cancel = document.getElementById("mcQuickPalletCancel");
+    const save = document.getElementById("mcQuickPalletSave");
+    const locationInput = document.getElementById("mcQuickPalletLocation");
+    const notesInput = document.getElementById("mcQuickPalletNotes");
+    const message = document.getElementById("mcQuickPalletMessage");
+
+    if (!overlay || !save) return;
+
+    const createLink = Array.from(document.querySelectorAll("a"))
+        .find(a => a.textContent.includes("Yeni Palet Oluştur"));
+
+    if (!createLink) return;
+
+    function closeModal() {
+        overlay.style.display = "none";
+    }
+
+    createLink.addEventListener("click", function (event) {
+        event.preventDefault();
+        overlay.style.display = "flex";
+        message.textContent = "";
+        locationInput.focus();
+    });
+
+    cancel.addEventListener("click", closeModal);
+
+    overlay.addEventListener("click", function (event) {
+        if (event.target === overlay) closeModal();
+    });
+
+    save.addEventListener("click", async function () {
+        if (save.disabled) return;
+
+        save.disabled = true;
+        message.style.color = "#475569";
+        message.textContent = "Palet kaydediliyor...";
+
+        try {
+            const formData = new FormData();
+            formData.append("location", locationInput.value.trim());
+            formData.append("notes", notesInput.value.trim());
+
+            const token = document.querySelector(
+                'input[name="__RequestVerificationToken"]'
+            );
+
+            if (!token) {
+                throw new Error("Güvenlik doğrulama anahtarı bulunamadı.");
+            }
+
+            formData.append(
+                "__RequestVerificationToken",
+                token.value
+            );
+
+            const response = await fetch(
+                '@Url.Action("QuickCreate", "Pallets")',
+                {
+                    method: "POST",
+                    body: formData,
+                    credentials: "same-origin"
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "Palet kaydedilemedi. Yetkinizi kontrol edin."
+                );
+            }
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message || "Kayıt başarısız.");
+            }
+
+            const selects = document.querySelectorAll(
+                'select[data-field="PalletId"]'
+            );
+
+            if (!selects.length) {
+                throw new Error(
+                    "Palet oluşturuldu ancak seçim alanı bulunamadı. Barkod: "
+                    + result.barcode
+                );
+            }
+
+            selects.forEach(function (select) {
+                const option = document.createElement("option");
+
+                option.value = result.id;
+                option.dataset.barcode = result.barcode;
+                option.textContent =
+                    "Palet #" + result.id + " — " +
+                    (result.location || "Konum belirtilmedi");
+
+                select.appendChild(option);
+            });
+
+            // Yeni eklenen ürün satırlarında da palet görünsün.
+            const firstSelect = selects[0];
+
+            const observer = new MutationObserver(function () {
+                document.querySelectorAll(
+                    'select[data-field="PalletId"]'
+                ).forEach(function (select) {
+                    if (select.querySelector(
+                        'option[value="' + result.id + '"]'
+                    )) return;
+
+                    const option = firstSelect.querySelector(
+                        'option[value="' + result.id + '"]'
+                    );
+
+                    if (option) {
+                        select.appendChild(option.cloneNode(true));
+                    }
+                });
+            });
+
+            observer.observe(
+                document.getElementById("packagingRows"),
+                { childList: true }
+            );
+
+            const target = Array.from(selects).find(function (select) {
+                return !select.value;
+            }) || selects[selects.length - 1];
+
+            target.value = String(result.id);
+
+            target.dispatchEvent(
+                new Event("change", { bubbles: true })
+            );
+
+            // Ilk palet olusturuldugunda kayit islemlerini etkinlestir.
+            const packagingForm = document.getElementById("packagingForm");
+            const saveButton = document.getElementById("savePackaging");
+
+            if (packagingForm && saveButton) {
+                if (typeof window.mcPackagingPalletCreated === "function") {
+                    window.mcPackagingPalletCreated();
+                }
+
+                const warning = document.querySelector(
+                    ".packaging-page .alert-warning"
+                );
+
+                if (warning) warning.remove();
+            }
+
+            locationInput.value = "";
+            notesInput.value = "";
+
+            closeModal();
+
+        } catch (error) {
+            message.style.color = "#dc2626";
+            message.textContent = error.message;
+        } finally {
+            save.disabled = false;
+        }
+    });
+});
+</script>
+

@@ -1,0 +1,260 @@
+@model MasterChefTakip.ViewModels.PalletTransferViewModel
+@{
+    ViewData["Title"] = "Paletler arası taşıma";
+}
+
+<style>
+    .transfer-page { max-width:1100px; margin:auto; color:#18365f; }
+    .transfer-head { display:flex; justify-content:space-between;
+        align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px; }
+    .transfer-head h1 { margin:0 0 6px; font-size:28px; }
+    .transfer-card { background:white; border:1px solid #dce4ef;
+        border-radius:12px; padding:20px; }
+    .transfer-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:16px; }
+    .transfer-grid > div { min-width:0; }
+    .transfer-wide { grid-column:1/-1; }
+    .transfer-card label { display:block; margin-bottom:6px; font-size:14px; }
+    .transfer-card input,.transfer-card select,.transfer-card textarea {
+        width:100%; min-width:0; min-height:44px; font-size:16px; }
+    .transfer-note { color:#64748b; font-size:13px; line-height:1.6; }
+    .transfer-preview { padding:12px; margin:16px 0; border-radius:8px;
+        background:#f1f5f9; overflow-wrap:anywhere; }
+    @@media(max-width:600px) {
+        .transfer-grid { grid-template-columns:minmax(0,1fr); }
+        .transfer-card { padding:14px; }
+    }
+</style>
+
+<div class="transfer-page">
+    <div class="transfer-head">
+        <div>
+            <h1>Ürünü başka palete taşı</h1>
+            <p class="transfer-note">Ürünün yerini değiştirir. Toplam stok değişmez.</p>
+        </div>
+        <a asp-controller="Pallets" asp-action="Index"
+           asp-route-palletId="@Model.SourcePalletId"
+           class="btn btn-outline-secondary">← Palete dön</a>
+    </div>
+
+    @if (TempData["PalletTransferSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">@success</div>
+    }
+
+    <div class="transfer-card">
+        @if (Model.Stocks.Count == 0)
+        {
+            <p>Taşınabilecek aktif stok bulunmuyor.</p>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                Bütün paletlerdeki ürünlere bak
+            </a>
+        }
+        else
+        {
+            <form asp-action="Transfer" method="post" id="transferForm">
+                <input asp-for="RequestId" type="hidden" />
+                <input asp-for="SourcePalletId" type="hidden" />
+                <input type="hidden" name="ConcurrencyStamp"
+                       id="transferStamp" value="@Model.ConcurrencyStamp" />
+
+                <div asp-validation-summary="All"
+                     class="text-danger" role="alert"></div>
+
+                <div class="transfer-grid">
+                    <div class="transfer-wide">
+                        <label for="transferSearch">Ürün veya konum ara</label>
+                        <input id="transferSearch" type="search"
+                               class="form-control"
+                               placeholder="Ürün adı, kodu veya konum" />
+                    </div>
+
+                    <div class="transfer-wide">
+                        <label asp-for="SourceStockId">Taşınacak ürün / kaynak stok</label>
+                        <select asp-for="SourceStockId" class="form-select" required>
+                            <option value="">Ürün seçin</option>
+                            @foreach (var stock in Model.Stocks)
+                            {
+                                <option value="@stock.Id"
+                                        data-stamp="@stock.ConcurrencyStamp"
+                                        data-pallet="@stock.PalletId"
+                                        data-boxes="@stock.BoxCount"
+                                        data-units="@stock.IndividualUnits"
+                                        data-capacity="@stock.UnitsPerBox">
+                                    @stock.Label
+                                </option>
+                            }
+                        </select>
+                        <p id="transferHint" class="transfer-note"
+                           aria-live="polite"></p>
+                    </div>
+
+                    <div class="transfer-wide">
+                        <label asp-for="DestinationPalletId">Hedef palet / konum</label>
+                        <select asp-for="DestinationPalletId"
+                                class="form-select" required>
+                            <option value="">Hedef paleti seçin</option>
+                            @foreach (var pallet in Model.Destinations)
+                            {
+                                <option value="@pallet.Id">
+                                    @(pallet.Location ?? "Konum belirtilmedi")
+                                    · Palet #@pallet.Id · @pallet.Barcode
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div>
+                        <label asp-for="BoxCount">Taşınacak kapalı koli</label>
+                        <input asp-for="BoxCount" class="form-control"
+                               type="number" min="0" max="2147483647"
+                               step="1" inputmode="numeric" required />
+                    </div>
+
+                    <div>
+                        <label asp-for="UnitCount">Ayrıca taşınacak ürün adedi</label>
+                        <input asp-for="UnitCount" class="form-control"
+                               type="number" min="0" max="2147483647"
+                               step="1" inputmode="numeric" required />
+                    </div>
+
+                    <div class="transfer-wide">
+                        <p class="transfer-note">
+                            2 tam koli için: koli 2, adet 0.
+                            Sadece 3 ürün için: koli 0, adet 3.
+                            Adetle taşınan ürünler hedefte tekli stok olur.
+                        </p>
+                        <details>
+                            <summary>Not ekle (isteğe bağlı)</summary>
+                            <textarea asp-for="Notes" class="form-control"
+                                      rows="2" maxlength="500"></textarea>
+                        </details>
+                    </div>
+                </div>
+
+                <div id="transferPreview" class="transfer-preview"
+                     aria-live="polite"></div>
+
+                <button class="btn btn-dark" type="submit" id="transferSave">
+                    Kontrol et ve taşı
+                </button>
+                <a asp-action="Index"
+                   asp-route-sourcePalletId="@Model.SourcePalletId"
+                   class="btn btn-outline-secondary">Formu yenile</a>
+            </form>
+        }
+    </div>
+</div>
+
+<script>
+(() => {
+    const form = document.getElementById("transferForm");
+    if (!form) return;
+
+    const source = document.getElementById("SourceStockId");
+    const target = document.getElementById("DestinationPalletId");
+    const boxes = document.getElementById("BoxCount");
+    const units = document.getElementById("UnitCount");
+    const stamp = document.getElementById("transferStamp");
+    const hint = document.getElementById("transferHint");
+    const preview = document.getElementById("transferPreview");
+    const search = document.getElementById("transferSearch");
+    const save = document.getElementById("transferSave");
+    const options = [...source.options].map(o => o.cloneNode(true));
+    let submitting = false;
+
+    const integer = value => {
+        const n = Number(value);
+        return String(value).trim() !== "" && Number.isInteger(n)
+            && n >= 0 && n <= 2147483647 ? n : null;
+    };
+
+    function update() {
+        const option = source.selectedOptions[0];
+        [source,target,boxes,units].forEach(i => i.setCustomValidity(""));
+
+        if (!source.value || !option?.dataset.stamp) {
+            stamp.value = "";
+            source.setCustomValidity("Ürünü seçin.");
+            hint.textContent = "";
+            preview.textContent = "Ürün, hedef palet ve gerçek miktarı seçin.";
+            return;
+        }
+
+        stamp.value = option.dataset.stamp;
+        const closed = Number(option.dataset.boxes);
+        const singles = Number(option.dataset.units);
+        const capacity = Number(option.dataset.capacity);
+        const b = integer(boxes.value);
+        const u = integer(units.value);
+
+        hint.textContent = `${closed} kapalı koli · ${singles} açık/tekli adet`
+            + (capacity > 0 ? ` · Koli içi ${capacity} adet` : "");
+
+        if (target.value === option.dataset.pallet)
+            target.setCustomValidity("Kaynak ve hedef palet farklı olmalı.");
+
+        if (b === null || b > closed)
+            boxes.setCustomValidity("Geçerli bir koli miktarı girin.");
+
+        if (u === null)
+            units.setCustomValidity("Geçerli bir adet girin.");
+        else if (b !== null) {
+            const available = singles
+                + (capacity > 0 ? Math.max(0,closed-b) * capacity : 0);
+            if (u > available)
+                units.setCustomValidity("Adet miktarı stoktan fazla.");
+            if (b === 0 && u === 0)
+                units.setCustomValidity("Taşınacak koli veya adedi girin.");
+        }
+
+        let amount = `${b ?? 0} kapalı koli + ${u ?? 0} adet`;
+        if (capacity > 0 && b !== null && u !== null)
+            amount += ` · Toplam ${b*capacity+u} ürün`;
+
+        preview.textContent = target.value
+            ? `${amount} → ${target.selectedOptions[0].textContent.trim()}. Toplam stok değişmez.`
+            : `${amount}. Hedef paleti seçin.`;
+    }
+
+    search.addEventListener("input", () => {
+        const selected = source.value;
+        const word = search.value.trim().toLocaleLowerCase("tr-TR");
+        source.replaceChildren(...options.filter(o =>
+            !o.value || o.value === selected
+            || o.textContent.toLocaleLowerCase("tr-TR").includes(word))
+            .map(o => o.cloneNode(true)));
+        source.value = selected;
+        update();
+    });
+
+    form.addEventListener("input", update);
+    form.addEventListener("change", update);
+    form.noValidate = true;
+
+    form.addEventListener("submit", event => {
+        if (submitting) {
+            event.preventDefault();
+            return;
+        }
+        update();
+        if (!form.reportValidity()) {
+            event.preventDefault();
+            return;
+        }
+        const product = source.selectedOptions[0].textContent.trim();
+        if (!window.confirm(`${product}\n\n${preview.textContent}\n\nTaşınsın mı?`)) {
+            event.preventDefault();
+            return;
+        }
+        submitting = true;
+        save.disabled = true;
+        save.textContent = "Taşınıyor...";
+    });
+
+    window.addEventListener("pageshow", event => {
+        if (event.persisted) window.location.reload();
+    });
+    update();
+})();
+</script>

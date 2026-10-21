@@ -1,0 +1,606 @@
+@model MasterChefTakip.ViewModels.ReturnsIndexViewModel
+@using System.Text.Json
+@using MasterChefTakip.ViewModels
+
+@{
+    var rows = Model.ReceiptForm.Rows
+        ?? new List<CreateReturnReceiptRowViewModel>();
+
+    if (rows.Count == 0)
+        rows = [new()];
+
+    var formOpen = ViewData.ModelState.Keys.Any(k =>
+        k.StartsWith("ReceiptForm", StringComparison.Ordinal));
+
+    string Value(string key, object? fallback)
+    {
+        if (ViewData.ModelState.TryGetValue(key, out var entry))
+            return entry.AttemptedValue ?? "";
+
+        return fallback?.ToString() ?? "";
+    }
+}
+
+<details class="returns-panel" open="@formOpen">
+    <summary class="returns-heading">Yeni iade kaydı</summary>
+
+    <div class="returns-body">
+        <form asp-controller="Returns"
+              asp-action="CreateReceipt"
+              method="post"
+              id="simple-return-form">
+
+            <input asp-for="ReceiptForm.RequestId" type="hidden" />
+
+            <div class="returns-grid">
+                <div class="returns-field returns-wide">
+                    <label for="return-customer-search">Müşteri ara</label>
+
+                    <input id="return-customer-search"
+                           type="search"
+                           placeholder="Müşteri adını yazın"
+                           autocomplete="off" />
+                </div>
+
+                <div class="returns-field returns-wide">
+                    <label for="return-customer-select">Müşteri seç</label>
+
+                    <select id="return-customer-select" required>
+                        <option value="">Müşteri seçin</option>
+                    </select>
+
+                    <p class="returns-note">
+                        Onaylanmış sevkiyatı bulunan müşteriler listelenir.
+                        Aynı isimli müşterilerde sevkiyat numarasını kontrol edin.
+                    </p>
+                </div>
+
+                <div class="returns-field returns-wide">
+                    <label for="simple-return-shipment">
+                        İade hangi sevkiyata ait?
+                    </label>
+
+                    <select asp-for="ReceiptForm.ShipmentId"
+                            id="simple-return-shipment"
+                            required>
+                        <option value="">Önce müşteri seçin</option>
+                    </select>
+
+                    <span asp-validation-for="ReceiptForm.ShipmentId"></span>
+                </div>
+
+                <div class="returns-field">
+                    <label asp-for="ReceiptForm.PackageCount">
+                        Gelen dış paket / koli sayısı
+                    </label>
+
+                    <input asp-for="ReceiptForm.PackageCount"
+                           type="number"
+                           min="0"
+                           max="2147483647"
+                           step="1"
+                           required />
+
+                    <span asp-validation-for="ReceiptForm.PackageCount"></span>
+
+                    <p class="returns-note">
+                        Taşıma paketlerini sayın. Kolisiz geldiyse 0 girin.
+                        Bu sayı ürün miktarını değiştirmez.
+                    </p>
+                </div>
+
+                <div class="returns-field returns-wide">
+                    <label asp-for="ReceiptForm.Reason">İade nedeni</label>
+
+                    <textarea asp-for="ReceiptForm.Reason"
+                              rows="2"
+                              maxlength="500"
+                              required></textarea>
+
+                    <span asp-validation-for="ReceiptForm.Reason"></span>
+                </div>
+            </div>
+
+            <p class="returns-note">
+                Karışık pakette her ürünü ayrı satıra ekleyip
+                “Ürün adedi olarak” seçin. Aynı ürünün farklı
+                kapasiteli kolilerini de ayrı satırlara ekleyebilirsiniz.
+            </p>
+
+            <div id="simple-return-rows" style="margin-top:12px;">
+                @for (var i = 0; i < rows.Count; i++)
+                {
+                    var row = rows[i];
+                    var key = $"ReceiptForm.Rows[{i}]";
+
+                    var boxValue = Value(key + ".BoxCount", row.BoxCount);
+                    var unitValue = Value(
+                        key + ".AdditionalUnitCount",
+                        row.AdditionalUnitCount);
+
+                    var isBox = int.TryParse(boxValue, out var boxes)
+                        && boxes > 0;
+
+                    var hasAdditional = int.TryParse(unitValue, out var units)
+                        && units > 0;
+
+                    <div class="returns-product-row"
+                         data-start-mode="@(isBox ? "box" : "unit")">
+
+                        <div class="returns-row-heading">
+                            <strong data-row-title>Ürün @(i + 1)</strong>
+
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    data-simple-remove>
+                                Kaldır
+                            </button>
+                        </div>
+
+                        <div class="returns-grid">
+                            <div class="returns-field returns-wide">
+                                <label>İade gelen ürün</label>
+
+                                <select name="@(key + ".ShipmentItemId")"
+                                        data-field="ShipmentItemId"
+                                        data-selected="@Value(key + ".ShipmentItemId", row.ShipmentItemId)"
+                                        required>
+                                    <option value="">Önce sevkiyat seçin</option>
+                                </select>
+
+                                @Html.ValidationMessage(key + ".ShipmentItemId")
+
+                                <span class="returns-meta" data-simple-remaining></span>
+                            </div>
+
+                            <div class="returns-field returns-wide">
+                                <label>Miktarı nasıl gireceksiniz?</label>
+
+                                <select data-simple-mode>
+                                    <option value="unit">Ürün adedi olarak</option>
+                                    <option value="box">Koli olarak</option>
+                                </select>
+                            </div>
+
+                            <div class="returns-field" data-simple-box-field>
+                                <label>Geri gelen ürün kolisi sayısı</label>
+
+                                <input name="@(key + ".BoxCount")"
+                                       data-field="BoxCount"
+                                       type="number"
+                                       min="0"
+                                       max="2147483647"
+                                       step="1"
+                                       value="@boxValue" />
+
+                                @Html.ValidationMessage(key + ".BoxCount")
+                            </div>
+
+                            <div class="returns-field" data-simple-capacity-field>
+                                <label>Her kolide kaç ürün var?</label>
+
+                                <input name="@(key + ".UnitsPerBox")"
+                                       data-field="UnitsPerBox"
+                                       type="number"
+                                       min="1"
+                                       max="2147483647"
+                                       step="1"
+                                       value="@Value(key + ".UnitsPerBox", row.UnitsPerBox)" />
+
+                                @Html.ValidationMessage(key + ".UnitsPerBox")
+
+                                <p class="returns-note">
+                                    Bu üründen her kolide gerçekten kaç adet olduğunu girin.
+                                </p>
+                            </div>
+
+                            <div class="returns-field returns-wide"
+                                 data-simple-extra-switch>
+                                <label>
+                                    <input type="checkbox"
+                                           data-simple-extra
+                                           checked="@(isBox && hasAdditional)"
+                                           style="width:auto;min-height:0;" />
+                                    Koliler dışında bu üründen ayrıca adet geldi
+                                </label>
+                            </div>
+
+                            <div class="returns-field returns-wide"
+                                 data-simple-unit-field>
+                                <label data-simple-unit-label>
+                                    Geri gelen toplam ürün adedi
+                                </label>
+
+                                <input name="@(key + ".AdditionalUnitCount")"
+                                       data-field="AdditionalUnitCount"
+                                       type="number"
+                                       min="0"
+                                       max="2147483647"
+                                       step="1"
+                                       value="@unitValue" />
+
+                                @Html.ValidationMessage(key + ".AdditionalUnitCount")
+                            </div>
+                        </div>
+
+                        <div class="returns-live"
+                             data-simple-row-total
+                             aria-live="polite"></div>
+                    </div>
+                }
+            </div>
+
+            <div class="returns-actions">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        id="simple-add-return-row">
+                    + Ürün veya farklı koli ekle
+                </button>
+            </div>
+
+            <div class="returns-live"
+                 id="simple-return-summary"
+                 role="status"
+                 aria-live="polite"></div>
+
+            <div class="returns-actions end">
+                <button type="submit"
+                        class="btn btn-dark"
+                        id="simple-return-save">
+                    İadeyi kaydet
+                </button>
+            </div>
+
+            <p class="returns-note">
+                Kaydettikten sonra aynı sayfada sağlam ve hasarlı
+                ürünleri ayırıp hedef paleti seçerek stoğa ekleyebilirsiniz.
+            </p>
+        </form>
+    </div>
+</details>
+
+<script>
+(() => {
+    const shipments = @Html.Raw(JsonSerializer.Serialize(Model.AvailableShipments));
+    const savedShipmentId = @Html.Raw(JsonSerializer.Serialize(
+        Value("ReceiptForm.ShipmentId", Model.ReceiptForm.ShipmentId)));
+
+    const form = document.getElementById("simple-return-form");
+    if (!form) return;
+
+    const customer = document.getElementById("return-customer-select");
+    const search = document.getElementById("return-customer-search");
+    const shipment = document.getElementById("simple-return-shipment");
+    const host = document.getElementById("simple-return-rows");
+    const add = document.getElementById("simple-add-return-row");
+    const save = document.getElementById("simple-return-save");
+    const summary = document.getElementById("simple-return-summary");
+    const packages = form.querySelector('[name="ReceiptForm.PackageCount"]');
+
+    const number = input => {
+        const raw = input.value.trim();
+        const value = Number(raw);
+
+        return raw !== "" && Number.isSafeInteger(value)
+            && value >= 0 && value <= 2147483647
+                ? value : null;
+    };
+
+    const selectedShipment = () =>
+        shipments.find(s => s.Id === Number(shipment.value));
+
+    const selectedLine = row =>
+        selectedShipment()?.Items.find(i =>
+            i.ShipmentItemId === Number(
+                row.querySelector('[data-field="ShipmentItemId"]').value));
+
+    const names = [...new Set(shipments.map(s => s.RecipientName))]
+        .sort((a, b) => a.localeCompare(b, "tr"));
+
+    function fillCustomers(query = "") {
+        const previous = customer.value;
+        const normalized = query.trim().toLocaleLowerCase("tr-TR");
+
+        customer.replaceChildren(new Option("Müşteri seçin", ""));
+
+        for (const name of names) {
+            if (name === previous ||
+                name.toLocaleLowerCase("tr-TR").includes(normalized)) {
+                customer.add(new Option(name, name));
+            }
+        }
+
+        customer.value = previous;
+    }
+
+    function applyMode(row) {
+        const mode = row.querySelector("[data-simple-mode]").value;
+        const isBox = mode === "box";
+        const extra = row.querySelector("[data-simple-extra]").checked;
+
+        const box = row.querySelector('[data-field="BoxCount"]');
+        const capacity = row.querySelector('[data-field="UnitsPerBox"]');
+        const units = row.querySelector('[data-field="AdditionalUnitCount"]');
+
+        row.querySelector("[data-simple-box-field]").hidden = !isBox;
+        row.querySelector("[data-simple-capacity-field]").hidden = !isBox;
+        row.querySelector("[data-simple-extra-switch]").hidden = !isBox;
+        row.querySelector("[data-simple-unit-field]").hidden = isBox && !extra;
+
+        row.querySelector("[data-simple-unit-label]").textContent = isBox
+            ? "Koliler dışında gelen ilave ürün adedi"
+            : "Geri gelen toplam ürün adedi";
+
+        box.required = isBox;
+        box.min = isBox ? "1" : "0";
+        capacity.required = isBox;
+        capacity.disabled = !isBox;
+        capacity.readOnly = false;
+
+        units.required = !isBox || extra;
+        units.min = units.required ? "1" : "0";
+
+        if (!isBox) box.value = "0";
+        if (isBox && !extra) units.value = "0";
+    }
+
+    function update() {
+        let allValid = !!selectedShipment();
+        let grandTotal = 0;
+        const grouped = new Map();
+        const states = [];
+
+        for (const row of host.children) {
+            applyMode(row);
+
+            const select = row.querySelector('[data-field="ShipmentItemId"]');
+            const box = row.querySelector('[data-field="BoxCount"]');
+            const capacity = row.querySelector('[data-field="UnitsPerBox"]');
+            const units = row.querySelector('[data-field="AdditionalUnitCount"]');
+            const message = row.querySelector("[data-simple-row-total]");
+            const remaining = row.querySelector("[data-simple-remaining]");
+            const isBox = row.querySelector("[data-simple-mode]").value === "box";
+            const line = selectedLine(row);
+
+            select.setCustomValidity("");
+            box.setCustomValidity("");
+            capacity.setCustomValidity("");
+            units.setCustomValidity("");
+
+            const b = isBox ? number(box) : 0;
+            const c = isBox ? number(capacity) : 0;
+            const u = number(units);
+
+            let error = "";
+            let total = null;
+
+            if (!line) {
+                error = "Önce sevkiyatı ve ürünü seçin.";
+                select.setCustomValidity(error);
+            } else if (b === null || u === null ||
+                       (isBox && (b < 1 || c === null || c < 1))) {
+                error = "Miktar alanlarını geçerli sayılarla doldurun.";
+            } else {
+                total = b * c + u;
+
+                if (!Number.isSafeInteger(total) ||
+                    total < 1 || total > 2147483647) {
+                    error = "Toplam ürün adedi 1 ile 2147483647 arasında olmalı.";
+                    (isBox ? box : units).setCustomValidity(error);
+                } else {
+                    grouped.set(line.ShipmentItemId,
+                        (grouped.get(line.ShipmentItemId) || 0) + total);
+
+                    grandTotal += total;
+                }
+            }
+
+            remaining.textContent = line
+                ? line.RemainingUnits === null
+                    ? "Gönderilen toplam bilinmiyor; kayıt sırasında kontrol edilecek."
+                    : `Gönderilen: ${line.ShippedUnits} adet · ` +
+                      `Önceki iadeler: ${line.AlreadyReturnedUnits} adet · ` +
+                      `İade edilebilir: ${line.RemainingUnits} adet`
+                : "";
+
+            states.push({ row, line, total, error, box, units, isBox, b, c, u, message });
+        }
+
+        for (const state of states) {
+            let error = state.error;
+
+            if (!error && state.line && state.line.RemainingUnits !== null &&
+                grouped.get(state.line.ShipmentItemId) > state.line.RemainingUnits) {
+                error = "Bu ürünün satırlardaki toplamı kalan iade miktarını aşıyor.";
+                (state.isBox ? state.box : state.units).setCustomValidity(error);
+            }
+
+            state.message.textContent = error || (state.isBox
+                ? `${state.b} koli × ${state.c} adet` +
+                  (state.u > 0 ? ` + ${state.u} ilave adet` : "") +
+                  ` = ${state.total} ürün`
+                : `Geri gelen: ${state.total} ürün`);
+
+            state.message.classList.toggle("invalid", !!error);
+            if (error) allValid = false;
+        }
+
+        const packageCount = number(packages);
+        if (packageCount === null) allValid = false;
+
+        summary.textContent = shipments.length === 0
+            ? "İade oluşturulabilecek onaylanmış sevkiyat bulunamadı."
+            : allValid
+                ? `${packageCount} dış paket içinde toplam ${grandTotal} ürün ` +
+                  "iade alınacak. Stok, kontrol tamamlandığında değişecek."
+                : "Müşteri, sevkiyat, ürün ve miktarları tamamlayın.";
+
+        summary.classList.toggle("invalid", !allValid);
+        save.disabled = !allValid;
+    }
+
+    function reindex() {
+        [...host.children].forEach((row, index) => {
+            row.querySelector("[data-row-title]").textContent = `Ürün ${index + 1}`;
+
+            row.querySelectorAll("[data-field]").forEach(input => {
+                const field = input.dataset.field;
+                input.name = `ReceiptForm.Rows[${index}].${field}`;
+                input.id = `simple-return-${index}-${field}`;
+
+                const label = input.parentElement.querySelector("label");
+                if (label) label.htmlFor = input.id;
+            });
+
+            row.querySelectorAll("[data-valmsg-for]").forEach(span => {
+                const field = span.getAttribute("data-valmsg-for").split(".").pop();
+                span.setAttribute("data-valmsg-for",
+                    `ReceiptForm.Rows[${index}].${field}`);
+            });
+
+            row.querySelector("[data-simple-remove]").disabled =
+                host.children.length === 1;
+        });
+
+        add.disabled = host.children.length >= 100;
+    }
+
+    function fillProducts(row, preserve = false) {
+        const select = row.querySelector('[data-field="ShipmentItemId"]');
+        const capacity = row.querySelector('[data-field="UnitsPerBox"]');
+        const previous = preserve
+            ? select.value || select.dataset.selected || ""
+            : "";
+
+        select.replaceChildren(new Option("Ürün seçin", ""));
+
+        for (const item of selectedShipment()?.Items || []) {
+            select.add(new Option(
+                `${item.ProductName} [${item.ProductCode}] — ` +
+                `Sevkiyat satırı #${item.ShipmentItemId}`,
+                String(item.ShipmentItemId)));
+        }
+
+        select.value = previous;
+        select.dataset.selected = "";
+        select.disabled = !selectedShipment();
+
+        if (!preserve) capacity.value = "";
+        // Koli içi adet kullanıcı tarafından girilir.
+    }
+
+    function fillShipments(savedId = "") {
+        shipment.replaceChildren(new Option("Sevkiyat seçin", ""));
+
+        const matching = shipments.filter(s => s.RecipientName === customer.value);
+
+        for (const item of matching)
+            shipment.add(new Option(`Sevkiyat #${item.Id} — ${item.Number}`, String(item.Id)));
+
+        shipment.disabled = matching.length === 0;
+
+        if (matching.some(s => String(s.Id) === String(savedId)))
+            shipment.value = String(savedId);
+        else if (matching.length === 1)
+            shipment.value = String(matching[0].Id);
+    }
+
+    for (const row of host.children)
+        row.querySelector("[data-simple-mode]").value = row.dataset.startMode;
+
+    const template = host.firstElementChild.cloneNode(true);
+
+    fillCustomers();
+
+    const savedShipment = shipments.find(s => s.Id === Number(savedShipmentId));
+
+    if (savedShipment)
+        customer.value = savedShipment.RecipientName;
+
+    fillShipments(savedShipmentId);
+
+    for (const row of host.children)
+        fillProducts(row, true);
+
+    reindex();
+    update();
+
+    search.addEventListener("input", () => fillCustomers(search.value));
+
+    customer.addEventListener("change", () => {
+        fillShipments();
+        for (const row of host.children) fillProducts(row);
+        update();
+    });
+
+    shipment.addEventListener("change", () => {
+        for (const row of host.children) fillProducts(row);
+        update();
+    });
+
+    host.addEventListener("change", event => {
+        const row = event.target.closest(".returns-product-row");
+        if (!row) return;
+
+                if (event.target.dataset.field === "ShipmentItemId")
+            row.querySelector('[data-field="UnitsPerBox"]').value = "";
+
+        update();
+    });
+
+    host.addEventListener("input", update);
+    packages.addEventListener("input", update);
+
+    host.addEventListener("click", event => {
+        const button = event.target.closest("[data-simple-remove]");
+        if (!button || host.children.length <= 1) return;
+
+        button.closest(".returns-product-row").remove();
+        reindex();
+        update();
+    });
+
+    add.addEventListener("click", () => {
+        if (host.children.length >= 100) return;
+
+        const row = template.cloneNode(true);
+        row.querySelector("[data-simple-mode]").value = "unit";
+        row.querySelector("[data-simple-extra]").checked = false;
+
+        for (const input of row.querySelectorAll("[data-field]")) {
+            input.value = input.dataset.field === "ShipmentItemId" ||
+                          input.dataset.field === "UnitsPerBox" ? "" : "0";
+            input.removeAttribute("data-selected");
+            input.classList.remove("input-validation-error");
+            input.setCustomValidity("");
+        }
+
+        for (const span of row.querySelectorAll("[data-valmsg-for]")) {
+            span.textContent = "";
+            span.classList.remove("field-validation-error");
+        }
+
+        host.append(row);
+        fillProducts(row);
+        reindex();
+        update();
+    });
+
+    form.addEventListener("submit", event => {
+        reindex();
+        update();
+
+        if (save.disabled || !form.reportValidity()) {
+            event.preventDefault();
+            return;
+        }
+
+        save.disabled = true;
+        save.textContent = "Kaydediliyor…";
+    });
+
+    window.addEventListener("pageshow", event => {
+        if (event.persisted) window.location.reload();
+    });
+})();
+</script>

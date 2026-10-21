@@ -1,0 +1,1383 @@
+@inject MasterChefTakip.Data.ApplicationDbContext SalesDb
+@using MasterChefTakip.Models
+@using MasterChefTakip.Services
+@using MasterChefTakip.ViewModels
+@model ShipmentIndexViewModel
+
+@{
+    var shipment = Model.SelectedShipment!;
+
+    // SHIPMENT_SALES_SELECTOR_V1
+    var saleStockIds = Model.StockOptions
+        .Select(option => option.Id)
+        .ToHashSet();
+
+    var saleStockProducts = SalesDb.PalletItems
+        .AsEnumerable()
+        .Where(item => saleStockIds.Contains(item.Id))
+        .ToDictionary(item => item.Id, item => item.ProductId);
+
+    var saleOptions = SalesDb.ProductSalesOptions
+        .Where(option => option.IsActive)
+        .Select(option => new
+        {
+            option.ProductId,
+            option.SalesCode,
+            option.SalesName,
+            option.UnitsPerSale
+        })
+        .ToList();
+
+    var saleOptionsByStock = saleStockProducts.ToDictionary(
+        item => item.Key.ToString(),
+        item => saleOptions
+            .Where(option => option.ProductId == item.Value)
+            .OrderBy(option => option.UnitsPerSale)
+            .ThenBy(option => option.SalesCode)
+            .Select(option => new
+            {
+                code = option.SalesCode,
+                name = option.SalesName,
+                units = option.UnitsPerSale
+            })
+            .ToList()
+    );
+
+    var saleOptionsJson =
+        System.Text.Json.JsonSerializer.Serialize(saleOptionsByStock);
+    var submitted = ViewData["BatchForm"] as BatchShipmentViewModel;
+    var rows = submitted?.Rows?.ToList()
+        ?? new List<BatchShipmentRowViewModel>();
+
+    var canPrepare =
+        shipment.Status == ShipmentStatus.Draft
+        && OperationAuthorization.Can(
+            User, AppPermissions.ShipmentsManage);
+
+    var legacyUnknown = false;
+
+    if (submitted is null)
+    {
+        if (shipment.Packages.Count > 0)
+        {
+            foreach (var package in shipment.Packages.OrderBy(p => p.Number))
+            {
+                foreach (var item in package.Items.OrderBy(i => i.Id))
+                {
+                    rows.Add(new BatchShipmentRowViewModel
+                    {
+                        PackageNumber = package.Number,
+                        PalletItemId = item.ShipmentItem.PalletItemId,
+                        QuantityType = item.QuantityType,
+                        Quantity = item.Quantity,
+                        SalesCode = item.SalesCode
+                    });
+                }
+            }
+        }
+        else
+        {
+            foreach (var item in shipment.Items.OrderBy(i => i.Id))
+            {
+                var known = item.BoxCount == 0
+                    || item.UnitsPerBox is > 0;
+
+                var amount = (long)item.BoxCount
+                    * (item.UnitsPerBox ?? 0)
+                    + item.LooseUnitCount;
+
+                if (!known || amount > int.MaxValue)
+                    legacyUnknown = true;
+
+                rows.Add(new BatchShipmentRowViewModel
+                {
+                    PackageNumber = 1,
+                    PalletItemId = item.PalletItemId,
+                    QuantityType = 1,
+                    Quantity = known && amount <= int.MaxValue
+                        ? (int)amount
+                        : 0
+                });
+            }
+        }
+    }
+
+    if (rows.Count == 0)
+    {
+        rows.Add(new BatchShipmentRowViewModel
+        {
+            PackageNumber = 1,
+            QuantityType = 1,
+            Quantity = 0
+        });
+    }
+
+    string FieldValue(string key, object? fallback)
+    {
+        if (ViewData.ModelState.TryGetValue(key, out var entry))
+            return entry.AttemptedValue ?? "";
+
+        return fallback?.ToString() ?? "";
+    }
+
+    string StatusText(ShipmentStatus status) => status switch
+    {
+        ShipmentStatus.Draft => "Taslak · Stok değişmedi",
+        ShipmentStatus.Confirmed => "Gönderime hazır",
+        ShipmentStatus.Shipped => "Gönderildi",
+        ShipmentStatus.Delivered => "Teslim edildi",
+        ShipmentStatus.Cancelled => "İptal edildi",
+        _ => "Bilinmeyen durum"
+    };
+
+    var totalKnown = shipment.Items.All(
+        i => i.BoxCount == 0 || i.UnitsPerBox is > 0);
+
+    var total = shipment.Items.Sum(
+        i => (long)i.BoxCount * (i.UnitsPerBox ?? 0)
+            + i.LooseUnitCount);
+}
+
+<style>
+    .shipment-page .pk-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px 14px;
+        border-bottom: 1px solid #e5eaf1;
+        background: #f7f9fc;
+    }
+
+    .shipment-page .pk-heading h2 {
+        margin: 0;
+        font-size: 16px;
+    }
+
+    .shipment-page .pk-status {
+        padding: 5px 8px;
+        border-radius: 6px;
+        background: #edf2f8;
+        font-size: 12px;
+    }
+
+    .shipment-page .pk-help {
+        margin: 0 0 12px;
+        color: #64748b;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .shipment-page .pk-row {
+        display: grid;
+        grid-template-columns: 75px minmax(0, 1fr) 105px auto;
+        align-items: start;
+        gap: 8px;
+        padding: 10px 0;
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .shipment-page .pk-row > div {
+        min-width: 0;
+    }
+
+    .shipment-page .pk-row label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12px;
+    }
+
+    .shipment-page .pk-row .form-control,
+    .shipment-page .pk-row .form-select {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    .shipment-page .pk-remove {
+        margin-top: 22px;
+    }
+
+    .shipment-page .pk-stock-message {
+        grid-column: 2 / -1;
+        margin: 0;
+        color: #64748b;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .shipment-page .pk-stock-message.invalid {
+        color: #b42318;
+    }
+
+    .shipment-page .pk-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .shipment-page .pk-preview {
+        margin: 12px 0;
+        padding: 10px 12px;
+        border: 1px solid #dce4ef;
+        border-radius: 7px;
+        background: #f7f9fc;
+        font-size: 13px;
+    }
+
+    .shipment-page .pk-preview ul {
+        margin: 8px 0 0;
+        padding-left: 20px;
+    }
+
+    .shipment-page .pk-preview li {
+        margin: 4px 0;
+        overflow-wrap: anywhere;
+    }
+
+    .shipment-page .pk-box-title {
+        margin: 0;
+        padding: 9px 14px;
+        background: #f7f9fc;
+        border-bottom: 1px solid #e5eaf1;
+        font-size: 13px;
+    }
+
+    .shipment-page .pk-item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        padding: 10px 14px;
+        border-bottom: 1px solid #e5eaf1;
+        font-size: 14px;
+    }
+
+    .shipment-page .pk-item > div {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .shipment-page .pk-total {
+        margin: 0;
+        padding: 12px 14px;
+        background: #f7f9fc;
+        font-size: 14px;
+    }
+
+    .shipment-page .pk-operations {
+        border-top: 1px solid #e5eaf1;
+    }
+
+    .shipment-page .pk-detail {
+        margin-top: 5px;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    @@media (max-width: 600px) {
+        .shipment-page .pk-row {
+            grid-template-columns: 65px minmax(0, 1fr) auto;
+        }
+
+        .shipment-page .pk-product {
+            grid-column: 1 / -1;
+            grid-row: 1;
+        }
+
+        .shipment-page .pk-stock-message {
+            grid-column: 1 / -1;
+        }
+
+        .shipment-page .pk-buttons .btn {
+            flex: 1 1 auto;
+        }
+    }
+    /* ShipmentReviewFrontendV1 */
+    .shipment-page .pk-preview details {
+        margin-top: 6px;
+    }
+
+    .shipment-page .pk-preview summary {
+        cursor: pointer;
+        padding: 6px 0;
+    }
+
+    #shipmentReviewDialog {
+        width: min(720px, calc(100vw - 24px));
+        max-height: calc(100dvh - 32px);
+        padding: 0;
+        border: 1px solid #d8e1ed;
+        border-radius: 12px;
+        color: #18365f;
+        overflow: auto;
+    }
+
+    #shipmentReviewDialog::backdrop {
+        background: rgb(15 23 42 / 50%);
+    }
+
+    #shipmentReviewDialog .sr-header,
+    #shipmentReviewDialog .sr-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px 16px;
+        background: #f7f9fc;
+    }
+
+    #shipmentReviewDialog .sr-header {
+        border-bottom: 1px solid #d8e1ed;
+    }
+
+    #shipmentReviewDialog h2 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    #shipmentReviewDialog .sr-body {
+        padding: 14px 16px;
+    }
+
+    #shipmentReviewDialog .sr-recipient {
+        margin: 0 0 8px;
+        font-size: 18px;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+    #shipmentReviewDialog .sr-contact {
+        margin-bottom: 12px;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+        font-size: 14px;
+    }
+
+    #shipmentReviewDialog .sr-group {
+        margin: 12px 0;
+        padding: 10px 12px;
+        border: 1px solid #d8e1ed;
+        border-radius: 8px;
+    }
+
+    #shipmentReviewDialog .sr-group ul {
+        padding-left: 20px;
+        margin: 8px 0 0;
+    }
+
+    #shipmentReviewDialog li {
+        margin: 6px 0;
+        overflow-wrap: anywhere;
+    }
+
+    #shipmentReviewDialog .sr-warning {
+        padding: 12px;
+        background: #fff8e6;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    #shipmentReviewDialog .sr-footer {
+        border-top: 1px solid #d8e1ed;
+    }
+
+    #shipmentReviewDialog button {
+        min-height: 44px;
+    }
+
+    @@media (max-width: 600px) {
+        #shipmentReviewDialog .sr-footer button {
+            flex: 1 1 100%;
+        }
+    }
+    /* Sevkiyat satır düzeni */
+    .shipment-page .pk-row {
+        grid-template-columns: 95px minmax(0, 1fr) 140px auto;
+        align-items: start;
+    }
+
+    .shipment-page .pk-row > div:has(> [data-field="QuantityType"]) {
+        display: none;
+    }
+
+    .shipment-page .pk-row select,
+    .shipment-page .pk-row input {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .shipment-page .pk-row select {
+        text-overflow: ellipsis;
+    }
+
+    .shipment-page .pk-buttons button {
+        white-space: normal;
+    }
+
+    @@media (max-width: 600px) {
+        .shipment-page .pk-row {
+            grid-template-columns: 85px minmax(0, 1fr);
+        }
+
+        .shipment-page .pk-row .pk-product {
+            grid-column: 1 / -1;
+            grid-row: auto;
+        }
+
+        .shipment-page .pk-row > div:has(> [data-field="Quantity"]) {
+            grid-column: 2;
+        }
+
+        .shipment-page .pk-remove {
+            margin-top: 8px;
+        }
+    }
+</style>
+
+<section class="surface">
+    <header class="pk-heading">
+        <div>
+            <h2>@shipment.RecipientName</h2>
+            <details class="pk-detail">
+                <summary>Sevkiyat numarası</summary>
+                @shipment.Number
+            </details>
+        </div>
+        <span class="pk-status">@StatusText(shipment.Status)</span>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(shipment.RecipientPhone)
+        || !string.IsNullOrWhiteSpace(shipment.DeliveryAddress))
+    {
+        <div style="padding:12px 14px;border-bottom:1px solid #e5eaf1;font-size:14px">
+            @if (!string.IsNullOrWhiteSpace(shipment.RecipientPhone))
+            {
+                <div>
+                    <strong>Telefon:</strong> @shipment.RecipientPhone
+                </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(shipment.DeliveryAddress))
+            {
+                <div style="margin-top:6px;white-space:pre-line;overflow-wrap:anywhere"><strong>Adres:</strong> @shipment.DeliveryAddress</div>
+            }
+        </div>
+    }
+
+@if (canPrepare)
+    {
+        <form id="packageShipmentForm"
+              asp-controller="Shipments"
+              asp-action="SaveAndConfirm"
+              method="post"
+              class="form-body">
+
+            <input type="hidden"
+                   id="packageConfirmStock"
+                   name="confirmStock"
+                   value="true" />
+
+<input type="hidden"
+                   name="Batch.ShipmentId"
+                   value="@shipment.Id" />
+
+            <input type="hidden"
+                   name="Batch.ConcurrencyStamp"
+                   value="@(submitted?.ConcurrencyStamp
+                       ?? shipment.ConcurrencyStamp)" />
+
+            <div asp-validation-summary="All"
+                 class="text-danger"
+                 role="alert"></div>
+
+            <p class="pk-help">
+                Kapalı koli veya karma koli seçin. Kapalı kolide koli sayısını, karma kolide ürün adetlerini girin.
+                Aynı koli numarasındaki ürünler birlikte gönderilir.
+            </p>
+
+            @if (legacyUnknown)
+            {
+                <div class="alert alert-warning">
+                    Eski taslaktaki bazı miktarlar hesaplanamıyor.
+                    Gerçek ürün adetlerini yeniden girin.
+                </div>
+            }
+
+            @if (submitted is null
+                && shipment.Packages.Count == 0
+                && shipment.Items.Count > 0)
+            {
+                <p class="pk-help">
+                    Eski taslakta koli dağılımı kayıtlı olmadığı için
+                    ürünler başlangıçta 1. kolide gösterildi.
+                    Göndermeden önce gerçek koli dağılımını düzenleyin.
+                </p>
+            }
+
+            @if (Model.StockOptions.Count == 0)
+            {
+                <div class="alert alert-warning">
+                    Sevkiyata uygun stok yok.
+                    Önce Paketleme ekranından stok kaydedin.
+                </div>
+            }
+
+            <label class="form-label" for="packageStockSearch">
+                Ürün veya konum ara
+            </label>
+            <input id="packageStockSearch"
+                   class="form-control"
+                   type="search"
+                   placeholder="Ürün adı, kodu veya depo konumu"
+                   autocomplete="off" />
+
+            <div id="packageRows">
+                @for (var index = 0; index < rows.Count; index++)
+                {
+                    var row = rows[index];
+                    var key = $"Batch.Rows[{index}]";
+
+                    var stockValue = FieldValue(
+                        key + ".PalletItemId", row.PalletItemId);
+
+                    var packageValue = FieldValue(
+                        key + ".PackageNumber", row.PackageNumber);
+
+                    var quantityValue = FieldValue(
+                        key + ".Quantity",
+                        row.Quantity > 0 ? row.Quantity.ToString() : "");
+
+                    <div class="pk-row">
+                        <div>
+                            <label for="pk-@(index)-PackageNumber">Koli no</label>
+                            <input id="pk-@(index)-PackageNumber"
+                                   name="@(key + ".PackageNumber")"
+                                   data-field="PackageNumber"
+                                   class="form-control"
+                                   type="number"
+                                   inputmode="numeric"
+                                   min="1"
+                                   max="1000"
+                                   step="1"
+                                   required
+                                   value="@packageValue" />
+                        </div>
+
+                        <div class="pk-product">
+                            <label for="pk-@(index)-PalletItemId">
+                                Ürün / alınacağı stok
+                            </label>
+                            <select id="pk-@(index)-PalletItemId"
+                                    name="@(key + ".PalletItemId")"
+                                    data-field="PalletItemId"
+                                    class="form-select"
+                                    required>
+                                <option value="">Ürün seçin</option>
+
+                                @foreach (var option in Model.StockOptions)
+                                {
+                                    <option value="@option.Id"
+                                            data-capacity="@option.UnitsPerBox"
+                                            data-boxes="@option.BoxCount"
+                                            data-loose="@option.LooseUnitCount"
+                                            data-open="@option.OpenBoxUnitCount"
+                                            selected="@(stockValue == option.Id.ToString())">
+                                        @(option.Label.Split('\u2014')[0].Trim())
+                                    </option>
+                                }
+
+                                @if (stockValue != "0"
+                                    && !string.IsNullOrWhiteSpace(stockValue)
+                                    && !Model.StockOptions.Any(
+                                        o => o.Id.ToString() == stockValue))
+                                {
+                                    <option value="@stockValue" selected>
+                                        Önceki stok kullanılamıyor; yeni stok seçin.
+                                    </option>
+                                }
+                            </select>
+
+                            <div style="margin-top:8px">
+                                <label for="pk-@(index)-SalesCode">
+                                    Satış seçeneği / stok kodu
+                                </label>
+                                <select id="pk-@(index)-SalesCode"
+                                        name="@(key + ".SalesCode")"
+                                        data-field="SalesCode"
+                                        data-initial-code="@row.SalesCode"
+                                        class="form-select">
+                                    <option value="">Önce ürün seçin</option>
+                                </select>
+                                <small class="text-muted">
+                                    Seçilen satış koduna göre ürün adedi belirlenir.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="pk-@(index)-Quantity">Ürün adedi</label>
+                            <input id="pk-@(index)-Quantity"
+                                   name="@(key + ".Quantity")"
+                                   data-field="Quantity"
+                                   class="form-control"
+                                   type="number"
+                                   inputmode="numeric"
+                                   min="1"
+                                   max="2147483647"
+                                   step="1"
+                                   required
+                                   value="@quantityValue" />
+                        </div>
+
+                                                <div>
+                            <label for="pk-@(index)-QuantityType">Koli türü</label>
+                            <select id="pk-@(index)-QuantityType"
+                                    name="@(key + ".QuantityType")"
+                                    data-field="QuantityType"
+                                    class="form-select">
+                                <option value="1" selected="@(row.QuantityType == 1)">
+                                    Karma koli (adet)
+                                </option>
+                                <option value="2" selected="@(row.QuantityType == 2)">
+                                    Kapalı koli
+                                </option>
+                            </select>
+                        </div>
+
+                        <button type="button"
+                                class="btn btn-outline-danger pk-remove"
+                                data-package-remove
+                                aria-label="Ürün satırını kaldır">
+                            Sil
+                        </button>
+
+                        <p class="pk-stock-message"
+                           data-package-message
+                           aria-live="polite"></p>
+                    </div>
+                }
+            </div>
+
+            <div class="pk-buttons">
+                <button type="button"
+                        id="packageAddProduct"
+                        class="btn btn-outline-secondary">
+                    + Aynı koliye ürün ekle
+                </button>
+                <button type="button"
+                        id="packageAddBox"
+                        class="btn btn-outline-secondary">
+                    + Farklı koliye ürün ekle
+                </button>
+            </div>
+
+            <div id="packagePreview"
+                 class="pk-preview"
+                 aria-live="polite"></div>
+
+            <button type="submit"
+                    id="packageSaveDraft"
+                    class="btn btn-outline-secondary"
+                    disabled="@(Model.StockOptions.Count == 0)">
+                Taslağı kaydet · Stok değişmez
+            </button>
+
+<button type="submit"
+                    id="packageConfirm"
+                    class="btn btn-dark"
+                    disabled="@(Model.StockOptions.Count == 0)">
+                Kontrol et ve sevkiyatı onayla
+            </button>
+
+            <p class="pk-help" style="margin-top:10px">
+                Onayladığınızda ürünler stoktan düşer.
+                “Gönderildi” işlemi stoktan tekrar düşmez.
+            </p>
+        </form>
+    }
+    else
+    {
+        @if (shipment.Packages.Count > 0)
+        {
+            @foreach (var package in shipment.Packages.OrderBy(p => p.Number))
+            {
+                <h3 class="pk-box-title">
+                    @package.Number. koli
+                    · @package.Items.Sum(i => (long)i.Quantity) @(package.Items.All(i => i.QuantityType == 2) ? "kapalı koli" : "adet")
+                </h3>
+
+                @foreach (var item in package.Items.OrderBy(
+                    i => i.ShipmentItem.ProductName))
+                {
+                    <div class="pk-item">
+                        <div>
+                            @item.ShipmentItem.ProductName
+                            <details class="pk-detail">
+                                <summary>Ürün ve çıkış bilgisi</summary>
+                                <div>@(item.SalesCode ?? item.ShipmentItem.ProductCode)</div>
+                                <div>Palet: @item.ShipmentItem.PalletBarcode</div>
+                            </details>
+                        </div>
+                        <span>@item.Quantity @(item.QuantityType == 2 ? "kapalı koli" : "adet")</span>
+                    </div>
+                }
+            }
+        }
+        else
+        {
+            <p class="pk-help" style="padding:12px 14px;margin:0">
+                Bu kayıtta gönderim kolilerinin ayrı içerikleri bulunmuyor.
+                Aşağıda sevkiyatın ürün toplamları gösteriliyor.
+            </p>
+
+            @foreach (var item in shipment.Items.OrderBy(i => i.ProductName))
+            {
+                var known = item.BoxCount == 0 || item.UnitsPerBox is > 0;
+                var units = (long)item.BoxCount
+                    * (item.UnitsPerBox ?? 0) + item.LooseUnitCount;
+
+                <div class="pk-item">
+                    <div>@item.ProductName</div>
+                    <span>@(known ? $"{units} adet" : "Miktar doğrulanmalı")</span>
+                </div>
+            }
+        }
+
+        <p class="pk-total">
+            @if (shipment.Packages.Count > 0)
+            {
+                <span>@shipment.Packages.Count koli · </span>
+            }
+            @(totalKnown ? $"{total} adet ürün" : "Toplam doğrulanmalı")
+        </p>
+    }
+
+    <div class="pk-operations">
+        <partial name="_ShipmentDelivery" model="shipment" />
+        <partial name="_ShipmentActions" model="shipment" />
+    </div>
+</section>
+
+<script>
+(() => {
+    const form = document.getElementById("packageShipmentForm");
+    if (!form) return;
+
+    const rows = document.getElementById("packageRows");
+    const search = document.getElementById("packageStockSearch");
+    const preview = document.getElementById("packagePreview");
+    const addProduct = document.getElementById("packageAddProduct");
+    const addBox = document.getElementById("packageAddBox");
+    const save = document.getElementById("packageConfirm");
+
+    const prototype = rows.firstElementChild.cloneNode(true);
+    const options = [...prototype.querySelector(
+        '[data-field="PalletItemId"]').options]
+        .map(option => option.cloneNode(true));
+
+    let submitting = false;
+    let valid = false;
+    let confirmation = "";
+
+    const number = value => {
+        const raw = String(value ?? "").trim();
+        const parsed = Number(raw);
+        return raw !== "" && Number.isSafeInteger(parsed)
+            ? parsed : null;
+    };
+
+    const normalize = value => String(value ?? "")
+        .toLocaleLowerCase("tr-TR")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/ı/g, "i");
+
+    function filterStocks() {
+        const words = normalize(search.value).split(/\s+/).filter(Boolean);
+
+        rows.querySelectorAll('[data-field="PalletItemId"]').forEach(select => {
+            const selected = select.value;
+            const available = options.filter(option =>
+                !option.value
+                || option.value === selected
+                || words.every(word =>
+                    normalize(option.textContent).includes(word)));
+
+            const oldSelected = [...select.options].find(
+                option => option.value === selected);
+
+            select.replaceChildren(
+                ...available.map(option => option.cloneNode(true)));
+
+            if (selected && !available.some(o => o.value === selected)
+                && oldSelected) {
+                select.appendChild(oldSelected.cloneNode(true));
+            }
+
+            select.value = selected;
+        });
+    }
+
+    // SHIPMENT_SALES_SELECTOR_V1
+    const salesOptionsByStock = @Html.Raw(saleOptionsJson);
+
+    function refreshSalesOptions(row) {
+        const stock = row.querySelector('[data-field="PalletItemId"]');
+        const sales = row.querySelector('[data-field="SalesCode"]');
+
+        if (!stock || !sales) return;
+
+        const available = salesOptionsByStock[stock.value] || [];
+        const previous = sales.value || sales.dataset.initialCode || "";
+
+        const sameOptions =
+            sales.dataset.stockId === stock.value &&
+            sales.options.length === available.length;
+
+        if (sameOptions) return;
+
+        sales.replaceChildren();
+
+        if (available.length === 0) {
+            sales.add(new Option("Bu stok için satış seçeneği yok", ""));
+            sales.value = "";
+            sales.required = false;
+        } else {
+            available.forEach(option => {
+                const title =
+                    `${option.units} adet | ${option.code} | ${option.name}`;
+
+                const element = new Option(title, option.code);
+                element.dataset.units = option.units;
+                sales.add(element);
+            });
+
+            const found = available.find(option =>
+                option.code.toLowerCase() === previous.toLowerCase());
+
+            sales.value = found ? found.code : available[0].code;
+            sales.required = true;
+        }
+
+        sales.dataset.stockId = stock.value;
+        sales.dataset.initialCode = "";
+    }
+
+    rows.addEventListener("change", event => {
+        const target = event.target;
+
+        // SALES_QUANTITY_SYNC_V1
+        const stockChanged =
+            target.matches('[data-field="PalletItemId"]');
+
+        const salesChanged =
+            target.matches('[data-field="SalesCode"]');
+
+        if (!stockChanged && !salesChanged) return;
+
+        const row = target.closest(".pk-row");
+        if (!row) return;
+
+        if (stockChanged) {
+            const sales = row.querySelector('[data-field="SalesCode"]');
+            if (sales) {
+                sales.value = "";
+                sales.dataset.initialCode = "";
+                sales.dataset.stockId = "";
+            }
+
+            refreshSalesOptions(row);
+        }
+
+        const salesSelect =
+            row.querySelector('[data-field="SalesCode"]');
+
+        const selected = salesSelect?.selectedOptions[0];
+        const units = Number(selected?.dataset.units);
+
+        const quantity = row.querySelector('[data-field="Quantity"]');
+
+        if (quantity && Number.isInteger(units) && units > 0) {
+            quantity.value = units;
+        }
+    });
+
+    function update() {
+        valid = true;
+        const stocks = new Map();
+        const packages = new Map();
+        let total = 0;
+
+        const currentRows = [...rows.querySelectorAll(".pk-row")];
+
+        currentRows.forEach((row, index) => {
+            row.querySelectorAll("[data-field]").forEach(input => {
+                input.name = `Batch.Rows[${index}].${input.dataset.field}`;
+                input.id = `pk-${index}-${input.dataset.field}`;
+                input.setCustomValidity("");
+                const label = input.parentElement.querySelector("label");
+                if (label) label.htmlFor = input.id;
+            });
+
+            // Koli türü kullanıcı tarafından seçilir.
+            row.querySelector("[data-package-remove]").disabled =
+                currentRows.length <= 1;
+
+            const packageInput = row.querySelector(
+                '[data-field="PackageNumber"]');
+            const stock = row.querySelector('[data-field="PalletItemId"]');
+            refreshSalesOptions(row);
+            const quantityInput = row.querySelector('[data-field="Quantity"]');
+            const typeInput = row.querySelector('[data-field="QuantityType"]');
+            const quantityLabel = quantityInput.parentElement.querySelector("label");
+
+            if (quantityLabel) {
+                quantityLabel.textContent =
+                    typeInput.value === "2" ? "Koli sayısı" : "Ürün adedi";
+            }
+            const message = row.querySelector("[data-package-message]");
+            message.classList.remove("invalid");
+
+            const packageNumber = number(packageInput.value);
+            const quantity = number(quantityInput.value);
+            const quantityType = number(
+                row.querySelector('[data-field="QuantityType"]').value);
+            const option = stock.selectedOptions[0];
+
+            function error(input, text) {
+                valid = false;
+                input.setCustomValidity(text);
+                message.textContent = text;
+                message.classList.add("invalid");
+            }
+
+            if (packageNumber === null
+                || packageNumber < 1 || packageNumber > 1000) {
+                error(packageInput, "Koli numarası 1 ile 1000 arasında olmalı.");
+                return;
+            }
+
+            if (!stock.value || !option
+                || !Object.hasOwn(option.dataset, "boxes")) {
+                error(stock, "Kullanılabilir bir ürün ve stok seçin.");
+                return;
+            }
+
+            if (quantity === null || quantity < 1 || quantity > 2147483647) {
+                error(quantityInput, "Gerçek ürün adedini girin.");
+                return;
+            }
+
+            const capacity = number(option.dataset.capacity);
+            const closed = number(option.dataset.boxes) ?? 0;
+            const loose = number(option.dataset.loose) ?? 0;
+            const open = number(option.dataset.open) ?? 0;
+            if (quantityType === 2 &&
+                (quantity > closed || !capacity || capacity <= 0)) {
+                error(quantityInput,
+                    `Bu stokta ${closed} kapalı koli var. Koli kapasitesini kontrol edin.`);
+                return;
+            }
+
+            const available = loose + open
+                + (capacity > 0 ? closed * capacity : 0);
+
+            message.textContent = capacity > 0
+                ? `Bu stokta ${available} adet kullanılabilir.`
+                : `Tekli/açık stokta ${available} adet kullanılabilir; kapalı koli içi bilinmiyor.`;
+
+            if (!stocks.has(stock.value)) {
+                stocks.set(stock.value, { available, total: 0, rows: [] });
+            }
+
+            const stockGroup = stocks.get(stock.value);
+            stockGroup.total += quantityType === 2
+                ? quantity * capacity
+                : quantity;
+            stockGroup.rows.push({ quantityInput, message });
+
+            if (!packages.has(packageNumber))
+                packages.set(packageNumber, []);
+
+            const productName = option.textContent.trim().split(" — ")[0];
+            const packageItems = packages.get(packageNumber);
+
+            if (packageItems.length > 0 &&
+                packageItems[0].quantityType !== quantityType) {
+                error(packageInput,
+                    "Aynı koli numarasında kapalı ve karma koli olamaz.");
+                return;
+            }
+
+            if (quantityType === 2 && packageItems.length > 0) {
+                error(packageInput,
+                    "Kapalı koliye ikinci ürün eklenemez.");
+                return;
+            }
+
+            packageItems.push({ productName, quantity, quantityType, salesCode: row.querySelector('[data-field="SalesCode"]')?.value || "" });
+            total += quantityType === 2 ? quantity * capacity : quantity;
+        });
+
+        stocks.forEach(group => {
+            if (group.total > group.available || group.total > 2147483647) {
+                valid = false;
+                const text = group.total > 2147483647
+                    ? "Bu stoktan istenen toplam miktar sistem sınırını aşıyor."
+                    : `Tüm koliler için ${group.total} adet istendi; stokta ${group.available} adet var.`;
+
+                group.rows.forEach(row => {
+                    row.quantityInput.setCustomValidity(text);
+                    row.message.textContent = text;
+                    row.message.classList.add("invalid");
+                });
+            }
+        });
+
+        preview.replaceChildren();
+        const heading = document.createElement("strong");
+        heading.textContent = valid
+            ? `${[...packages.values()].reduce((sum, items) => sum + (items[0]?.quantityType === 2 ? items[0].quantity : 1), 0)} koli · ${total} adet ürün`
+            : "Ürünleri, koli numaralarını ve adetleri kontrol edin.";
+        preview.appendChild(heading);
+
+        const list = document.createElement("ul");
+        const lines = [];
+
+        [...packages.entries()].sort((a, b) => a[0] - b[0])
+            .forEach(([packageNumber, items]) => {
+                const text = `${packageNumber}. koli: `
+                    + items.map(item =>
+                        `${item.productName.replace(/\s*\[[^\]]+\]\s*$/, "")} | Kod: ${item.salesCode || "Secilmedi"} | ${item.quantity} ${item.quantityType === 2 ? "kapal? koli" : "adet"}`).join(", ");
+                const li = document.createElement("li");
+                li.textContent = text;
+                list.appendChild(li);
+                lines.push(text);
+            });
+
+                const previewDetails = document.createElement("details");
+        const previewSummary = document.createElement("summary");
+        previewSummary.textContent = "Koli içeriklerini göster";
+        previewDetails.append(previewSummary, list);
+        preview.appendChild(previewDetails);
+        confirmation = `${lines.join("\n")}\n\n`
+            + `Toplam: ${[...packages.values()].reduce((sum, items) => sum + (items[0]?.quantityType === 2 ? items[0].quantity : 1), 0)} koli, ${total} adet ürün.\n`
+            + "Onaylayınca ürünler stoktan düşecek. Onaylıyor musunuz?";
+
+        addProduct.disabled = currentRows.length >= 100;
+        addBox.disabled = currentRows.length >= 100
+            || Math.max(0, ...currentRows.map(row =>
+                number(row.querySelector(
+                    '[data-field="PackageNumber"]').value) ?? 0)) >= 1000;
+    }
+
+    function addRow(newPackage, closedBox = false) {
+        if (submitting || rows.children.length >= 100) return;
+
+        const packageNumbers = [...rows.querySelectorAll(
+            '[data-field="PackageNumber"]')]
+            .map(input => number(input.value) ?? 1);
+
+        const maximum = Math.max(1, ...packageNumbers);
+        const lastPackage = packageNumbers.at(-1) ?? 1;
+
+        if (!newPackage) {
+            const lastRow = rows.lastElementChild;
+            const lastType = lastRow?.querySelector(
+                '[data-field="QuantityType"]')?.value;
+
+            if (lastType === "2") newPackage = true;
+        }
+
+        if (newPackage && maximum >= 1000) return;
+
+        const row = prototype.cloneNode(true);
+        row.querySelector('[data-field="PackageNumber"]').value =
+            newPackage ? maximum + 1 : lastPackage;
+        row.querySelector('[data-field="PalletItemId"]').value = "";
+        const salesSelect = row.querySelector('[data-field="SalesCode"]');
+        if (salesSelect) {
+            salesSelect.value = "";
+            salesSelect.dataset.initialCode = "";
+            salesSelect.dataset.stockId = "";
+        }
+        row.querySelector('[data-field="QuantityType"]').value = closedBox ? "2" : "1";
+        row.querySelector('[data-field="Quantity"]').value = "";
+        row.querySelector("[data-package-message]").textContent = "";
+
+        rows.appendChild(row);
+        filterStocks();
+        update();
+        row.querySelector('[data-field="PalletItemId"]').focus();
+    }
+
+    addProduct.addEventListener("click", () => addRow(false));
+    addBox.addEventListener("click", () => addRow(true));
+
+    rows.addEventListener("click", event => {
+        const button = event.target.closest("[data-package-remove]");
+        if (!button || submitting || rows.children.length <= 1) return;
+        button.closest(".pk-row").remove();
+        update();
+    });
+
+    rows.addEventListener("input", update);
+    rows.addEventListener("change", update);
+    search.addEventListener("input", filterStocks);
+
+    // Dinamik satırlar için tarayıcının doğrulaması kullanılır.
+    form.noValidate = true;
+
+    const draftButton = document.getElementById("packageSaveDraft");
+    let approved = false;
+    let pendingButton = null;
+    let returnFocus = null;
+
+    const dialog = document.createElement("dialog");
+    dialog.id = "shipmentReviewDialog";
+    dialog.setAttribute("aria-labelledby", "shipmentReviewTitle");
+
+    dialog.innerHTML = `
+        <div class="sr-header">
+            <h2 id="shipmentReviewTitle">Sevkiyatı kontrol et</h2>
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    data-review-close>Kapat</button>
+        </div>
+        <div class="sr-body">
+            <p class="sr-recipient"></p>
+            <div class="sr-contact"></div>
+            <div class="sr-packages"></div>
+            <details class="sr-group">
+                <summary>Stoktan çıkacak miktarlar</summary>
+                <ul class="sr-stock-list"></ul>
+            </details>
+            <p class="sr-warning" role="status"></p>
+        </div>
+        <div class="sr-footer">
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    data-review-close>Geri dön ve düzenle</button>
+            <button type="button"
+                    class="btn btn-dark"
+                    id="shipmentReviewApprove">
+                Onayla ve stoktan düş
+            </button>
+        </div>`;
+
+    document.body.appendChild(dialog);
+
+    const reviewApprove = dialog.querySelector("#shipmentReviewApprove");
+
+    dialog.querySelectorAll("[data-review-close]").forEach(button => {
+        button.addEventListener("click", () => dialog.close());
+    });
+
+    dialog.addEventListener("close", () => {
+        approved = false;
+        if (!submitting) returnFocus?.focus();
+    });
+
+    function buildReview(isDraft) {
+        const section = form.closest("section");
+        const recipient = section.querySelector(".pk-heading h2")
+            ?.textContent.trim() ?? "";
+
+        dialog.querySelector(".sr-recipient").textContent = recipient;
+
+        const contact = [...section.children].find(element =>
+            element.tagName === "DIV"
+            && !element.classList.contains("pk-operations"));
+
+        dialog.querySelector(".sr-contact").textContent =
+            contact?.innerText.trim()
+            || "Telefon ve teslimat adresi girilmemiş.";
+
+        const packageArea = dialog.querySelector(".sr-packages");
+        const stockList = dialog.querySelector(".sr-stock-list");
+        packageArea.replaceChildren();
+        stockList.replaceChildren();
+
+        const packageGroups = new Map();
+        const stockGroups = new Map();
+        let total = 0;
+
+        rows.querySelectorAll(".pk-row").forEach(row => {
+            const packageNumber = number(row.querySelector(
+                '[data-field="PackageNumber"]').value);
+
+            const select = row.querySelector('[data-field="PalletItemId"]');
+            const quantity = number(row.querySelector(
+                '[data-field="Quantity"]').value);
+
+            const label = select.selectedOptions[0].textContent.trim();
+            const quantityType = number(
+                row.querySelector('[data-field="QuantityType"]').value);
+            const capacity = number(
+                select.selectedOptions[0].dataset.capacity) ?? 0;
+
+            if (!packageGroups.has(packageNumber)) {
+                packageGroups.set(packageNumber, []);
+            }
+
+            packageGroups.get(packageNumber).push({ label, quantity, quantityType });
+
+            if (!stockGroups.has(select.value)) {
+                stockGroups.set(select.value, { label, quantity: 0 });
+            }
+
+            stockGroups.get(select.value).quantity += quantityType === 2 ? quantity * capacity : quantity;
+            total += quantityType === 2 ? quantity * capacity : quantity;
+        });
+
+        [...packageGroups.entries()]
+            .sort((a, b) => a[0] - b[0])
+            .forEach(([packageNumber, items]) => {
+                const group = document.createElement("div");
+                group.className = "sr-group";
+
+                const heading = document.createElement("strong");
+                heading.textContent = `${packageNumber}. koli`;
+
+                const list = document.createElement("ul");
+
+                items.forEach(item => {
+                    const li = document.createElement("li");
+                    // ShipmentReviewProductSummaryV1
+                    const productName = item.label
+                        .split(" — ")[0]
+                        .replace(/\s*\[[^\]]*\]\s*$/, "")
+                        .trim();
+
+                    const title = document.createElement("strong");
+                    title.textContent =
+                        `${productName} — Gönderilecek: ${item.quantity} ${item.quantityType === 2 ? "kapalı koli" : "adet"}`;
+
+                    const details = document.createElement("details");
+                    details.style.marginTop = "6px";
+
+                    const summary = document.createElement("summary");
+                    summary.textContent = "Alınacağı stok";
+                    summary.style.cursor = "pointer";
+
+                    const source = document.createElement("p");
+                    source.textContent = item.label;
+                    source.style.margin = "6px 0";
+                    source.style.fontSize = "13px";
+
+                    details.append(summary, source);
+                    li.append(title, details);
+                    list.appendChild(li);
+                });
+
+                group.append(heading, list);
+                packageArea.appendChild(group);
+            });
+
+        stockGroups.forEach(item => {
+            const li = document.createElement("li");
+            li.textContent = `${item.label} — ${item.quantity} adet`;
+            stockList.appendChild(li);
+        });
+
+        dialog.querySelector(".sr-stock-list")
+            .parentElement.querySelector("summary").textContent =
+                isDraft
+                    ? "Ürün ve kaynak stok toplamları · Stok değişmez"
+                    : "Stoktan çıkacak miktarlar";
+
+        dialog.querySelector(".sr-warning").textContent =
+            `${[...packageGroups.values()].reduce((sum, items) => sum + (items[0]?.quantityType === 2 ? items[0].quantity : 1), 0)} koli · ${total} adet ürün. `
+            + (isDraft
+                ? "Taslak kaydedilecek. Stok değişmeyecek."
+                : "Onayladığınızda bu miktarlar stoktan düşer. "
+                    + "Gönderildi işlemi tekrar stok düşmez.");
+
+        dialog.querySelector("#shipmentReviewTitle").textContent =
+            isDraft ? "Taslağı kontrol et" : "Sevkiyatı kontrol et";
+
+        reviewApprove.textContent = isDraft
+            ? "Taslağı kaydet · Stok değişmez"
+            : "Onayla ve stoktan düş";
+    }
+
+    reviewApprove.addEventListener("click", () => {
+        if (submitting || !pendingButton) return;
+
+        approved = true;
+        form.requestSubmit(pendingButton);
+
+        if (!submitting) {
+            approved = false;
+            dialog.close();
+        }
+    });
+
+    form.addEventListener("submit", event => {
+        if (submitting) {
+            event.preventDefault();
+            return;
+        }
+
+        update();
+
+
+
+        const submitter = event.submitter ?? save;
+        const isDraft = submitter.id === "packageSaveDraft";
+
+        if (!isDraft && (!form.reportValidity() || !valid)) {
+            event.preventDefault();
+            approved = false;
+            return;
+        }
+
+
+
+        document.getElementById("packageConfirmStock").value =
+            isDraft ? "false" : "true";
+
+        if (!approved || submitter !== pendingButton) {
+            event.preventDefault();
+
+            if (typeof dialog.showModal !== "function") {
+                const recipient = form.closest("section")
+                    .querySelector(".pk-heading h2").textContent.trim();
+
+                const message = isDraft
+                    ? `Alıcı: ${recipient}\nTaslak kaydedilecek. Stok değişmez.`
+                    : `Alıcı: ${recipient}\n\n${confirmation}`;
+
+                if (!window.confirm(message)) return;
+
+                pendingButton = submitter;
+                approved = true;
+                form.requestSubmit(submitter);
+                return;
+            }
+
+            pendingButton = submitter;
+            returnFocus = submitter;
+            buildReview(isDraft);
+            dialog.showModal();
+            return;
+        }
+
+        submitting = true;
+        save.disabled = true;
+        draftButton.disabled = true;
+        reviewApprove.disabled = true;
+        reviewApprove.textContent = "Kaydediliyor...";
+        submitter.textContent = "Kaydediliyor...";
+    });
+
+    window.addEventListener("pageshow", event => {
+        if (event.persisted) window.location.reload();
+    });
+
+    update();
+})();
+</script>

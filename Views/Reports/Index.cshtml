@@ -1,0 +1,1145 @@
+@model MasterChefTakip.ViewModels.ReportIndexViewModel
+
+@{
+    ViewData["Title"] = "Raporlar";
+
+    var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(3));
+
+    var chartData = Model.Buckets.Select(b => new
+    {
+        label = b.Label,
+        incoming = b.Prepared.KnownUnits,
+        outgoing = b.Shipments.KnownUnits
+    }).ToList();
+
+    var productData = Model.TopProducts.Select(p => new
+    {
+        label = p.Name + " [" + p.Code + "]",
+        outgoing = p.Quantity.KnownUnits
+    }).ToList();
+
+    var cards = new[]
+    {
+        new { Title = "Paketlenen ürünler", Quantity = Model.Prepared },
+        new { Title = "Sevkiyat çıkışı", Quantity = Model.Shipments },
+                new { Title = "Sevkiyat iptali", Quantity = Model.ShipmentCancellations },
+        new { Title = "Stoğa dönen iade", Quantity = Model.Returns },
+        new { Title = "Depo hasar çıkışı", Quantity = Model.Damage }
+    };
+
+    var otherCards = new[]
+    {
+        new { Title = "Tüm stok girişleri", Quantity = Model.Receipts },
+        new { Title = "İade girişi", Quantity = Model.Returns },
+        new { Title = "Hasar çıkışı", Quantity = Model.Damage },
+        new { Title = "Giriş iptali", Quantity = Model.ReceiptCancellations }
+    };
+}
+
+<style>
+    .report-page {
+        width: 100%;
+        max-width: 1120px;
+        margin-inline: auto;
+        min-width: 0;
+        color: #18365f;
+    }
+
+    .report-page h1 {
+        margin: 0 0 5px;
+        font-size: 25px;
+    }
+
+    .report-page h2 {
+        margin: 0;
+        font-size: 15px;
+    }
+
+    .report-page .rp-description,
+    .report-page .rp-note {
+        color: #64748b;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .report-page .rp-description {
+        margin: 0 0 16px;
+    }
+
+    .report-page .rp-note {
+        margin: 10px 0 0;
+    }
+
+    .report-page .rp-panel {
+        margin-bottom: 14px;
+        border: 1px solid #18365f;
+        border-radius: 10px;
+        background: #fff;
+        overflow: hidden;
+        min-width: 0;
+    }
+
+    .report-page .rp-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px 16px;
+        background: #f7f9fc;
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .report-page .rp-body {
+        padding: 14px 16px;
+    }
+
+    .report-page .rp-filter {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .report-page label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 12px;
+    }
+
+    .report-page input,
+    .report-page select {
+        width: 100%;
+        min-width: 0;
+        height: 38px;
+        padding: 7px 9px;
+        border: 1px solid #d8e1ed;
+        border-radius: 6px;
+        background: #f8fafc;
+        font-size: 13px;
+    }
+
+    .report-page .rp-button {
+        padding: 9px 12px;
+        border: 1px solid #18365f;
+        border-radius: 6px;
+        background: #18365f;
+        color: #fff;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .report-page .rp-shortcuts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 12px;
+    }
+
+    .report-page .rp-shortcuts a {
+        padding: 6px 9px;
+        border: 1px solid #d8e1ed;
+        border-radius: 6px;
+        color: #18365f;
+        font-size: 12px;
+        text-decoration: none;
+    }
+
+    .report-page .rp-cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .report-page .rp-card {
+        padding: 13px 15px;
+        border: 1px solid #d8e1ed;
+        border-left: 3px solid #18365f;
+        border-radius: 8px;
+        background: #fff;
+    }
+
+    .report-page .rp-card span {
+        display: block;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .report-page .rp-card strong {
+        display: block;
+        margin: 7px 0;
+        font-size: 20px;
+        line-height: 1.4;
+    }
+
+    .report-page .rp-card small {
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .report-page .rp-chart {
+        display: block;
+        width: 100%;
+        height: 280px;
+    }
+
+    .report-page .rp-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-bottom: 12px;
+        font-size: 12px;
+    }
+
+    .report-page .rp-legend span::before {
+        content: "";
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin-right: 6px;
+        border-radius: 2px;
+        background: #18365f;
+    }
+
+    .report-page .rp-legend .out::before {
+        background: #8095b5;
+    }
+
+    .report-page table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+
+    .report-page th,
+    .report-page td {
+        padding: 9px 12px;
+        text-align: left;
+        border-bottom: 1px solid #e5eaf1;
+        overflow-wrap: anywhere;
+    }
+
+    .report-page th {
+        background: #edf2f8;
+        font-size: 11px;
+    }
+
+    .report-page .rp-table-wrap {
+        overflow-x: auto;
+    }
+
+    .report-page .rp-code {
+        display: block;
+        margin-top: 3px;
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .report-page details > summary {
+        padding: 12px 16px;
+        background: #f7f9fc;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    @@media (max-width: 650px) {
+        .report-page .rp-filter,
+        .report-page .rp-cards {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .report-page .rp-card strong {
+            font-size: 17px;
+        }
+
+        .report-page input,
+        .report-page select {
+            font-size: 16px;
+        }
+    }
+    /* ReportsFrontendV2 */
+    .report-page {
+        max-width: none;
+    }
+
+    .report-page,
+    .report-page * {
+        box-sizing: border-box;
+    }
+
+    .report-page .rp-panel {
+        border-color: #d8e1ed;
+    }
+
+    .report-page .rp-cards {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .report-page .rp-card {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .report-page .rp-card strong {
+        font-variant-numeric: tabular-nums;
+    }
+
+    .report-page .rp-period {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0 0 12px;
+        font-size: 14px;
+    }
+
+    .report-page .rp-period span {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .report-page input,
+    .report-page select,
+    .report-page .rp-button {
+        min-height: 44px;
+    }
+
+    .report-page .rp-shortcuts a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    .report-page .rp-method {
+        margin-top: 10px;
+        border: 1px solid #e5eaf1;
+        border-radius: 7px;
+        overflow: hidden;
+    }
+
+    .report-page .rp-method .rp-note {
+        padding: 0 12px;
+    }
+
+    .report-page .rp-method .rp-note:last-child {
+        padding-bottom: 12px;
+    }
+
+    .report-page table {
+        table-layout: fixed;
+    }
+
+    .report-page .validation-summary-valid {
+        display: none;
+    }
+
+    @@media (max-width: 1100px) {
+        .report-page .rp-cards {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 650px) {
+        .report-page .rp-cards {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .report-page .rp-filter {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .report-page .rp-card {
+            padding: 10px;
+        }
+
+        .report-page .rp-table-wrap {
+            overflow-x: visible;
+        }
+
+        .report-page .rp-mobile-table,
+        .report-page .rp-mobile-table tbody {
+            display: block;
+            width: 100%;
+        }
+
+        .report-page .rp-mobile-table thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+        }
+
+        .report-page .rp-mobile-table tr {
+            display: block;
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5eaf1;
+        }
+
+        .report-page .rp-mobile-table td {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 5px 0;
+            border: 0;
+            font-size: 13px;
+        }
+
+        .report-page .rp-mobile-table td::before {
+            content: attr(data-rp-label);
+            flex: 0 0 45%;
+            color: #64748b;
+        }
+
+        .report-page .rp-mobile-table td:first-child {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .report-page .rp-mobile-table td:first-child::before {
+            display: none;
+        }
+    }
+</style>
+
+
+
+<div class="report-page">
+    <h1>Raporlar</h1>
+
+    <p class="rp-description">
+        Paketleme ve sevkiyat kayıtlarından otomatik hesaplanır.
+        Tarihler Türkiye saatine göredir.
+    </p>
+
+    <section class="rp-panel">
+        <div class="rp-heading">
+            <h2>Tarih aralığı</h2>
+        </div>
+
+        <div class="rp-body">
+            <div asp-validation-summary="All"
+                 class="text-danger"
+                 role="alert"></div>
+
+            <form asp-controller="Reports"
+                  asp-action="Index"
+                  method="get"
+                  class="rp-filter">
+                <div>
+                    <label for="reportStart">Başlangıç</label>
+                    <input id="reportStart"
+                           name="start"
+                           type="date"
+                           required
+                           value="@Model.Start.ToString("yyyy-MM-dd")"
+                           max="@today.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div>
+                    <label for="reportEnd">Bitiş</label>
+                    <input id="reportEnd"
+                           name="end"
+                           type="date"
+                           required
+                           value="@Model.End.ToString("yyyy-MM-dd")"
+                           max="@today.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div>
+                    <label for="reportGroup">Grafik görünümü</label>
+                    <select id="reportGroup" name="group">
+                        <option value="day"
+                                selected="@(Model.Group == "day")">
+                            Günlük
+                        </option>
+                        <option value="week"
+                                selected="@(Model.Group == "week")">
+                            Haftalık
+                        </option>
+                        <option value="month"
+                                selected="@(Model.Group == "month")">
+                            Aylık
+                        </option>
+                    </select>
+                </div>
+
+                <button class="rp-button" type="submit">
+                    Raporu göster
+                </button>
+            </form>
+
+            <div class="rp-shortcuts">
+                <a asp-action="Index"
+                   asp-route-start="@today.ToString("yyyy-MM-dd")"
+                   asp-route-end="@today.ToString("yyyy-MM-dd")"
+                   asp-route-group="day">Bugün</a>
+
+                <a asp-action="Index"
+                   asp-route-start="@today.AddDays(-6).ToString("yyyy-MM-dd")"
+                   asp-route-end="@today.ToString("yyyy-MM-dd")"
+                   asp-route-group="day">Son 7 gün</a>
+
+                <a asp-action="Index"
+                   asp-route-start="@today.AddDays(-29).ToString("yyyy-MM-dd")"
+                   asp-route-end="@today.ToString("yyyy-MM-dd")"
+                   asp-route-group="day">Son 30 gün</a>
+
+                <a asp-action="Index"
+                   asp-route-start="@(new DateOnly(today.Year, today.Month, 1).ToString("yyyy-MM-dd"))"
+                   asp-route-end="@today.ToString("yyyy-MM-dd")"
+                   asp-route-group="day">Bu ay</a>
+
+                <a asp-action="Index"
+                   asp-route-start="@(new DateOnly(today.Year, 1, 1).ToString("yyyy-MM-dd"))"
+                   asp-route-end="@today.ToString("yyyy-MM-dd")"
+                   asp-route-group="month">Bu yıl</a>
+            </div>
+        </div>
+    </section>
+
+    @if (ViewData.ModelState.IsValid)
+    {
+                <div class="rp-period">
+            <strong>
+                @Model.Start.ToString("dd.MM.yyyy")
+                — @Model.End.ToString("dd.MM.yyyy")
+            </strong>
+            <span>Özetler seçilen döneme aittir; güncel stok ayrıca gösterilir.</span>
+        </div>
+
+        <div class="rp-cards">
+            @foreach (var card in cards)
+            {
+                <article class="rp-card">
+                    <span>@card.Title</span>
+                    <strong>@card.Quantity.Display</strong>
+                    <small>
+                        @card.Quantity.BoxCount.ToString("N0") tam koli +
+                        @card.Quantity.IndividualCount.ToString("N0")
+                        ayrıca adet
+                    </small>
+                </article>
+            }
+        </div>
+
+        <section class="rp-panel">
+            <div class="rp-heading">
+                <h2>Paketlenen ve sevk edilen ürünler</h2>
+            </div>
+
+            <div class="rp-body">
+                <div class="rp-legend">
+                    <span>Paketlenen ürünler</span>
+                    <span class="out">Sevkiyat çıkışı</span>
+                </div>
+
+                <canvas id="movementChart"
+                        class="rp-chart"
+                        role="img"
+                        aria-label="Paketlenen ve sevk edilen ürünlerin adet grafiği. Ayrıntılar dönem tablosunda.">
+                </canvas>
+
+                <p id="movementChartInfo" class="rp-note"></p>
+
+                                <details class="rp-method">
+                    <summary>Rakamlar nasıl hesaplanıyor?</summary>
+<p class="rp-note">
+                    Grafik ürün adedini gösterir.
+                    Paketleme toplamı, Paketleme ekranındaki kayıtların
+                    düzeltilmiş son halidir ve ilk paketleme gününe yazılır.
+                    Normal palet girişleri paketleme sayılmaz.
+                </p>
+
+                <p class="rp-note">
+                    Sevkiyat çıkışı, onaylanıp stoktan düşülen miktardır.
+                    Sevkiyat iptalleri çıkış sütunundan çıkarılmaz;
+                    ayrı gösterilir. Bu miktar kargo paketi sayısı değildir.
+                </p>
+</details>
+
+                @if (!Model.Prepared.IsComplete || !Model.Shipments.IsComplete)
+                {
+                    <p class="rp-note">
+                        Koli içi adedi eksik kayıtlar var.
+                        Grafik yalnızca hesaplanabilen adetleri gösterir.
+                    </p>
+                }
+            </div>
+
+            <details>
+                <summary>Paketleme ve sevkiyat dönem tablosu</summary>
+
+                <div class="rp-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Dönem</th>
+                                <th>Paketlenen koli</th>
+                                <th>Paketlenen adet</th>
+                                <th>Sevkiyat çıkışı</th>
+                                <th>Sevkiyat iptali</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var bucket in Model.Buckets)
+                            {
+                                <tr>
+                                    <td>@bucket.Label</td>
+                                    <td>@bucket.Prepared.BoxCount.ToString("N0")</td>
+                                    <td>@bucket.Prepared.Display</td>
+                                    <td>@bucket.Shipments.Display</td>
+                                    <td>@bucket.ShipmentCancellations.Display</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </section>
+
+        <section class="rp-panel">
+            <div class="rp-heading">
+                <h2>Güncel kullanılabilir stok</h2>
+                <strong>@Model.CurrentStock.Display</strong>
+            </div>
+            <div class="rp-body">
+                <p class="rp-note" style="margin:0;">
+                    Aktif ürün ve aktif paletlerde şu an bulunan stoktur.
+                    Açık kolide kalan ürünler dahildir.
+                    Seçilen geçmiş tarihin stok bakiyesi değildir.
+                </p>
+            
+                <details style="margin-top:14px;">
+                    <summary style="cursor:pointer;font-weight:600;">
+                        Hangi üründen ne kadar stok var?
+                        (@Model.CurrentStockProducts.Count ürün)
+                    </summary>
+
+                    <div class="table-responsive" style="margin-top:12px;">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Ürün</th>
+                                    <th>Ürün kodu</th>
+                                    <th>Kapalı koli</th>
+                                    <th>Toplam stok</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var product in Model.CurrentStockProducts)
+                                {
+                                    <tr>
+                                        <td>@product.Name</td>
+                                        <td>@product.Code</td>
+                                        <td>@product.Quantity.BoxCount.ToString("N0")</td>
+                                        <td>@product.Quantity.Display</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+</div>
+        </section>
+
+                <!-- RankedProductsListV1 -->
+        <section class="rp-panel">
+            <div class="rp-heading">
+                <h2>En çok gönderilen 10 ürün</h2>
+                <span class="rp-note" style="margin:0">
+                    Seçilen dönemin sevkiyat çıkışları
+                </span>
+            </div>
+
+            @if (Model.TopProducts.Count == 0)
+            {
+                <div class="rp-body">
+                    Seçilen dönemde adedi hesaplanabilen sevkiyat yok.
+                </div>
+            }
+            else
+            {
+                var rankedProducts = Model.TopProducts
+                    .OrderByDescending(p => p.Quantity.KnownUnits)
+                    .ThenBy(p => p.Name)
+                    .ThenBy(p => p.Code)
+                    .Take(10)
+                    .ToList();
+
+                <ol class="rp-ranking">
+                    @for (var index = 0; index < rankedProducts.Count; index++)
+                    {
+                        var product = rankedProducts[index];
+
+                        <li>
+                            <span class="rp-rank-number"
+                                  aria-label="@($"{index + 1}. sıra")">
+                                @(index + 1)
+                            </span>
+
+                            <div class="rp-rank-product">
+                                <strong>@product.Name</strong>
+
+                                <details>
+                                    <summary>Ürün ve miktar ayrıntısı</summary>
+                                    <div class="rp-rank-detail">
+                                        <div>Kod: @product.Code</div>
+                                        <div>
+                                            @product.Quantity.BoxCount.ToString("N0")
+                                            tam koli
+                                            · @product.Quantity.IndividualCount.ToString("N0")
+                                            ayrıca adet
+                                        </div>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <strong class="rp-rank-quantity"><small class="rp-sent-label">Gönderilen</small>
+                                @product.Quantity.KnownUnits.ToString("N0") adet
+                            </strong>
+                        </li>
+                    }
+                </ol>
+            }
+
+            <div class="rp-body">
+                                <details class="rp-ranking-explanation">
+                    <summary>Hesaplama bilgisi</summary>
+                    <p class="rp-note">
+                        En çok gönderilen ürün üstte gösterilir.
+                        Sevkiyat iptalleri bu miktarlardan çıkarılmaz;
+                        net satış veya ciro değildir.
+                    </p>
+                </details>
+
+                @if (Model.UnrankedProductCount > 0)
+                {
+                    <p class="rp-note">
+                        @Model.UnrankedProductCount ürün, koli içi adet
+                        bilgisi eksik olduğu için sıralamaya alınmadı.
+                    </p>
+                }
+            </div>
+        </section>
+
+        <style>
+            .report-page .rp-ranking {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .report-page .rp-ranking > li {
+                display: grid;
+                grid-template-columns: 36px minmax(0, 1fr) auto;
+                gap: 12px;
+                align-items: start;
+                padding: 12px 16px;
+                border-bottom: 1px solid #e5eaf1;
+            }
+
+            .report-page .rp-rank-number {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                background: #edf2f8;
+                color: #18365f;
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            .report-page .rp-ranking > li:first-child .rp-rank-number {
+                background: #18365f;
+                color: white;
+            }
+
+            .report-page .rp-rank-product {
+                min-width: 0;
+                overflow-wrap: anywhere;
+                font-size: 14px;
+            }
+
+            .report-page .rp-rank-product details > summary {
+                padding: 8px 0;
+                background: transparent;
+                color: #64748b;
+                font-size: 12px;
+                min-height: 36px;
+            }
+
+            .report-page .rp-rank-detail {
+                padding: 8px 10px;
+                border-radius: 6px;
+                background: #f7f9fc;
+                font-size: 12px;
+                line-height: 1.7;
+            }
+
+            .report-page .rp-rank-quantity {
+                padding-top: 5px;
+                text-align: right;
+                font-size: 16px;
+                font-variant-numeric: tabular-nums;
+                overflow-wrap: anywhere;
+            }
+
+            @@media (max-width: 600px) {
+                .report-page .rp-ranking > li {
+                    grid-template-columns: 30px minmax(0, 1fr);
+                    gap: 8px;
+                    padding: 10px 12px;
+                }
+
+                .report-page .rp-rank-number {
+                    width: 28px;
+                    height: 28px;
+                }
+
+                .report-page .rp-rank-quantity {
+                    grid-column: 2;
+                    text-align: left;
+                    padding-top: 0;
+                }
+
+                .report-page .rp-rank-product details > summary {
+                    min-height: 44px;
+                }
+            }
+        </style>
+
+        <section class="rp-panel">
+            <details>
+                <summary>
+                    Diğer stok hareketleri (@Model.MovementCount hareket)
+                </summary>
+
+                <div class="rp-body">
+                    <div class="rp-cards">
+                        @foreach (var card in otherCards)
+                        {
+                            <article class="rp-card">
+                                <span>@card.Title</span>
+                                <strong>@card.Quantity.Display</strong>
+                            </article>
+                        }
+                    </div>
+
+                    <p class="rp-note">
+                        Tüm stok girişleri paketleme girişlerini de kapsar.
+                        Giriş ve iptal hareketleri burada ayrı sayılır.
+                    </p>
+                </div>
+
+                <div class="rp-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Dönem</th>
+                                <th>Tüm girişler</th>
+                                <th>İade</th>
+                                <th>Hasar</th>
+                                <th>Giriş iptali</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var bucket in Model.Buckets)
+                            {
+                                <tr>
+                                    <td>@bucket.Label</td>
+                                    <td>@bucket.Receipts.Display</td>
+                                    <td>@bucket.Returns.Display</td>
+                                    <td>@bucket.Damage.Display</td>
+                                    <td>@bucket.ReceiptCancellations.Display</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </section>
+    }
+</div>
+
+@section Scripts {
+    <script>
+    (() => {
+        document.querySelectorAll(".report-page table").forEach(table => {
+            const headings = [...table.querySelectorAll("thead th")]
+                .map(th => th.textContent.trim());
+
+            table.querySelectorAll("tbody tr").forEach(row => {
+                [...row.cells].forEach((cell, index) => {
+                    cell.dataset.rpLabel = headings[index] ?? "";
+                });
+            });
+
+            table.classList.add("rp-mobile-table");
+        });
+
+        const start = document.getElementById("reportStart");
+        const end = document.getElementById("reportEnd");
+        if (!start || !end) return;
+
+        const form = start.form;
+
+        function validateDates() {
+            end.setCustomValidity(
+                start.value && end.value && start.value > end.value
+                    ? "Bitiş tarihi başlangıç tarihinden önce olamaz."
+                    : ""
+            );
+        }
+
+        start.addEventListener("input", validateDates);
+        end.addEventListener("input", validateDates);
+
+        form.addEventListener("submit", event => {
+            validateDates();
+            if (!form.reportValidity()) event.preventDefault();
+        });
+
+        validateDates();
+    })();
+    </script>
+    <script>
+        (() => {
+            const movements = @Json.Serialize(chartData);
+            const products = @Json.Serialize(productData);
+            const formatter = new Intl.NumberFormat('tr-TR');
+
+            function prepareCanvas(canvas) {
+                const width = Math.max(
+                    1, canvas.getBoundingClientRect().width);
+                const height = 280;
+                const ratio = window.devicePixelRatio || 1;
+
+                canvas.width = Math.round(width * ratio);
+                canvas.height = Math.round(height * ratio);
+
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return null;
+
+                ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+                ctx.clearRect(0, 0, width, height);
+                ctx.font = '11px Arial';
+
+                return { ctx, width, height };
+            }
+
+            function drawMovements() {
+                const canvas = document.getElementById('movementChart');
+                if (!canvas) return;
+
+                const state = prepareCanvas(canvas);
+                if (!state) return;
+
+                const { ctx, width, height } = state;
+                const left = 64;
+                const right = 12;
+                const top = 15;
+                const bottom = 42;
+                const plotWidth = Math.max(1, width - left - right);
+                const plotHeight = height - top - bottom;
+
+                const max = Math.max(
+                    1,
+                    ...movements.map(x =>
+                        Math.max(x.incoming, x.outgoing)));
+
+                for (let tick = 0; tick <= 4; tick++) {
+                    const value = max * tick / 4;
+                    const y = height - bottom - plotHeight * tick / 4;
+
+                    ctx.strokeStyle = '#e5eaf1';
+                    ctx.beginPath();
+                    ctx.moveTo(left, y);
+                    ctx.lineTo(width - right, y);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#64748b';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(
+                        formatter.format(Math.round(value)),
+                        left - 7, y + 4);
+                }
+
+                if (!movements.length) return;
+
+                const slot = plotWidth / movements.length;
+                const barWidth = Math.min(22, slot * 0.32);
+                const labelStep = Math.max(
+                    1,
+                    Math.ceil(
+                        movements.length /
+                        Math.max(1, Math.floor(plotWidth / 85))));
+
+                movements.forEach((item, index) => {
+                    const center = left + slot * (index + 0.5);
+                    const baseline = height - bottom;
+                    const incomingHeight = item.incoming / max * plotHeight;
+                    const outgoingHeight = item.outgoing / max * plotHeight;
+
+                    ctx.fillStyle = '#18365f';
+                    ctx.fillRect(
+                        center - barWidth,
+                        baseline - incomingHeight,
+                        barWidth, incomingHeight);
+
+                    ctx.fillStyle = '#8095b5';
+                    ctx.fillRect(
+                        center,
+                        baseline - outgoingHeight,
+                        barWidth, outgoingHeight);
+
+                    if (index % labelStep === 0) {
+                        ctx.fillStyle = '#64748b';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(
+                            item.label.replace(' haftası', ''),
+                            center,
+                            height - 15,
+                            Math.max(1, slot * labelStep - 6));
+                    }
+                });
+
+                function showBucket(index) {
+                    const info = document.getElementById('movementChartInfo');
+                    const item = movements[index];
+                    if (!info || !item) return;
+
+                    info.textContent =
+                        `${item.label}: ` +
+                        `${formatter.format(item.incoming)} adet paketlendi, ` +
+                        `${formatter.format(item.outgoing)} adet sevk edildi.`;
+                }
+
+                canvas.onpointermove = event => {
+                    const x = event.clientX
+                        - canvas.getBoundingClientRect().left;
+
+                    if (x < left || x > width - right) return;
+
+                    const index = Math.min(
+                        movements.length - 1,
+                        Math.max(0, Math.floor((x - left) / slot)));
+
+                    showBucket(index);
+                };
+
+                canvas.onclick = canvas.onpointermove;
+                showBucket(movements.length - 1);
+            }
+
+            function drawProducts() {
+                // ProductChartVerticalV2
+                const canvas = document.getElementById('productChart');
+                if (!canvas) return;
+
+                const hideChart = products.length < 2;
+                canvas.parentElement.style.display = hideChart ? 'none' : '';
+                if (hideChart) return;
+
+                const state = prepareCanvas(canvas);
+                if (!state) return;
+
+                const { ctx, width, height } = state;
+                const left = 64;
+                const right = 14;
+                const top = 28;
+                const bottom = 65;
+                const plotWidth = Math.max(1, width - left - right);
+                const plotHeight = height - top - bottom;
+                const maximum = Math.max(1, ...products.map(p => p.outgoing));
+                const slot = plotWidth / products.length;
+                const barWidth = Math.min(60, slot * 0.55);
+                const baseline = height - bottom;
+
+                for (let tick = 0; tick <= 4; tick++) {
+                    const y = baseline - plotHeight * tick / 4;
+                    ctx.strokeStyle = '#e5eaf1';
+                    ctx.beginPath();
+                    ctx.moveTo(left, y);
+                    ctx.lineTo(width - right, y);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#64748b';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(
+                        formatter.format(Math.round(maximum * tick / 4)),
+                        left - 8, y + 4
+                    );
+                }
+
+                products.forEach((product, index) => {
+                    const center = left + slot * (index + 0.5);
+                    const barHeight = product.outgoing / maximum * plotHeight;
+
+                    ctx.fillStyle = '#18365f';
+                    ctx.fillRect(
+                        center - barWidth / 2,
+                        baseline - barHeight,
+                        barWidth, barHeight
+                    );
+
+                    ctx.textAlign = 'center';
+                    ctx.fillText(
+                        formatter.format(product.outgoing),
+                        center, baseline - barHeight - 8,
+                        Math.max(1, slot - 6)
+                    );
+
+                    const name = product.label.replace(/\s*\[[^\]]*\]$/, '');
+                    ctx.fillStyle = '#475569';
+                    ctx.fillText(
+                        name.length > 20 ? name.slice(0, 19) + '…' : name,
+                        center, baseline + 22,
+                        Math.max(1, slot - 8)
+                    );
+                });
+            }
+
+            function drawAll() {
+                drawMovements();
+                drawProducts();
+            }
+
+            drawAll();
+
+            if (window.ResizeObserver) {
+                const observer = new ResizeObserver(drawAll);
+                const page = document.querySelector('.report-page');
+                if (page) observer.observe(page);
+            } else {
+                window.addEventListener('resize', drawAll);
+            }
+        })();
+    </script>
+}
+<style>
+    /* RankedProductsPolishV1 */
+    .report-page .rp-ranking > li {
+        padding-block: 9px;
+    }
+
+    .report-page .rp-sent-label {
+        display: block;
+        margin-bottom: 3px;
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 400;
+    }
+
+    .report-page .rp-ranking-explanation > summary {
+        min-height: 44px;
+        padding: 12px 0;
+        background: transparent;
+        color: #64748b;
+    }
+</style>

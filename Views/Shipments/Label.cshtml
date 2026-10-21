@@ -1,0 +1,309 @@
+@model List<MasterChefTakip.Models.Shipment>
+@using MasterChefTakip.Models
+
+@{
+    Layout = null;
+    var printedAt = DateTime.UtcNow.AddHours(3);
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MASTER CHEF — Sevkiyat etiketleri</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            background: #f1f5f9;
+            color: #17365d;
+            font-family: Arial, sans-serif;
+        }
+
+        .toolbar {
+            max-width: 900px;
+            margin: 0 auto 20px;
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 16px;
+            border: 0;
+            border-radius: 6px;
+            background: #17365d;
+            color: white;
+            cursor: pointer;
+        }
+
+        .label {
+            max-width: 900px;
+            margin: 0 auto 24px;
+            padding: 24px;
+            border: 1px solid #17365d;
+            background: white;
+            overflow-wrap: anywhere;
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            font-size: 25px;
+        }
+
+        h2 {
+            font-size: 18px;
+        }
+
+        .code {
+            font-size: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        .info {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .info p {
+            margin: 4px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #edf2f8;
+        }
+
+        .note {
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        @@media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .label {
+                padding: 14px;
+            }
+
+            .info {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@page {
+            size: A4;
+            margin: 12mm;
+        }
+
+        @@media print {
+            body {
+                padding: 0;
+                background: white;
+                color: black;
+            }
+
+            .toolbar {
+                display: none;
+            }
+
+            .label {
+                max-width: none;
+                margin: 0;
+                padding: 16px;
+                break-after: page;
+            }
+
+            .label:last-child {
+                break-after: auto;
+            }
+
+            tr,
+            .info {
+                break-inside: avoid;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toolbar">
+        <span>@Model.Count sevkiyat etiketi</span>
+
+        <button type="button" onclick="window.print()">
+            Yazdır / PDF olarak kaydet
+        </button>
+    </div>
+
+    @foreach (var shipment in Model)
+    {
+        var status = shipment.Status switch
+        {
+            ShipmentStatus.Confirmed => "Gönderime hazır",
+            ShipmentStatus.Shipped => "Gönderildi",
+            ShipmentStatus.Delivered => "Teslim edildi",
+            ShipmentStatus.Cancelled => "İptal edildi",
+            ShipmentStatus.Draft => "Taslak",
+            _ => "Bilinmeyen durum"
+        };
+
+        var allQuantitiesKnown = shipment.Items.All(i =>
+            i.BoxCount == 0 || i.UnitsPerBox is > 0);
+
+        var shipmentTotal = shipment.Items.Sum(i =>
+            (long)i.BoxCount * (i.UnitsPerBox ?? 0)
+            + i.LooseUnitCount);
+
+        <article class="label">
+            <h1>MASTER CHEF</h1>
+            <h2>SEVKİYAT ETİKETİ</h2>
+            <p class="code">@shipment.Number</p>
+
+            <div class="info">
+                <div>
+                    <strong>Alıcı / teslimat yeri</strong>
+                    <p>@shipment.RecipientName</p>
+                </div>
+
+                <div>
+                    <strong>Telefon</strong>
+                    <p>@(shipment.RecipientPhone ?? "—")</p>
+                </div>
+
+                <div>
+                    <strong>Teslimat adresi</strong>
+                    <p>@(shipment.DeliveryAddress ?? "—")</p>
+                </div>
+
+                <div>
+                    <strong>Kargo firması</strong>
+                    <p>@(shipment.CargoCompany ?? "—")</p>
+                </div>
+
+                <div>
+                    <strong>Takip numarası</strong>
+                    <p>@(shipment.TrackingNumber ?? "—")</p>
+                </div>
+
+                <div>
+                    <strong>Durum</strong>
+                    <p>@status</p>
+                </div>
+
+                <div>
+                    <strong>Onay tarihi — Türkiye saati</strong>
+                    <p>
+                        @(shipment.ConfirmedAtUtc?.AddHours(3)
+                            .ToString("dd.MM.yyyy HH:mm") ?? "—")
+                    </p>
+                </div>
+
+                @if (shipment.ShippedAtUtc is DateTime shippedAt)
+                {
+                    <div>
+                        <strong>Gönderim tarihi — Türkiye saati</strong>
+                        <p>@shippedAt.AddHours(3).ToString("dd.MM.yyyy HH:mm")</p>
+                    </div>
+                }
+
+                @if (shipment.DeliveredAtUtc is DateTime deliveredAt)
+                {
+                    <div>
+                        <strong>Teslim tarihi — Türkiye saati</strong>
+                        <p>@deliveredAt.AddHours(3).ToString("dd.MM.yyyy HH:mm")</p>
+                    </div>
+                }
+            </div>
+
+            <h2>Sevkiyatın ürünleri</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ürün / kod</th>
+                        <th>Toplam ürün adedi</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var group in shipment.Items
+                        .GroupBy(i => new { i.ProductCode, i.ProductName })
+                        .OrderBy(g => g.Key.ProductName))
+                    {
+                        var known = group.All(i =>
+                            i.BoxCount == 0 || i.UnitsPerBox is > 0);
+
+                        var total = group.Sum(i =>
+                            (long)i.BoxCount * (i.UnitsPerBox ?? 0)
+                            + i.LooseUnitCount);
+
+                        <tr>
+                            <td>
+                                <strong>@group.Key.ProductName</strong>
+                                <div class="code">@group.Key.ProductCode</div>
+                            </td>
+
+                            <td>
+                                @(known
+                                    ? total.ToString()
+                                    : "Koli kapasitesi doğrulanmalı")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <th>Genel toplam</th>
+                        <th>
+                            @(allQuantitiesKnown
+                                ? $"{shipmentTotal} ürün"
+                                : "Toplam doğrulanmalı")
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>
+
+            @if (!string.IsNullOrWhiteSpace(shipment.Notes))
+            {
+                <p class="note">
+                    <strong>Not:</strong> @shipment.Notes
+                </p>
+            }
+
+            <p class="note">
+                Çıktı zamanı: @printedAt.ToString("dd.MM.yyyy HH:mm")
+            </p>
+        </article>
+    }
+</body>
+</html>

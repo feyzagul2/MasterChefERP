@@ -1,0 +1,2197 @@
+@using Microsoft.EntityFrameworkCore
+@inject MasterChefTakip.Data.ApplicationDbContext SalesPriceDb
+@model MasterChefTakip.ViewModels.ProductIndexViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Ürünler";
+    var culture = CultureInfo.GetCultureInfo("tr-TR");
+    var editing = Model.Form.Id > 0;
+    var showEditor = editing ? Model.CanManage : Model.CanCreate;
+}
+
+<style>
+    .products-page {
+        min-width: 0;
+        color: #263246;
+        font-size: 13px;
+    }
+
+    .products-page .overview-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .products-page .eyebrow {
+        display: block;
+        margin-bottom: 7px;
+        color: #64748b;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.6px;
+    }
+
+    .products-page h1 {
+        margin: 0;
+        color: #17243b;
+        font-size: 30px;
+        font-weight: 700;
+    }
+
+    .products-page .overview-heading p {
+        margin: 7px 0 0;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .products-page .surface {
+        margin-bottom: 20px;
+        border: 1px solid #18365f !important;
+        border-radius: 10px;
+        background: #fff;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(23,36,59,.035);
+    }
+
+    .products-page .surface-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px 18px;
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .products-page h2 {
+        margin: 0;
+        color: #17243b;
+        font-size: 15px;
+        font-weight: 650;
+    }
+
+    .products-page .surface-heading p {
+        margin: 5px 0 0;
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .products-page .muted-label {
+        padding: 5px 9px;
+        border-radius: 6px;
+        background: #eef2f7;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .products-page .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 38px;
+        padding: 8px 13px;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .products-page .btn-primary {
+        --bs-btn-bg: #111;
+        --bs-btn-border-color: #111;
+        --bs-btn-hover-bg: #292929;
+        --bs-btn-hover-border-color: #292929;
+        --bs-btn-active-bg: #111;
+        --bs-btn-active-border-color: #111;
+    }
+
+    .products-page .btn-outline-secondary {
+        --bs-btn-color: #475569;
+        --bs-btn-border-color: #d8e0eb;
+        --bs-btn-hover-color: #17243b;
+        --bs-btn-hover-bg: #eef2f7;
+        --bs-btn-hover-border-color: #bbc8da;
+    }
+
+    .products-page .scanner-body {
+        padding: 18px;
+        background: #f7f9fc;
+    }
+
+    .products-page .scanner-controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .products-page .scanner-controls input {
+        flex: 1 1 240px;
+        min-width: 0;
+    }
+
+    .products-page .scanner-help {
+        margin: 9px 0 0;
+        color: #64748b;
+        font-size: 11px;
+        line-height: 1.6;
+    }
+
+    .products-page .scan-result {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+        color: #18365f;
+        font-size: 12px;
+    }
+
+    .products-page .scan-result a {
+        color: #111;
+        font-weight: 650;
+    }
+
+    .products-page .scan-result[hidden] {
+        display: none;
+    }
+
+    .products-page .management-form > summary {
+        padding: 16px 18px;
+        background: #f7f9fc;
+        color: #17243b;
+        font-size: 13px;
+        font-weight: 650;
+        cursor: pointer;
+    }
+
+    .products-page .management-form[open] > summary {
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .products-page .management-form-body {
+        padding: 22px 18px;
+    }
+
+    .products-page .management-form-body .row {
+        --bs-gutter-x: 22px;
+        --bs-gutter-y: 18px;
+    }
+
+    .products-page .form-label {
+        display: block;
+        margin-bottom: 7px;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .products-page .form-control {
+        height: 42px;
+        min-height: 42px;
+        padding: 9px 12px;
+        border: 1px solid #d8e0eb;
+        border-radius: 7px;
+        background: #f8fafc;
+        color: #17243b;
+        font-size: 13px;
+        box-shadow: none;
+    }
+
+    .products-page .form-control:focus {
+        border-color: #244c87;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(36,76,135,.09);
+    }
+
+    .products-page .form-text {
+        margin: 6px 0 0;
+        color: #64748b;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+    .products-page .text-danger {
+        font-size: 11px;
+    }
+
+    .products-page .price-basis-group {
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .products-page .price-basis-group legend {
+        float: none;
+        width: auto;
+        font-size: 12px;
+    }
+
+    .products-page .price-basis-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap: 4px;
+        padding: 4px;
+        border-radius: 8px;
+        background: #eef2f7;
+    }
+
+    .products-page .price-basis-option {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 7px;
+        border-radius: 6px;
+        color: #526176;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .products-page .price-basis-option input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+
+    .products-page .price-basis-option:has(input:checked) {
+        background: #17243b;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .products-page .price-basis-option:has(input:focus-visible) {
+        outline: 2px solid #244c87;
+        outline-offset: 2px;
+    }
+
+    .products-page .products-note {
+        margin: 20px 0 0;
+        padding: 12px 14px;
+        border-left: 3px solid #9aaac0;
+        background: #f3f6fa;
+        color: #526176;
+        font-size: 11px;
+        line-height: 1.7;
+    }
+
+    .products-page .form-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid #edf0f4;
+    }
+
+    .products-page .products-table {
+        width: 100%;
+        margin: 0;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    .products-page .products-table th:nth-child(1) { width: 22%; }
+    .products-page .products-table th:nth-child(2) { width: 13%; }
+    .products-page .products-table th:nth-child(3) { width: 10%; }
+    .products-page .products-table th:nth-child(4) { width: 13%; }
+    .products-page .products-table th:nth-child(5) { width: 20%; }
+    .products-page .products-table th:nth-child(6) { width: 8%; }
+    .products-page .products-table th:nth-child(7) { width: 14%; }
+
+    .products-page .products-table th {
+        padding: 11px 14px;
+        background: #edf1f7;
+        color: #18365f;
+        font-size: 11px;
+        font-weight: 650;
+        text-align: left;
+    }
+
+    .products-page .products-table td {
+        padding: 14px;
+        border-top: 1px solid #e8edf4;
+        background: #fff;
+        color: #475569;
+        font-size: 12px;
+        vertical-align: middle;
+        overflow-wrap: break-word;
+    }
+
+    .products-page .products-table tr:target td {
+        background: #edf3fb;
+    }
+
+    .products-page .product-title {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .products-page .product-title strong,
+    .products-page .product-price {
+        color: #17243b;
+        font-size: 12px;
+        font-weight: 650;
+    }
+
+    .products-page .product-title span {
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .products-page .product-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .products-page .product-actions form {
+        margin: 0;
+    }
+
+    .products-page .product-actions .btn {
+        min-height: 32px;
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    .products-page .status-label {
+        display: inline-flex;
+        padding: 5px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+    }
+
+    .products-page .status-active {
+        color: #23735b;
+        background: #edf7f2;
+    }
+
+    .products-page .status-inactive {
+        color: #64748b;
+        background: #eef2f7;
+    }
+
+    .products-page .empty-state {
+        padding: 28px 18px;
+        color: #64748b;
+        text-align: center;
+    }
+
+    #barcodeVideo {
+        display: block;
+        width: 100%;
+        max-height: 380px;
+        border-radius: 8px;
+        background: #111;
+        object-fit: contain;
+    }
+
+    @@media (max-width: 1199px) {
+        .products-page .products-table,
+        .products-page .products-table tbody,
+        .products-page .products-table tr {
+            display: block;
+            width: 100%;
+        }
+
+        .products-page .products-table thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+        }
+
+        .products-page .products-table tr {
+            padding: 14px 18px;
+        }
+
+        .products-page .products-table tr + tr {
+            border-top: 1px solid #e8edf4;
+        }
+
+        .products-page .products-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 7px 0;
+            border: 0;
+        }
+
+        .products-page .products-table td::before {
+            content: attr(data-label);
+            flex: 0 0 35%;
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        .products-page .products-table td:first-child {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .products-page .products-table td:first-child::before {
+            display: none;
+        }
+
+        .products-page .product-actions {
+            justify-content: flex-end;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .products-page .overview-heading {
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .products-page h1 {
+            font-size: 26px;
+        }
+
+        .products-page .form-control {
+            min-height: 44px;
+            font-size: 16px;
+        }
+
+        .products-page .btn,
+        .products-page .product-actions .btn,
+        .products-page .price-basis-option {
+            min-height: 44px;
+        }
+
+        .products-page .scanner-controls input {
+            flex-basis: 100%;
+        }
+
+        .products-page .scanner-controls .btn {
+            flex: 1 1 auto;
+        }
+    }
+        /* Daha kompakt başlık */
+    .products-page .surface-heading {
+        padding: 12px 16px;
+    }
+
+    .products-page .surface-heading p {
+        margin-top: 4px;
+    }
+
+    /* Başlıklar ve bilgiler aynı çizgide */
+    .products-page .products-table th,
+    .products-page .products-table td {
+        padding: 11px 16px;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    /* İşlem butonlarına yeterli alan bırak */
+    .products-page .products-table th:nth-child(1) { width: 21%; }
+    .products-page .products-table th:nth-child(2) { width: 12%; }
+    .products-page .products-table th:nth-child(3) { width: 10%; }
+    .products-page .products-table th:nth-child(4) { width: 13%; }
+    .products-page .products-table th:nth-child(5) { width: 19%; }
+    .products-page .products-table th:nth-child(6) { width: 7%; }
+    .products-page .products-table th:nth-child(7) { width: 18%; }
+
+    .products-page .product-actions {
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .products-page .product-actions .btn {
+        min-height: 32px;
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    .products-page .product-title {
+        gap: 3px;
+    }
+
+    /* Mobil görünümde taşma oluşmasın */
+    @@media (max-width: 1199px) {
+        .products-page .products-table td {
+            padding: 7px 0;
+        }
+
+        .products-page .product-actions {
+            flex-wrap: wrap;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .products-page .product-actions .btn {
+            min-height: 44px;
+        }
+    }
+        .pallet-page input.form-control,
+    .pallet-page textarea.form-control {
+        box-sizing: border-box;
+        min-height: 44px;
+        padding: 10px 12px;
+        line-height: 22px;
+    }
+
+    .pallet-page textarea.form-control {
+        height: 44px;
+        resize: none;
+        overflow-y: hidden;
+    }
+    /* ProductsFrontendV2 */
+    .products-page .overview-heading {
+        margin-bottom: 14px;
+    }
+
+    .products-page .surface {
+        margin-bottom: 14px;
+    }
+
+    .products-page .product-filter {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 150px auto;
+        align-items: center;
+        gap: 8px;
+        padding: 12px;
+        border-bottom: 1px solid #e5eaf1;
+    }
+
+    .products-page .product-filter input,
+    .products-page .product-filter select {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        padding: 9px 10px;
+        border: 1px solid #d8e0eb;
+        border-radius: 7px;
+        background: white;
+        color: #18365f;
+        font-size: 16px;
+    }
+
+    .products-page .product-filter-count {
+        color: #64748b;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    .products-page .product-barcode {
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .products-page .product-barcode summary {
+        padding: 5px 0;
+        cursor: pointer;
+    }
+
+    .products-page .product-barcode div {
+        overflow-wrap: anywhere;
+        padding: 4px 0;
+    }
+
+    .products-page .product-actions {
+        flex-wrap: wrap;
+    }
+
+    .products-page .btn,
+    .products-page .product-actions .btn {
+        min-height: 44px;
+    }
+
+    .products-page .products-table td {
+        overflow-wrap: anywhere;
+    }
+
+    .products-page [hidden] {
+        display: none !important;
+    }
+
+    @@media (max-width: 767px) {
+        .products-page .product-filter {
+            grid-template-columns: minmax(0, 1fr) auto;
+        }
+
+        .products-page .product-filter input {
+            grid-column: 1 / -1;
+        }
+
+        .products-page .product-filter-count {
+            text-align: right;
+        }
+
+        .products-page .product-title strong {
+            font-size: 14px;
+        }
+
+        .products-page .management-form-body {
+            padding: 14px;
+        }
+    }
+
+    
+
+    
+
+    /* PRODUCTS_PRO_LAYOUT_V1 */
+
+    /* Masaustu tablo olculeri */
+    .products-page .products-table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    .products-page .products-table th:nth-child(1) { width: 19%; }
+    .products-page .products-table th:nth-child(2) { width: 8%; }
+    .products-page .products-table th:nth-child(3) { width: 9%; }
+    .products-page .products-table th:nth-child(4) { width: 11%; }
+    .products-page .products-table th:nth-child(5) { width: 15%; }
+    .products-page .products-table th:nth-child(6) { width: 8%; }
+    .products-page .products-table th:nth-child(7) { width: 30%; }
+
+    .products-page .products-table th,
+    .products-page .products-table td {
+        box-sizing: border-box;
+        padding: 12px 10px;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .products-page .products-table td[data-label="Durum"],
+    .products-page .products-table th:nth-child(6) {
+        text-align: center;
+    }
+
+    .products-page .products-table td[data-label="Fiyat"] {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    /* Islem butonlarinda tutarli 4 sutun */
+    .products-page .product-actions {
+        display: grid !important;
+        grid-template-columns: 1fr 1.2fr 1.2fr 0.65fr;
+        align-items: stretch;
+        gap: 5px;
+        width: 100%;
+        margin: 0;
+        min-width: 0;
+    }
+
+    .products-page .product-actions > a,
+    .products-page .product-actions > button,
+    .products-page .product-actions > form {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+    }
+
+    .products-page .product-actions > a,
+    .products-page .product-actions > button,
+    .products-page .product-actions > form > button {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 36px;
+        min-height: 36px;
+        padding: 5px 4px;
+        box-sizing: border-box;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 1.2;
+        white-space: nowrap;
+        text-align: center;
+        border-radius: 6px;
+    }
+
+    .products-page .products-table td[data-label="İşlemler"] {
+        padding-left: 8px;
+        padding-right: 12px;
+        overflow: visible;
+    }
+
+    /* Mobil ve tablet */
+    @@media (max-width: 1199px) {
+
+        .products-page .products-table {
+            display: block;
+            width: 100%;
+        }
+
+        .products-page .products-table tbody,
+        .products-page .products-table tr {
+            display: block;
+            width: 100%;
+        }
+
+        .products-page .products-table thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+        }
+
+        .products-page .products-table tr {
+            padding: 14px;
+            border-bottom: 1px solid #e8edf4;
+        }
+
+        .products-page .products-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 12px;
+            padding: 8px 0;
+            border: 0;
+            text-align: right;
+            white-space: normal;
+        }
+
+        .products-page .products-table td::before {
+            content: attr(data-label);
+            flex: 0 0 38%;
+            color: #64748b;
+            font-size: 11px;
+            text-align: left;
+        }
+
+        .products-page .products-table td:first-child {
+            display: block;
+            text-align: left;
+        }
+
+        .products-page .products-table td:first-child::before {
+            display: none;
+        }
+
+        .products-page .products-table td[data-label="Durum"] {
+            justify-content: space-between;
+            text-align: right;
+        }
+
+        .products-page .products-table td[data-label="İşlemler"] {
+            display: block;
+            padding: 10px 0 0;
+        }
+
+        .products-page .products-table td[data-label="İşlemler"]::before {
+            display: block;
+            margin-bottom: 9px;
+        }
+
+        .products-page .product-actions {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .products-page .product-actions > a,
+        .products-page .product-actions > button,
+        .products-page .product-actions > form > button {
+            height: 42px;
+            min-height: 42px;
+            padding: 8px;
+            font-size: 12px;
+        }
+    }
+
+    /* PRODUCTS_COMPACT_ACTIONS_V4 */
+
+    .products-page .product-actions {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        flex-wrap: nowrap !important;
+        gap: 5px !important;
+        width: 100%;
+    }
+
+    .products-page .product-actions > a,
+    .products-page .product-actions > button,
+    .products-page .product-actions > form {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+    }
+
+    .products-page .product-actions > a,
+    .products-page .product-actions > button,
+    .products-page .product-actions > form > button {
+        width: auto !important;
+        height: 31px !important;
+        min-height: 31px !important;
+        padding: 5px 9px !important;
+        font-size: 11px !important;
+        font-weight: 500 !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        border-radius: 6px !important;
+    }
+
+    .products-page .products-table td[data-label="İşlemler"] {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    @@media (max-width: 1199px) {
+        .products-page .product-actions {
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+        }
+
+        .products-page .product-actions > a,
+        .products-page .product-actions > button,
+        .products-page .product-actions > form > button {
+            height: 36px !important;
+            min-height: 36px !important;
+        }
+    }
+
+    /* BUNDLE_COMPACT_LAYOUT_V1 */
+
+    .products-page .products-table tbody tr {
+        height: auto;
+    }
+
+    .products-page .products-table tbody td {
+        vertical-align: middle;
+    }
+
+    .products-page .bundle-info-cell {
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .products-page .bundle-actions {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 5px !important;
+        width: auto !important;
+    }
+
+    .products-page .bundle-actions > button {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: 0 0 auto !important;
+        width: auto !important;
+        height: 31px !important;
+        min-height: 31px !important;
+        padding: 5px 9px !important;
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        border-radius: 6px !important;
+    }
+
+    @@media (max-width: 1199px) {
+        .products-page .products-table td.bundle-info-cell {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .products-page .bundle-actions > button {
+            height: 36px !important;
+            min-height: 36px !important;
+        }
+    }
+
+    /* PRODUCT_ACTION_EQUAL_BUTTONS_V5 */
+
+    /* Islem butonlari ayni hizada */
+    .products-page .product-actions {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 6px !important;
+        width: 100%;
+    }
+
+    .products-page .product-actions > a,
+    .products-page .product-actions > button,
+    .products-page .product-actions > form {
+        flex: 0 0 auto !important;
+        margin: 0 !important;
+    }
+
+    /* Tum butonlarin yuksekligi */
+    .products-page .product-actions > a,
+    .products-page .product-actions > button,
+    .products-page .product-actions > form > button {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+
+        height: 34px !important;
+        min-height: 34px !important;
+        max-height: 34px !important;
+
+        padding: 0 10px !important;
+        line-height: 1 !important;
+        font-size: 11px !important;
+        font-weight: 500 !important;
+        white-space: nowrap !important;
+        border-radius: 6px !important;
+    }
+
+    /* Aktif Yap ve Pasife Al: esit genislik */
+    .products-page .product-actions > form[action*="SetActive"] {
+        flex: 0 0 83px !important;
+        width: 83px !important;
+        min-width: 83px !important;
+    }
+
+    .products-page .product-actions > form[action*="SetActive"] > button {
+        width: 83px !important;
+        min-width: 83px !important;
+        padding: 0 5px !important;
+    }
+
+    /* Formlarda varsayilan dis bosluk olmasin */
+    .products-page .product-actions form {
+        margin: 0 !important;
+    }
+
+    /* Mobil ve tablet */
+    @@media (max-width: 1199px) {
+        .products-page .product-actions {
+            flex-wrap: wrap !important;
+            gap: 7px !important;
+        }
+
+        .products-page .product-actions > a,
+        .products-page .product-actions > button,
+        .products-page .product-actions > form > button {
+            height: 38px !important;
+            min-height: 38px !important;
+            max-height: 38px !important;
+        }
+    }
+
+/* MC_PRODUCT_FILTER_PRO_V1 */
+
+.products-page .product-filter {
+    display: grid !important;
+    grid-template-columns:
+        minmax(0, 1fr)
+        190px
+        175px
+        auto !important;
+
+    align-items: center !important;
+    gap: 10px !important;
+
+    padding: 15px 18px !important;
+    margin: 0 !important;
+}
+
+.products-page .product-filter input,
+.products-page .product-filter select {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 43px !important;
+
+    box-sizing: border-box !important;
+
+    padding: 0 13px !important;
+    margin: 0 !important;
+
+    border: 1px solid #dce4ee !important;
+    border-radius: 8px !important;
+
+    background-color: #fff !important;
+    color: #243b5a !important;
+
+    font-size: 13px !important;
+    line-height: normal !important;
+
+    box-shadow: none !important;
+}
+
+.products-page .product-filter select {
+    padding-right: 28px !important;
+    cursor: pointer !important;
+}
+
+.products-page .product-filter input:focus,
+.products-page .product-filter select:focus {
+    border-color: #7698ce !important;
+    outline: 2px solid rgba(57, 111, 194, 0.12) !important;
+    outline-offset: 0 !important;
+}
+
+.products-page .product-filter-count {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    min-height: 35px !important;
+
+    padding: 0 10px !important;
+    margin: 0 !important;
+
+    border-radius: 7px !important;
+    background: #f1f5f9 !important;
+
+    color: #64748b !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+}
+
+/* Tablet ve dar ekran */
+
+@@media (max-width: 1050px) {
+
+    .products-page .product-filter {
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(0, 1fr) !important;
+
+        gap: 10px !important;
+    }
+
+    .products-page #product-list-search {
+        grid-column: 1 / -1 !important;
+    }
+
+    .products-page .product-filter-count {
+        grid-column: 1 / -1 !important;
+        justify-self: end !important;
+    }
+}
+
+/* Telefon */
+
+@@media (max-width: 480px) {
+
+    .products-page .product-filter {
+        padding: 12px !important;
+        gap: 8px !important;
+    }
+
+    .products-page .product-filter input,
+    .products-page .product-filter select {
+        height: 42px !important;
+        font-size: 12px !important;
+        padding-left: 9px !important;
+    }
+
+    .products-page .product-filter select {
+        padding-right: 22px !important;
+    }
+}
+</style>
+
+@{
+    // BUNDLES_MAIN_LIST_FIXED_V2
+    var listedSalesOptions = SalesPriceDb.ProductSalesOptions
+    .AsNoTracking()
+    .OrderBy(x => x.SalesName)
+    .ThenBy(x => x.SalesCode)
+    .ToList();
+var listedBundles = SalesPriceDb.SalesBundles
+        .AsNoTracking()
+        .OrderBy(bundle => bundle.SalesName)
+        .ToList();
+
+    var canSeeListedBundlePrices =
+        MasterChefTakip.Services.OperationAuthorization.Can(
+            User,
+            MasterChefTakip.Models.AppPermissions.ProductsPrices);
+}
+<div class="products-page">
+
+
+    <div class="overview-heading">
+        <div>
+            <span class="eyebrow">ÜRÜN YÖNETİMİ</span>
+            <h1>Ürünler</h1>
+            <p>Ürün bilgileri, barkodlar ve belirlediğiniz fiyatlar.</p>
+        </div>
+        @if (Model.CanCreate)
+        {
+            <a class="btn btn-primary"
+               asp-controller="Products" asp-action="Index"
+               asp-route-form="new">+ Yeni ürün</a>
+        }
+    </div>
+
+    @if (TempData["ProductSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">@success</div>
+    }
+    @if (TempData["ProductError"] is string error)
+    {
+        <div class="alert alert-danger" role="alert">@error</div>
+    }
+
+    <section class="surface" aria-labelledby="barcode-heading">
+        <div class="surface-heading">
+            <div>
+                <h2 id="barcode-heading">Barkod ile ürün bul</h2>
+                <p>Okuyucu, telefon kamerası veya barkod fotoğrafı kullanın.</p>
+            </div>
+            <span class="muted-label">BARKOD</span>
+        </div>
+        <div class="scanner-body">
+            <label class="visually-hidden" for="barcodeLookup">Aranacak barkod</label>
+            <div class="scanner-controls">
+                <input id="barcodeLookup" type="text"
+                       class="form-control" maxlength="128"
+                       autocomplete="off"
+                       placeholder="Barkodu yazın veya okuyucuyla okutun" />
+                <button id="barcodeFind" class="btn btn-primary"
+                        type="button">Ürünü bul</button>
+                <button id="barcodeCamera" class="btn btn-outline-secondary"
+                        type="button">Kamerayla okut</button>
+                <button id="barcodePhoto" class="btn btn-outline-secondary"
+                        type="button">Fotoğraftan oku</button>
+            </div>
+            <input id="barcodeFile" type="file" accept="image/*" hidden />
+            <p class="scanner-help">
+                Harici okuyucu için barkod kutusuna tıklayın ve okutun.
+                Kamerada barkodun tamamını net şekilde gösterin.
+            </p>
+            <div id="scanResult" class="scan-result" role="status" hidden>
+                <span id="scanMessage"></span>
+                <a id="scanLink" hidden></a>
+            </div>
+        </div>
+    </section>
+
+    @if (showEditor)
+    {
+        <details class="surface management-form" open="@Model.ShowForm">
+            <summary>@(editing ? "Ürün bilgilerini düzenle" : "Yeni ürün bilgileri")</summary>
+
+            <form asp-controller="Products"
+                  asp-action="@(editing ? "Edit" : "Create")"
+                  method="post" class="management-form-body">
+                <input asp-for="Form.Id" type="hidden" />
+                <input asp-for="Form.ConcurrencyStamp" type="hidden" />
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger" role="alert"></div>
+
+                <div class="row g-4">
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Form.Barcode" class="form-label">Ürün barkodu</label>
+                        <input asp-for="Form.Barcode" class="form-control"
+                               type="text" maxlength="128" autocomplete="off" />
+                        <span asp-validation-for="Form.Barcode" class="text-danger"></span>
+                        <p class="form-text">Ürünün üzerindeki barkodu girin veya okuyucuyla okutun.</p>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Form.Code" class="form-label"></label>
+                        <input asp-for="Form.Code" class="form-control" maxlength="50" />
+                        <span asp-validation-for="Form.Code" class="text-danger"></span>
+                        <p class="form-text">Yeni kayıtta boş bırakırsanız kod otomatik oluşturulur.</p>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Form.Name" class="form-label"></label>
+                        <input asp-for="Form.Name" class="form-control" required maxlength="200" />
+                        <span asp-validation-for="Form.Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Form.PackagingType" class="form-label"></label>
+                        <input asp-for="Form.PackagingType" class="form-control"
+                               list="packaging-options" maxlength="100" />
+                        <datalist id="packaging-options">
+                            <option value="Plastik şişe"></option>
+                            <option value="Cam şişe"></option>
+                            <option value="Kova"></option>
+                            <option value="Kavanoz"></option>
+                            <option value="Torba"></option>
+                            <option value="Stick"></option>
+                            <option value="Doypack"></option>
+                            <option value="Tüp"></option>
+                            <option value="Teneke"></option>
+                        </datalist>
+                        <span asp-validation-for="Form.PackagingType" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Form.DefaultUnitsPerBox" class="form-label"></label>
+                        <input asp-for="Form.DefaultUnitsPerBox" class="form-control"
+                               type="number" min="1" step="1" />
+                        <span asp-validation-for="Form.DefaultUnitsPerBox" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Form.DefaultUnitNetWeightGrams" class="form-label"></label>
+                        <input asp-for="Form.DefaultUnitNetWeightGrams"
+                               class="form-control" inputmode="decimal" maxlength="30" />
+                        <span asp-validation-for="Form.DefaultUnitNetWeightGrams" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <fieldset class="price-basis-group">
+                            <legend class="form-label">Hangi fiyatı gireceksiniz?</legend>
+                            <div class="price-basis-options">
+                                <label class="price-basis-option">
+                                    <input asp-for="Form.PriceBasis" type="radio"
+                                           value="Unit" id="price-unit" required />
+                                    <span>Adet fiyatı</span>
+                                </label>
+                                <label class="price-basis-option">
+                                    <input asp-for="Form.PriceBasis" type="radio"
+                                           value="Box" id="price-box" required />
+                                    <span>Koli fiyatı</span>
+                                </label>
+                            </div>
+                        </fieldset>
+                        <span asp-validation-for="Form.PriceBasis" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Form.UnitPrice" class="form-label"
+                               id="product-price-label">Fiyat (TL)</label>
+                        <input asp-for="Form.UnitPrice" class="form-control"
+                               inputmode="decimal" maxlength="30" />
+                        <span asp-validation-for="Form.UnitPrice" class="text-danger"></span>
+                        <p id="product-price-hint" class="form-text">
+                            Seçtiğiniz türe ait fiyatı girin.
+                        </p>
+                    </div>
+                </div>
+
+                <p class="products-note">
+                    Adet ve koli fiyatları birbirinden hesaplanmaz.
+                    Ondalık değerlerde virgül veya nokta kullanabilirsiniz;
+                    binlik ayırıcı kullanmayın.
+                    Koli içi adet ve gramaj, stok miktarını göstermez.
+                </p>
+
+                <div class="form-actions">
+                    <a class="btn btn-outline-secondary"
+                       asp-controller="Products" asp-action="Index">Vazgeç</a>
+                    <button class="btn btn-primary" type="submit">
+                        @(editing ? "Değişiklikleri kaydet" : "Ürünü kaydet")
+                    </button>
+                </div>
+            </form>
+        </details>
+    }
+
+    <section class="surface" aria-labelledby="products-heading">
+        <div class="surface-heading">
+            <div>
+                <h2 id="products-heading">Ürün listesi</h2>
+                <p>Sisteme kaydedilen ürünler.</p>
+            </div>
+            <span class="muted-label">@(listedSalesOptions.Count + listedBundles.Count) kayıt</span>
+        </div>
+
+        @if (listedSalesOptions.Count == 0 && listedBundles.Count == 0)
+        {
+            <div class="empty-state">Henüz ürün kaydı bulunmuyor.</div>
+        }
+        else
+        {
+                        <div class="product-filter">
+                <input id="product-list-search"
+                       type="search"
+                       placeholder="Ürün adı, kodu veya barkod ara"
+                       aria-label="Ürün listesinde ara"
+                       autocomplete="off" />
+
+                <!-- MC_EXCEL_CATEGORY_FILTER_V1 -->
+<select id="product-category-filter"
+        aria-label="Ürün kategorisini filtrele">
+    <option value="">Tüm kategoriler</option>
+</select>
+<select id="product-status-filter"
+                        aria-label="Ürün durumunu filtrele">
+                    <option value="">Bütün ürünler</option>
+                    <option value="active">Aktif ürünler</option>
+                    <option value="inactive">Pasif ürünler</option>
+                </select>
+
+                <span id="product-list-count"
+                      class="product-filter-count"
+                      role="status"
+                      aria-live="polite"></span>
+            </div>
+
+            <p id="product-list-empty"
+               class="empty-state"
+               hidden>
+                Seçtiğiniz filtrelere uygun ürün bulunamadı.
+            </p>
+
+            <table class="products-table">
+                <caption class="visually-hidden">Kayıtlı ürünler ve fiyatları</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Ürün</th>
+                        <th scope="col">Ambalaj</th>
+                        <th scope="col">Koli içi adet</th>
+                        <th scope="col">Net ağırlık / adet</th>
+                        @if (MasterChefTakip.Services.OperationAuthorization.Can(
+                            User, MasterChefTakip.Models.AppPermissions.ProductsPrices))
+                        {
+                            <th scope="col">Fiyat</th>
+                        }
+                        <th scope="col">Durum</th>
+                        @if (Model.CanManage)
+                        {
+                            <th scope="col">İşlemler</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                                        @{
+                        // PRODUCT_SALES_PRICES_V1
+                        // Fiyatlar sadece yetkili kullanici icin yuklenir.
+                        var productSalesPriceLookup =
+                            new Dictionary<int, List<MasterChefTakip.Models.ProductSalesOption>>();
+
+                        if (MasterChefTakip.Services.OperationAuthorization.Can(
+                            User,
+                            MasterChefTakip.Models.AppPermissions.ProductsPrices))
+                        {
+                            productSalesPriceLookup = SalesPriceDb.ProductSalesOptions
+                                .AsNoTracking()
+                                .ToList()
+                                .GroupBy(option => option.ProductId)
+                                .ToDictionary(
+                                    group => group.Key,
+                                    group => group
+                                        .OrderBy(option => option.UnitsPerSale)
+                                        .ThenBy(option => option.SalesCode)
+                                        .ToList()
+                                );
+                        }
+                    }
+                                        @* SALES_72_VISIBLE_V2 *@
+                    @foreach (var sale in listedSalesOptions)
+                    {
+                        var physical = Model.Products.FirstOrDefault(
+                            p => p.Id == sale.ProductId);
+
+                        <tr data-product-row
+                            data-sales-code="@sale.SalesCode"
+                            data-product-status="@(sale.IsActive ? "active" : "inactive")"
+                            data-product-search="@($"{sale.SalesName} {sale.SalesCode} {physical?.Name} {physical?.Code} {physical?.PackagingType}")">
+
+                            <td data-label="Ürün">
+                                <div class="product-title">
+                                    <strong>@sale.SalesName</strong>
+                                    <span>@sale.SalesCode</span>
+                                </div>
+                            </td>
+
+                            <td data-label="Ambalaj">
+                                @(string.IsNullOrWhiteSpace(physical?.PackagingType)
+                                    ? "—" : physical.PackagingType)
+                            </td>
+
+                            <td data-label="Koli içi adet">
+                                @sale.UnitsPerSale
+                            </td>
+
+                            <td data-label="Net ağırlık / adet">
+                                @(physical?.DefaultUnitNetWeightGrams is decimal weight
+                                    ? weight.ToString("0.###", culture) + " g"
+                                    : "—")
+                            </td>
+
+                            @if (canSeeListedBundlePrices)
+                            {
+                                <td data-label="Fiyat">
+                                    <span class="product-price">
+                                        @(sale.SalesPriceVatIncluded is decimal price
+                                            ? price.ToString("N2", culture)
+                                              + " " + (sale.Currency ?? "TL")
+                                            : "Belirtilmedi")
+                                    </span>
+                                </td>
+                            }
+
+                            <td data-label="Durum">
+                                <span class="status-label @(sale.IsActive ? "status-active" : "status-inactive")">
+                                    @(sale.IsActive ? "Aktif" : "Pasif")
+                                </span>
+                            </td>
+
+                            @if (Model.CanManage)
+                            {
+                                <td data-label="İşlemler">
+                                    <div class="product-actions">
+                                        @if (canSeeListedBundlePrices)
+                                        {
+                                            @* SALES_ACTIONS_COMPLETE_V1 *@
+                                            <button type="button"
+                                                    class="btn btn-outline-secondary"
+                                                    data-price-details-open
+                                                    data-open-edit="true"
+                                                    data-product-name="@sale.SalesName"
+                                                    data-product-code="@sale.SalesCode">
+                                                Düzenle
+                                            </button>
+
+                                            <button type="button"
+                                                    class="btn btn-outline-secondary"
+                                                    data-price-details-open
+                                                    data-product-name="@sale.SalesName"
+                                                    data-product-code="@sale.SalesCode">
+                                                İçeriği Aç
+                                            </button>
+
+                                            <form asp-controller="SalesPrices"
+                                                  asp-action="SetActive"
+                                                  method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden"
+                                                       name="id"
+                                                       value="@sale.Id" />
+                                                <input type="hidden"
+                                                       name="isActive"
+                                                       value="@(sale.IsActive ? "false" : "true")" />
+                                                <button type="submit"
+                                                        class="btn btn-outline-secondary">
+                                                    @(sale.IsActive ? "Pasife al" : "Aktif yap")
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+
+                                    @if (canSeeListedBundlePrices)
+                                    {
+                                                                                <template data-price-details-template>
+                                            <details data-bundle-editor class="mb-3">
+                                                <summary class="fw-semibold">
+                                                    Satış kaydını düzenle
+                                                </summary>
+                                                <form asp-controller="SalesPrices"
+                                                      asp-action="Update"
+                                                      method="post"
+                                                      class="d-grid gap-3 mt-3">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden"
+                                                           name="id"
+                                                           value="@sale.Id" />
+
+                                                    <div>
+                                                        <label class="form-label">Satış adı</label>
+                                                        <input name="salesName"
+                                                               class="form-control"
+                                                               maxlength="200"
+                                                               value="@sale.SalesName"
+                                                               required />
+                                                    </div>
+
+                                                    <div>
+                                                        <label class="form-label">KDV dahil fiyat</label>
+                                                        <input name="price"
+                                                               class="form-control"
+                                                               inputmode="decimal"
+                                                               value="@(sale.SalesPriceVatIncluded?.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) ?? "")"
+                                                               required />
+                                                    </div>
+
+                                                    <div>
+                                                        <label class="form-label">KDV oranı (%)</label>
+                                                        <input name="vatRate"
+                                                               class="form-control"
+                                                               inputmode="decimal"
+                                                               value="@(sale.VatRatePercent?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) ?? "1")"
+                                                               required />
+                                                    </div>
+
+                                                    <button type="submit" class="btn btn-primary">
+                                                        Kaydet
+                                                    </button>
+                                                </form>
+                                            </details>
+                                            <div class="d-grid gap-3">
+                                                <div>
+                                                    <div class="small text-secondary">Ürün</div>
+                                                    <strong>@sale.SalesName</strong>
+                                                </div>
+
+                                                <div>
+                                                    <div class="small text-secondary">Satış kodu</div>
+                                                    <div>@sale.SalesCode</div>
+                                                </div>
+
+                                                <div>
+                                                    <div class="small text-secondary">Satış adedi</div>
+                                                    <div>@sale.UnitsPerSale adet</div>
+                                                </div>
+
+                                                <div>
+                                                    <div class="small text-secondary">KDV dahil fiyat</div>
+                                                    <strong>
+                                                        @(sale.SalesPriceVatIncluded?.ToString("N2", culture) ?? "Belirtilmedi")
+                                                        @(sale.Currency ?? "TL")
+                                                    </strong>
+                                                </div>
+
+                                                <div>
+                                                    <div class="small text-secondary">KDV hariç fiyat</div>
+                                                    <div>
+                                                        @(sale.SalesPriceVatExcluded?.ToString("N2", culture) ?? "Belirtilmedi")
+                                                        @(sale.Currency ?? "TL")
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <div class="small text-secondary">KDV oranı</div>
+                                                    <div>
+                                                        @(sale.VatRatePercent?.ToString("0.##", culture) ?? "—") %
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+@foreach (var bundle in listedBundles)
+                    {
+                        <tr data-product-row
+                            data-sales-code="@bundle.SalesCode"
+                            data-product-status="@(bundle.IsActive ? "active" : "inactive")"
+                            data-product-search="@($"{bundle.SalesName} {bundle.SalesCode} hazır paket")">
+
+                            <td data-label="Ürün">
+                                <div class="product-title">
+                                    <strong>@bundle.SalesName</strong>
+                                    <span>@bundle.SalesCode</span>
+                                </div>
+                            </td>
+
+                            <td colspan="3" class="bundle-info-cell" data-label="Ürün türü">Satış paketi</td>
+
+                            @if (canSeeListedBundlePrices)
+                            {
+                                <td data-label="Fiyat">
+                                    <span class="product-price">
+                                        @(bundle.SalesPriceVatIncluded is decimal bundlePrice
+                                            ? bundlePrice.ToString("N2", culture)
+                                              + " " + (bundle.Currency ?? "TL")
+                                            : "Belirtilmedi")
+                                    </span>
+                                </td>
+                            }
+
+                            <td data-label="Durum">
+                                <span class="status-label @(bundle.IsActive ? "status-active" : "status-inactive")">
+                                    @(bundle.IsActive ? "Aktif" : "Pasif")
+                                </span>
+                            </td>
+
+                            @if (Model.CanManage)
+                            {
+                                <td data-label="İşlemler">
+    <div class="product-actions bundle-actions">
+        @if (canSeeListedBundlePrices)
+        {
+                        <!-- BUNDLE_PRICE_EDIT_V1 -->
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    data-price-details-open
+                    data-open-edit="true"
+                    data-product-name="@bundle.SalesName"
+                    data-product-code="@bundle.SalesCode">
+                Düzenle
+            </button>
+<button type="button"
+                    class="btn btn-outline-secondary"
+                    data-price-details-open
+                    data-product-name="@bundle.SalesName"
+                    data-product-code="@bundle.SalesCode">
+                İçeriği Aç
+            </button>
+            @* BUNDLE_ACTIVE_CORRECT_V2 *@
+            <form asp-controller="BundlePrices"
+                  asp-action="SetActive"
+                  method="post">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="id"
+                       value="@bundle.Id" />
+
+                <input type="hidden"
+                       name="isActive"
+                       value="@(bundle.IsActive ? "false" : "true")" />
+
+                <button type="submit"
+                        class="btn btn-outline-secondary">
+                    @(bundle.IsActive ? "Pasife al" : "Aktif yap")
+                </button>
+            </form>
+
+            <template data-price-details-template>
+                <div class="d-grid gap-3">
+                    <div>
+                        <div class="text-secondary small">Ürün / paket</div>
+                        <div class="fw-semibold">@bundle.SalesName</div>
+                    </div>
+
+                    <div>
+                        <div class="text-secondary small">Satış kodu</div>
+                        <div>@bundle.SalesCode</div>
+                    </div>
+
+                    <div>
+                        <div class="text-secondary small">Durum</div>
+                        <div>@(bundle.IsActive ? "Aktif" : "Pasif")</div>
+                    </div>
+
+                    <div>
+                        <div class="text-secondary small">KDV dahil fiyat</div>
+                        <div class="fw-bold">
+                            @(bundle.SalesPriceVatIncluded is decimal inc
+                                ? inc.ToString("N2", culture) + " " + (bundle.Currency ?? "TL")
+                                : "Belirtilmedi")
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-secondary small">KDV hariç fiyat</div>
+                        <div>
+                            @(bundle.SalesPriceVatExcluded is decimal exc
+                                ? exc.ToString("N2", culture) + " " + (bundle.Currency ?? "TL")
+                                : "Belirtilmedi")
+                        </div>
+                    </div>
+
+                    @if (bundle.VatRatePercent is decimal vat)
+                    {
+                        <div>
+                            <div class="text-secondary small">KDV oranı</div>
+                            <div>%@vat.ToString("0.##", culture)</div>
+                        </div>
+                    }
+
+                                        @if (Model.CanManage)
+                    {
+                        <details data-bundle-editor
+                                 class="border rounded p-3">
+                            <summary class="fw-semibold"
+                                     style="cursor:pointer">
+                                Paket bilgilerini düzenle
+                            </summary>
+
+                            <form asp-controller="BundlePrices"
+                                  asp-action="Update"
+                                  method="post"
+                                  class="mt-3">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@bundle.Id" />
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        Paket adı
+                                    </label>
+                                    <input name="salesName"
+                                           value="@bundle.SalesName"
+                                           maxlength="200"
+                                           required
+                                           class="form-control" />
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">
+                                            KDV dahil fiyat (TL)
+                                        </label>
+                                        <input name="price"
+                                               type="number"
+                                               min="0"
+                                               max="999999999"
+                                               step="0.01"
+                                               required
+                                               class="form-control"
+                                               value="@(bundle.SalesPriceVatIncluded?.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label">
+                                            KDV oranı (%)
+                                        </label>
+                                        <input name="vatRate"
+                                               type="number"
+                                               min="0"
+                                               max="100"
+                                               step="0.01"
+                                               required
+                                               class="form-control"
+                                               value="@(bundle.VatRatePercent?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) ?? "0")" />
+                                    </div>
+                                </div>
+
+                                <div class="small text-secondary mt-3">
+                                    KDV hariç fiyat otomatik hesaplanır.
+                                    Satış kodu değiştirilemez.
+                                </div>
+
+                                <button type="submit"
+                                        class="btn btn-primary mt-3">
+                                    Değişiklikleri Kaydet
+                                </button>
+                            </form>
+                        </details>
+                    }
+<div class="alert alert-light border mb-0 small">
+                        Bu satış paketinin fiziksel ürün dağılımı
+                        henüz doğrulanmadığından otomatik stok düşümü
+                        yapılmaz.
+                    </div>
+                </div>
+            </template>
+        }
+        else
+        {
+            <span class="small text-secondary">Satış paketi</span>
+        }
+    </div>
+</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </section>
+</div>
+
+<div class="modal fade"
+     id="productPriceModal"
+     tabindex="-1"
+     aria-labelledby="productPriceModalTitle"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title fs-5" id="productPriceModalTitle">
+                        Ürün içeriği
+                    </h2>
+                    <div id="productPriceModalCode" class="small text-secondary"></div>
+                </div>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Kapat"></button>
+            </div>
+
+            <div class="modal-body" id="productPriceModalBody"></div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                    Kapat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="barcodeModal" tabindex="-1"
+     aria-labelledby="barcodeModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-6" id="barcodeModalTitle">Barkodu kameraya gösterin</h2>
+                <button type="button" class="btn-close"
+                        data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <video id="barcodeVideo" muted playsinline></video>
+                <p id="cameraMessage" class="small text-secondary mt-3 mb-0" role="status">
+                    Kamera hazırlanıyor…
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark"
+                        data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // PRODUCT_PRICE_MODAL_V1
+        document.addEventListener("click", function (event) {
+            const button = event.target.closest("[data-price-details-open]");
+            if (!button) return;
+
+            const cell = button.closest("tr");
+            const template = cell?.querySelector("[data-price-details-template]");
+
+            if (!template) return;
+
+            const title = document.getElementById("productPriceModalTitle");
+            const code = document.getElementById("productPriceModalCode");
+            const body = document.getElementById("productPriceModalBody");
+
+            title.textContent = button.dataset.productName || "Ürün içeriği";
+            code.textContent = button.dataset.productCode || "";
+
+            body.replaceChildren(template.content.cloneNode(true));
+            if (button.dataset.openEdit === "true") {
+                body.querySelector("[data-bundle-editor]")?.setAttribute("open", "");
+            }
+
+            const modal = bootstrap.Modal.getOrCreateInstance(
+                document.getElementById("productPriceModal")
+            );
+
+            modal.show();
+        });
+    </script>
+    <script>
+    (() => {
+        const search = document.getElementById("product-list-search");
+        const status = document.getElementById("product-status-filter");
+        const category = document.getElementById("product-category-filter");
+
+        // Excel kategorileri - satis koduna birebir bagli.
+        const excelCategoriesByCode = {"120321": "Mayonez", "100235": "Cheddar Sos", "AB\u0130D\u0130N \u015eENOL 1L BEYAZ S\u0130RKE": "Sirke", "12989": "Sirke", "10231": "Sirke", "10058": "Sirke", "1": "Mayonez", "12590": "Ket\u00e7ap", "22138": "Burger Sos", "1231234": "Burger Sos", "1234212": "Hot Africano", "5000": "T\u00fcm \u00dcr\u00fcnler", "ASAS2501": "Sirke", "ASAS2502": "Sirke", "ASAS2503": "Sirke", "MCSP12": "Burger Sos", "12664": "T\u00fcm \u00dcr\u00fcnler", "10060": "Nar Ek\u015fisi", "AB\u0130D\u0130N \u015eENOL 1 K\u0130LO CAM NAR EK\u015e\u0130S\u0130 \u00d6Z\u00dc": "Nar Ek\u015fisi", "10011232": "\u00c7i\u011fk\u00f6fte Soslar\u0131", "1035": "\u00c7i\u011fk\u00f6fte Soslar\u0131", "12345": "Burger Sos", "126666": "T\u00fcm \u00dcr\u00fcnler", "126667": "T\u00fcm \u00dcr\u00fcnler", "19250TL": "T\u00fcm \u00dcr\u00fcnler", "4900": "T\u00fcm \u00dcr\u00fcnler", "10.0": "T\u00fcm \u00dcr\u00fcnler", "9750TL(Kopya-B5W)": "T\u00fcm \u00dcr\u00fcnler", "70000": "T\u00fcm \u00dcr\u00fcnler", "MCSP12(Kopya-QUR)": "Burger Sos", "53000": "Burger Sos", "1234244": "Hot Africano", "10066": "T\u00fcm \u00dcr\u00fcnler", "37800": "\u00c7i\u011fk\u00f6fte Soslar\u0131", "33600": "T\u00fcm \u00dcr\u00fcnler", "35750": "T\u00fcm \u00dcr\u00fcnler", "53250": "Burger Sos", "STK-01010101": "T\u00fcm \u00dcr\u00fcnler", "STK-02020202": "T\u00fcm \u00dcr\u00fcnler", "stk-030303": "T\u00fcm \u00dcr\u00fcnler", "STK-030301": "T\u00fcm \u00dcr\u00fcnler", "STK-02020102": "T\u00fcm \u00dcr\u00fcnler", "STK-02020103": "T\u00fcm \u00dcr\u00fcnler", "MACS 41501": "\u00c7i\u011fk\u00f6fte Soslar\u0131", "1524408": "Burger Sos", "150.0527": "T\u00fcm \u00dcr\u00fcnler", "1524429": "T\u00fcm \u00dcr\u00fcnler", "mas102(Kopya-CTR)k": "T\u00fcm \u00dcr\u00fcnler", "balz-12": "T\u00fcm \u00dcr\u00fcnler", "narsrk": "T\u00fcm \u00dcr\u00fcnler", "1524409": "T\u00fcm \u00dcr\u00fcnler", "16010508": "T\u00fcm \u00dcr\u00fcnler", "1524409600gr": "T\u00fcm \u00dcr\u00fcnler", "3l\u00fc": "T\u00fcm \u00dcr\u00fcnler", "MC-CIGKOFTE-PAKET-4999": "T\u00fcm \u00dcr\u00fcnler", "stk-030303(Kopya-79F)": "T\u00fcm \u00dcr\u00fcnler", "UFQQ3AKPWW": "T\u00fcm \u00dcr\u00fcnler", "NKQY1NVMEB": "T\u00fcm \u00dcr\u00fcnler", "N32L5AY5UR": "T\u00fcm \u00dcr\u00fcnler", "GVRE4QJX9X": "T\u00fcm \u00dcr\u00fcnler", "N2F7V6EWW5": "T\u00fcm \u00dcr\u00fcnler", "M9VVW5H57E": "T\u00fcm \u00dcr\u00fcnler", "5MHU4NTTDW": "T\u00fcm \u00dcr\u00fcnler", "LN7Q987TTM": "T\u00fcm \u00dcr\u00fcnler", "5QCN3TUAS4": "T\u00fcm \u00dcr\u00fcnler", "6WZTWC3BXY": "T\u00fcm \u00dcr\u00fcnler", "UF2LT2ATWR": "T\u00fcm \u00dcr\u00fcnler", "T43PK9YFS4": "T\u00fcm \u00dcr\u00fcnler", "7VTV82CNZE": "T\u00fcm \u00dcr\u00fcnler", "UGRR3LG8J5": "T\u00fcm \u00dcr\u00fcnler", "1XCXS544QR": "T\u00fcm \u00dcr\u00fcnler", "UGF1D9WGX8": "T\u00fcm \u00dcr\u00fcnler"};
+
+        if (!search || !status) return;
+
+        const rows = [...document.querySelectorAll("[data-product-row]")];
+        rows.forEach(row => {
+            row.dataset.productCategory =
+                excelCategoriesByCode[row.dataset.salesCode] || "";
+        });
+
+        const categories = [...new Set(
+            Object.values(excelCategoriesByCode).filter(Boolean)
+        )].sort((a, b) => a.localeCompare(b, "tr-TR"));
+
+        categories.forEach(name => {
+            category.add(new Option(name, name));
+        });
+
+        category.addEventListener("change", filter);
+        const count = document.getElementById("product-list-count");
+        const empty = document.getElementById("product-list-empty");
+
+        const normalize = value => String(value ?? "")
+            .toLocaleLowerCase("tr-TR")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/ı/g, "i");
+
+        function filter() {
+            const words = normalize(search.value)
+                .trim().split(/\s+/).filter(Boolean);
+
+            let visible = 0;
+
+            rows.forEach(row => {
+                const text = normalize(row.dataset.productSearch);
+
+                row.hidden =
+                    !words.every(word => text.includes(word))
+                    || (status.value !== ""
+                        && row.dataset.productStatus !== status.value)
+                    || (category.value !== ""
+                        && row.dataset.productCategory !== category.value);
+
+                if (!row.hidden) visible++;
+            });
+
+            count.textContent = `${visible} / ${rows.length} ürün`;
+            empty.hidden = visible !== 0;
+        }
+
+        search.addEventListener("input", filter);
+        status.addEventListener("change", filter);
+
+        search.addEventListener("keydown", event => {
+            if (event.key === "Enter") event.preventDefault();
+        });
+
+        filter();
+    })();
+    </script>
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/zxing-browser.min.js" asp-append-version="true"></script>
+    <script>
+        (() => {
+            const lookup = document.getElementById('barcodeLookup');
+            const findButton = document.getElementById('barcodeFind');
+            const cameraButton = document.getElementById('barcodeCamera');
+            const photoButton = document.getElementById('barcodePhoto');
+            const fileInput = document.getElementById('barcodeFile');
+            const resultBox = document.getElementById('scanResult');
+            const message = document.getElementById('scanMessage');
+            const link = document.getElementById('scanLink');
+
+            const modalElement = document.getElementById('barcodeModal');
+            const video = document.getElementById('barcodeVideo');
+            const cameraMessage = document.getElementById('cameraMessage');
+            const modal = new bootstrap.Modal(modalElement);
+
+            const findUrl = '@Url.Action("FindByBarcode", "Products")';
+            const indexUrl = '@Url.Action("Index", "Products")';
+            const canCreate = @Model.CanCreate.ToString().ToLowerInvariant();
+
+            let busy = false;
+            let controls = null;
+            let generation = 0;
+
+            function showMessage(text) {
+                resultBox.hidden = false;
+                message.textContent = text;
+                link.hidden = true;
+                link.removeAttribute('href');
+            }
+
+            function reader() {
+                if (!window.ZXingBrowser) {
+                    throw new Error('Barkod kütüphanesi yüklenemedi. Kurulum komutunu kontrol edin.');
+                }
+                return new ZXingBrowser.BrowserMultiFormatReader();
+            }
+
+            function stopCamera() {
+                generation++;
+                controls?.stop();
+                controls = null;
+                const stream = video.srcObject;
+                if (stream && typeof stream.getTracks === 'function') {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                video.srcObject = null;
+            }
+
+            async function findProduct() {
+                if (busy) return;
+
+                const barcode = lookup.value.trim();
+                if (!barcode || barcode.length > 128) {
+                    showMessage('Geçerli bir barkod girin.');
+                    return;
+                }
+
+                busy = true;
+                findButton.disabled = true;
+                showMessage('Ürün aranıyor…');
+
+                try {
+                    const url = new URL(findUrl, window.location.origin);
+                    url.searchParams.set('barcode', barcode);
+
+                    const response = await fetch(url, {
+                        credentials: 'same-origin',
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    if (!(response.headers.get('content-type') || '').includes('application/json')) {
+                        throw new Error('Oturumunuzu kontrol edip yeniden giriş yapın.');
+                    }
+
+                    const data = await response.json();
+
+                    if (!response.ok)
+                        throw new Error(data.message || 'Barkod sorgulanamadı.');
+
+                    if (data.found) {
+                        showMessage(data.name + (data.active ? ' bulundu.' : ' bulundu; ürün pasif.'));
+                        link.textContent = 'Ürünü göster';
+                        link.href = data.url;
+                        link.hidden = false;
+                    } else if (canCreate) {
+                        showMessage('Bu barkod sistemde kayıtlı değil.');
+                        const newUrl = new URL(indexUrl, window.location.origin);
+                        newUrl.searchParams.set('form', 'new');
+                        newUrl.searchParams.set('barcode', barcode);
+                        link.textContent = 'Yeni ürün olarak ekle';
+                        link.href = newUrl.href;
+                        link.hidden = false;
+                    } else {
+                        showMessage('Bu barkod sistemde kayıtlı değil. Yeni ürün oluşturma yetkiniz yok.');
+                    }
+                } catch (error) {
+                    showMessage(error.message || 'İşlem tamamlanamadı.');
+                } finally {
+                    busy = false;
+                    findButton.disabled = false;
+                }
+            }
+
+            findButton.addEventListener('click', findProduct);
+            lookup.addEventListener('keydown', event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    findProduct();
+                }
+            });
+
+            // Formdaki okuyucunun Enter tuşu formu erken göndermesin.
+            document.getElementById('Form_Barcode')?.addEventListener('keydown', event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    document.getElementById('Form_Name')?.focus();
+                }
+            });
+
+            cameraButton.addEventListener('click', () => {
+                if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+                    showMessage('Kamera için HTTPS üzerinden açılan bir adres kullanın.');
+                    return;
+                }
+                if (!window.ZXingBrowser) {
+                    showMessage('Barkod kütüphanesi yüklenemedi. Kurulum komutunu kontrol edin.');
+                    return;
+                }
+                modal.show();
+            });
+
+            modalElement.addEventListener('shown.bs.modal', async () => {
+                stopCamera();
+                const session = generation;
+                cameraMessage.textContent = 'Kamera hazırlanıyor…';
+                let accepted = false;
+
+                try {
+                    const scanner = reader();
+                    const started = await scanner.decodeFromConstraints(
+                        {
+                            audio: false,
+                            video: { facingMode: { ideal: 'environment' } }
+                        },
+                        video,
+                        (result, error, scanControls) => {
+                            if (!result || accepted || session !== generation) return;
+                            accepted = true;
+                            lookup.value = result.getText();
+                            scanControls.stop();
+                            modal.hide();
+                            findProduct();
+                        }
+                    );
+
+                    if (session !== generation || accepted) {
+                        started.stop();
+                        return;
+                    }
+
+                    controls = started;
+                    cameraMessage.textContent = 'Barkodun tamamını çerçeve içinde net gösterin.';
+                } catch (error) {
+                    if (session !== generation) return;
+                    stopCamera();
+                    cameraMessage.textContent =
+                        error.name === 'NotAllowedError'
+                            ? 'Kamera izni verilmedi. Tarayıcıdan kamera iznini açın.'
+                            : 'Kamera açılamadı. Başka bir uygulamanın kamerayı kullanmadığını kontrol edin.';
+                }
+            });
+
+            modalElement.addEventListener('hide.bs.modal', stopCamera);
+            window.addEventListener('pagehide', stopCamera);
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    stopCamera();
+                    modal.hide();
+                }
+            });
+
+            photoButton.addEventListener('click', () => {
+                stopCamera();
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', async () => {
+                const file = fileInput.files?.[0];
+                if (!file) return;
+
+                if (!file.type.startsWith('image/') || file.size > 10 * 1024 * 1024) {
+                    showMessage('En fazla 10 MB büyüklüğünde bir barkod fotoğrafı seçin.');
+                    fileInput.value = '';
+                    return;
+                }
+
+                photoButton.disabled = true;
+                showMessage('Fotoğraftaki barkod okunuyor…');
+                const source = URL.createObjectURL(file);
+
+                try {
+                    const scanner = reader();
+                    const result = await scanner.decodeFromImageUrl(source);
+                    lookup.value = result.getText();
+                    await findProduct();
+                } catch (error) {
+                    showMessage(
+                        !window.ZXingBrowser
+                            ? 'Barkod kütüphanesi yüklenemedi.'
+                            : 'Barkod okunamadı. Net, yakın ve barkodun tamamını gösteren bir fotoğraf seçin.'
+                    );
+                } finally {
+                    URL.revokeObjectURL(source);
+                    photoButton.disabled = false;
+                    fileInput.value = '';
+                }
+            });
+
+            function updatePriceLabel() {
+                const selected = document.querySelector('input[name="Form.PriceBasis"]:checked');
+                const label = document.getElementById('product-price-label');
+                const hint = document.getElementById('product-price-hint');
+                if (!label || !hint) return;
+
+                label.textContent = !selected
+                    ? 'Fiyat (TL)'
+                    : selected.value === 'Box' ? 'Koli fiyatı (TL)' : 'Adet fiyatı (TL)';
+
+                hint.textContent = !selected
+                    ? 'Adet fiyatı veya koli fiyatını seçin.'
+                    : selected.value === 'Box'
+                        ? 'Bir koli için belirlediğiniz fiyatı girin.'
+                        : 'Bir adet için belirlediğiniz fiyatı girin.';
+            }
+
+            document.querySelectorAll('input[name="Form.PriceBasis"]').forEach(input => {
+                input.addEventListener('change', updatePriceLabel);
+            });
+            updatePriceLabel();
+
+            document.querySelectorAll('form[data-product-delete]').forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!window.confirm('“' + form.dataset.productName + '” ürününü silmek istiyor musunuz?')) {
+                        event.preventDefault();
+                    }
+                });
+            });
+        })();
+    </script>
+}
