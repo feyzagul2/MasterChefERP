@@ -676,3 +676,27 @@ details>summary { color:var(--text); font-size:13px; font-weight:500; }
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+
+/* MC_HIDE_SCROLLBARS_2026 */
+html, body, aside, nav, main,
+.sidebar, .sidebar-content, .app-sidebar,
+.sidebar-nav, .main-content {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+aside::-webkit-scrollbar,
+nav::-webkit-scrollbar,
+main::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar,
+.sidebar-content::-webkit-scrollbar,
+.app-sidebar::-webkit-scrollbar,
+.sidebar-nav::-webkit-scrollbar,
+.main-content::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
