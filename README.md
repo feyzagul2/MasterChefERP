@@ -1,235 +1,349 @@
-# MASTER CHEF ERP
+# MASTER CHEF ERP / TAKİP
 
-### Üretimden sevkiyata, operasyonun tamamı tek merkezde.
+MASTER CHEF ERP, üretim yapan işletmeler için geliştirilmiş **stok, üretim, depo, palet, sevkiyat, satın alma, cari hesap ve finans yönetim sistemi**dir.
 
-**MASTER CHEF'in üretim, depo ve lojistik süreçleri için geliştirilen kurumsal operasyon yönetim platformu.**
-
-![.NET](https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
-![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-MVC-5C2D91?style=for-the-badge)
-![Entity Framework Core](https://img.shields.io/badge/Entity_Framework-Core-6C3483?style=for-the-badge)
-![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
-![Repository](https://img.shields.io/badge/Repository-Private-1F2937?style=for-the-badge&logo=github&logoColor=white)
-
-**Üretim** · **Paketleme** · **Stok** · **Palet** · **Sevkiyat** · **İade** · **Raporlama**
-
+Uygulama ASP.NET Core MVC altyapısı üzerinde geliştirilmiştir ve üretimden sevkiyata kadar operasyonların tek sistem üzerinden takip edilmesini amaçlar.
 
 ---
 
-## 🏢 Proje Hakkında
+## Özellikler
 
-**MasterChefERP**, işletmenin fiziksel ürün hareketlerini takip etmek, depo operasyonlarını düzenlemek ve yönetim süreçlerine görünürlük kazandırmak amacıyla geliştirilmiş bir **ASP.NET Core MVC** uygulamasıdır.
+### Operasyon Merkezi
 
-Ürünlerin paketlenmesinden paletlere yerleştirilmesine, depolar arası hareketlerden sevkiyat ve iade işlemlerine kadar operasyonel kayıtların tutarlı bir akışta yönetilmesini hedefler.
+Sistemdeki temel operasyon modüllerine merkezi erişim sağlar.
 
-> **Odak:** İzlenebilir iş akışları, kontrollü stok hareketleri ve yetki temelli operasyon yönetimi.
-
----
-
-## 🚀 Operasyonel Yetenekler
-
-| Modül | Kapsam |
-|---|---|
-| 📦 **Ürün Yönetimi** | Ürün kartları ve ürün bilgilerinin yönetimi |
-| 🏭 **Paketleme** | Paketleme kayıtları ve stok giriş süreçleri |
-| 🏷️ **Palet ve Barkod** | Palet bazlı ürün takibi, barkod süreçleri ve transferler |
-| 📊 **Stok Takibi** | Koli, tekil ürün ve açık koli miktarlarının izlenmesi |
-| 🚚 **Sevkiyat** | Sevkiyat hazırlama, koli düzenleme, onay ve durum takibi |
-| 🔄 **İade ve Hasar** | İade kabul, kontrol ve hasar hareketlerinin kaydı |
-| 📋 **İşlem Geçmişi** | Operasyonel hareketlerin izlenebilirliği |
-| 📈 **Raporlama** | Günlük, haftalık ve aylık hareket ve stok raporları |
-| 🔐 **Kullanıcı Yönetimi** | Kimlik doğrulama, roller ve işlem bazlı yetkiler |
+- Üretim
+- Paketleme
+- Stok
+- Palet
+- Sevkiyat
+- Satın alma
+- Cari
+- Finans
+- Raporlama
 
 ---
 
-## ⭐ Neden MasterChefERP?
+## Hammadde ve Stok Yönetimi
 
-### Uçtan Uca Operasyon Görünürlüğü
-Üretim ve depo süreçleri; sevkiyat, iade ve stok hareketleriyle birlikte tek sistem üzerinden yönetilir.
-
-### Detaylı Stok Yönetimi
-Tam koli, açık koli ve tekil ürün miktarları ayrı ayrı değerlendirilerek stok hareketlerinin daha hassas takip edilmesi sağlanır.
-
-### İzlenebilir İşlemler
-Stok girişleri, çıkışlar, iadeler, hasarlar ve iptaller ayrı işlem türleri olarak kaydedilir.
-
-### Güvenli Yetkilendirme
-Kullanıcıların sistemde gerçekleştirebileceği işlemler, rol ve izin politikalarıyla kontrol edilir.
-
-### Yönetim Odaklı Raporlama
-Günlük, haftalık ve aylık raporlarla operasyonel süreçlerin değerlendirilmesi kolaylaştırılır.
+- Hammadde kartları
+- Hammadde depoları
+- Depo bazlı stok takibi
+- Stok sayımı
+- Hammadde depo transferleri
+- Mal kabul sonrası stok hareketleri
+- Stok hareket geçmişi
+- Malzeme / stok kartı eşleştirme
+- Kritik stok kontrolü
 
 ---
 
-## 🛠️ Teknoloji Altyapısı
+## Satın Alma
 
-MasterChefERP, modern Microsoft teknolojileri kullanılarak geliştirilmiştir.
+Satın alma süreci aşağıdaki akış üzerinden yönetilebilir:
 
-| Teknoloji | Kullanım Amacı |
-|---|---|
-| **.NET 10** | Uygulama platformu |
-| **ASP.NET Core MVC** | Web uygulaması mimarisi |
-| **C#** | Backend geliştirme |
-| **Entity Framework Core** | Veritabanı işlemleri |
-| **SQLite** | Veritabanı yönetimi |
-| **ASP.NET Core Identity** | Kullanıcı kimlik doğrulama |
-| **Razor Views** | Dinamik kullanıcı arayüzleri |
-| **Bootstrap** | Responsive arayüz |
-| **JavaScript** | İnteraktif ekran işlemleri |
+1. Satın Alma
+2. Alış İrsaliyeleri
+3. Mal Kabul
+4. Fatura Girişi
+5. Fatura Kontrolü
+6. Cari Aktarım
+7. Cari Kontrol
+8. Mutabakat
 
----
+Ayrıca:
 
-## 🏗️ Yazılım Mimarisi
+- Tedarikçi cari eşleştirme
+- Fatura / cari kontrolü
+- Mal kabul ve stok entegrasyonu
+- Satın alma denetim raporları
 
-```text
-                  MASTER CHEF ERP
-                         |
-              ASP.NET Core MVC
-                         |
-         +---------------+---------------+
-         |               |               |
-     Controllers        Views          Services
-         |               |               |
-     İş Akışları    Kullanıcı       Yetkilendirme
-                    Arayüzü         ve Servisler
-         |
-     ViewModels
-         |
-       Models
-         |
-  Entity Framework Core
-         |
-       SQLite
-```
-
-### Temel Bileşenler
-
-- **Controllers:** Uygulama işlemleri ve iş akışları
-- **Views:** Razor tabanlı kullanıcı arayüzü
-- **ViewModels:** Ekran ve işlem veri modelleri
-- **Models:** Uygulama veri modelleri
-- **Services:** Uygulama servisleri ve yetkilendirme
-- **Data:** Entity Framework Core ve veritabanı altyapısı
+bulunmaktadır.
 
 ---
 
-## 🔐 Güvenlik ve Yetkilendirme
+## Üretim Yönetimi
 
-MasterChefERP, kurumsal operasyonların güvenli şekilde yürütülmesi amacıyla kullanıcı kimlik doğrulama ve işlem bazlı yetkilendirme altyapısına sahiptir.
+- Üretim reçeteleri
+- Üretim emirleri
+- Üretim planlama
+- Gerçekleşen hammadde tüketimleri
+- Üretim tamamlama
+- Mamul stok girişleri
+- Üretim / paketleme bağlantıları
+- Üretim maliyet ve tüketim takibi
 
-**Güvenlik özellikleri:**
+Temel üretim akışı:
 
-- ASP.NET Core Identity entegrasyonu
-- Kullanıcı ve rol yönetimi
-- İşlem bazlı izin politikaları
-- Yetkisiz erişim kontrolleri
-- Veritabanı işlemlerinde eşzamanlılık korumaları
-- Kritik operasyonlarda doğrulama mekanizmaları
+**Üretim Emri → Üretimi Tamamla → Ambalajlamaya Geç → Palet**
 
 ---
 
-## ✅ Yazılım Kalitesi ve Testler
+## Paketleme
 
-MasterChefERP'nin geliştirme sürecinde gerçekleştirilen otomatik testler başarıyla tamamlanmıştır.
+Üretim sonrası mamulün paketlenmesini ve palet stoklarına aktarılmasını sağlar.
 
-### Test Sonuçları
+- Paketleme kayıtları
+- Koli ve adet hesaplamaları
+- Ürün / lot bağlantısı
+- Palet oluşturma
+- Mamul stok hareketleri
 
-| Metrik | Sonuç |
-|---|---|
-| **Toplam Otomatik Test** | 65 |
-| **Başarılı Test** | 65 |
-| **Başarısız Test** | 0 |
-| **Hedef Platform** | .NET 10 |
+---
 
-### Test Edilen Alanlar
+## Palet Yönetimi
 
-- Stok miktarı hesaplamaları
+- Palet oluşturma
+- Barkod üretimi
+- Barkod ile palet bulma
+- Kamera ile barkod okutma
+- Palet içeriği görüntüleme
+- Palet içeriği düzenleme
+- Palet etiketi yazdırma
+- Palet lokasyon yönetimi
 - Palet transferleri
-- Paketleme işlemleri
-- Sevkiyat onay süreçleri
-- İade ve hasar işlemleri
-- Raporlama hesaplamaları
-- Veritabanı eşzamanlılık korumaları
-- Kullanıcı yetkilendirme politikaları
-
-> Otomatik testler geliştirme ortamında başarıyla tamamlanmıştır. Canlı ortam testleri ve sunucu doğrulamaları ayrıca gerçekleştirilecektir.
-
-**Not:** Test projesi, şirketin tercihine uygun olarak bu GitHub deposuna dahil edilmemektedir.
+- Palet aktif / pasif yönetimi
+- Yetkili kullanıcılar için palet silme
 
 ---
 
-## 💻 Kurulum ve Çalıştırma
+## Lot / SKT / Kalite
 
-### Gereksinimler
+- Ürün lot takibi
+- Son kullanma tarihi takibi
+- Kalite kontrol kayıtları
+- Sevkiyat öncesi lot kontrolleri
+- Ürün izlenebilirliği
+
+---
+
+## Sevkiyat Yönetimi
+
+- Sevkiyat oluşturma
+- Palet bazlı sevkiyat
+- Sevkiyat paketleri
+- Sevkiyat kalemleri
+- Sevkiyat onayı
+- Stok düşümü
+- Sevkiyat iptali ve kontrol mekanizmaları
+
+---
+
+## Cari Hesap Yönetimi
+
+- Müşteri ve tedarikçi cari hesapları
+- Borç / alacak hareketleri
+- Cari hareket geçmişi
+- Adres bilgileri
+- İletişim bilgileri
+- Banka hesapları
+- Fatura kaynaklı cari hareketler
+- Cari kontrol ve mutabakat
+
+---
+
+## Banka ve Kasa
+
+- Banka hesapları
+- Kasa hesapları
+- Hesap hareketleri
+- Virman işlemleri
+- Banka / kasa raporları
+- Finansal kontrol ekranları
+- Cari / finans bağlantı kontrolleri
+
+---
+
+## Raporlama
+
+Sistem içerisinde operasyonel ve finansal raporlama ekranları bulunmaktadır.
+
+Örnekler:
+
+- Hammadde stok raporu
+- Üretim raporları
+- Palet hareketleri
+- Sevkiyat raporları
+- Cari hesap raporları
+- Banka / kasa hareket raporları
+- Finans kontrol raporları
+- İşlem geçmişi
+- Denetim kayıtları
+
+---
+
+## Kullanıcı, Rol ve Yetki Yönetimi
+
+ASP.NET Core Identity altyapısı kullanılmaktadır.
+
+- Kullanıcı yönetimi
+- Rol yönetimi
+- Modül bazlı yetkilendirme
+- Kritik operasyonlarda yetki kontrolü
+- Başarısız giriş kilitleme
+- Güvenli authentication cookie
+- Rol / yetki değişikliklerinin hızlı uygulanması
+
+---
+
+## Güvenlik
+
+Projede çeşitli güvenlik kontrolleri bulunmaktadır:
+
+- ASP.NET Core Identity
+- Rol ve izin tabanlı yetkilendirme
+- Secure / HttpOnly authentication cookie
+- Başarısız giriş kilitleme
+- SQLite Foreign Key kontrolü
+- Duplicate işlem korumaları
+- Kritik stok hareketi kontrolleri
+- İşlem geçmişi / audit kayıtları
+
+---
+
+## Teknolojiler
+
+- .NET 10
+- ASP.NET Core MVC
+- ASP.NET Core Identity
+- Entity Framework Core
+- SQLite
+- Razor Views
+- C#
+- JavaScript
+- CSS
+- Bootstrap
+
+---
+
+## Gereksinimler
+
+Projeyi çalıştırmak için:
 
 - .NET 10 SDK
-- Uygun geliştirme ortamı
-- Yerel veritabanı yapılandırması
+- Git
+- Modern bir web tarayıcısı
 
-### Projeyi Derleme
-
-```powershell
-dotnet restore MasterChefTakip.csproj
-dotnet build MasterChefTakip.csproj -c Release
-```
-
-### Uygulamayı Başlatma
-
-```powershell
-dotnet run --project MasterChefTakip.csproj
-```
-
-**Önemli:** Veritabanı bağlantıları, ilk kullanıcı hesabı ve canlı ortam yapılandırmaları hedef sisteme uygun şekilde ayrıca hazırlanmalıdır.
+gereklidir.
 
 ---
 
-## 🛡️ Veri Gizliliği
+## Kurulum
 
-MasterChefERP, MASTER CHEF şirketinin iç operasyonlarında kullanılmak üzere geliştirilmiştir.
+Repoyu klonlayın:
 
-Bu GitHub deposu yalnızca uygulamanın kaynak kodlarını barındırmak amacıyla hazırlanmıştır.
+    git clone https://github.com/feyzagul2/MasterChefERP.git
 
-**Depoya dahil edilmeyen bilgiler:**
+Proje klasörüne girin:
 
-- Şirketin gerçek veritabanları
-- Ürün ve fiyat listeleri
-- Müşteri ve tedarikçi kayıtları
-- Ticari işlem verileri
-- Veritabanı yedekleri
-- Kullanıcı şifreleri
-- API anahtarları ve diğer gizli yapılandırmalar
-- Yerel geliştirme dosyaları
+    cd MasterChefERP
 
-> **Gizlilik İlkesi:** Kurumsal veriler ve ticari kayıtlar kaynak kod deposundan ayrı tutulur.
+Bağımlılıkları yükleyin:
 
----
+    dotnet restore
 
-## 📌 Proje Durumu
+Projeyi derleyin:
 
-| Aşama | Durum |
-|---|---|
-| Ana uygulama geliştirme | ✅ Tamamlandı |
-| Temel operasyon modülleri | ✅ Tamamlandı |
-| Kullanıcı yetkilendirme | ✅ Test edildi |
-| Otomatik testler | ✅ 65/65 başarılı |
-| Release derlemesi | ✅ Başarılı |
-| Canlı sunucu yapılandırması | ⏳ Planlandı |
-| Canlı ortam doğrulamaları | ⏳ Bekleniyor |
+    dotnet build
+
+Uygulamayı çalıştırın:
+
+    dotnet run
 
 ---
 
-## 🏢 Kurumsal Kullanım
+## Veritabanı
 
-MasterChefERP, MASTER CHEF'in üretim, depo ve sevkiyat operasyonlarını dijital ortamda yönetmek amacıyla geliştirilmiş özel bir yazılım projesidir.
+Uygulama SQLite kullanmaktadır.
 
-Kaynak kodları ve sistem bileşenleri, şirketin yetkilendirmesi dışında üçüncü kişilerle paylaşılmamalıdır.
+Gerçek işletme veritabanı GitHub reposuna dahil edilmez.
+
+Aşağıdaki dosyalar public repoda tutulmamalıdır:
+
+- app.db
+- *.db-wal
+- *.db-shm
+- *.sqlite
+- *.sqlite3
+- Yedek veritabanları
+- Gerçek müşteri / tedarikçi verileri
+- Finansal kayıtlar
 
 ---
 
-### MASTER CHEF ERP
+## Gizli ve Yerel Dosyalar
 
-**Smart Operations. Better Control.**
+Aşağıdaki içerikler `.gitignore` aracılığıyla repository dışında tutulmalıdır:
 
-*Üretimden sevkiyata, her adım kontrol altında.*
+- bin/
+- obj/
+- Backups/
+- Logs/
+- publish-check/
+- *.db
+- *.log
+- .env
+- secrets.json
+- Sertifika ve private key dosyaları
 
-**MASTER CHEF · Kurumsal Operasyon Yönetim Sistemi**
+---
 
+## Veri Gizliliği
+
+Bu repository kaynak kod paylaşımı amacıyla hazırlanmıştır.
+
+Repository içerisinde gerçek:
+
+- müşteri kayıtları
+- tedarikçi kayıtları
+- cari bakiyeler
+- banka hareketleri
+- üretim kayıtları
+- stok kayıtları
+- sevkiyat kayıtları
+
+bulundurulmamalıdır.
+
+---
+
+## Proje Durumu
+
+Aşağıdaki teknik kontroller tamamlanmıştır:
+
+- Uygulama build kontrolü
+- Authentication
+- Authorization
+- Kullanıcı / rol kontrolleri
+- Veritabanı integrity kontrolü
+- Foreign Key koruması
+- Kritik route kontrolleri
+- Runtime ve log kontrolleri
+- Performans kontrolleri
+- Release publish kontrolü
+- Temel UI ve kullanım akışları
+
+Gerçek işletme işlemleri kullanıldıkça operasyonel doğrulamalar ayrıca yapılabilir.
+
+---
+
+## Önemli Not
+
+Bu proje gerçek işletme süreçlerini yönetebilecek modüller içerir.
+
+Production ortamına alınmadan önce:
+
+- kendi veritabanınızı oluşturun,
+- kullanıcı ve yetkileri yapılandırın,
+- production ayarlarını ayrı tutun,
+- düzenli yedekleme politikası uygulayın,
+- gerçek şifre veya secret bilgilerini repository içerisine eklemeyin.
+
+---
+
+## Repository
+
+**MasterChefERP**
+
+GitHub:
+
+https://github.com/feyzagul2/MasterChefERP
