@@ -1,0 +1,1595 @@
+@model MasterChefTakip.Controllers.MCVirmanPriorityListPage
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Tüm Sorunlu Virmanlar";
+    var tr = CultureInfo.GetCultureInfo("tr-TR");
+}
+
+<style>
+.mc-priority-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 24px;
+    color: #193047;
+}
+
+.mc-priority-page * {
+    box-sizing: border-box;
+}
+
+.mc-priority-page h1 {
+    font-size: 27px;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.mc-priority-page .muted {
+    color: #708398;
+    font-size: 13px;
+}
+
+.mc-priority-page .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.mc-priority-page .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px;
+    border-radius: 9px;
+    text-decoration: none;
+    font-weight: 750;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+}
+
+.mc-priority-page .btn-blue {
+    background: #235f98;
+    color: white;
+}
+
+.mc-priority-page .btn-green {
+    background: #16865d;
+    color: white;
+}
+
+.mc-priority-page .btn-light {
+    background: #edf3f9;
+    color: #235f98;
+}
+
+.mc-priority-page .stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.mc-priority-page .stat {
+    border: 1px solid #e0e7ef;
+    border-radius: 12px;
+    padding: 18px;
+    background: white;
+}
+
+.mc-priority-page .stat .value {
+    font-size: 25px;
+    font-weight: 800;
+    margin-top: 9px;
+}
+
+.mc-priority-page .red {
+    color: #bd4545;
+}
+
+.mc-priority-page .orange {
+    color: #9a5c0a;
+}
+
+.mc-priority-page .blue {
+    color: #235f98;
+}
+
+.mc-priority-page .panel {
+    background: white;
+    border: 1px solid #e0e7ef;
+    border-radius: 14px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.mc-priority-page .table-wrap {
+    overflow-x: auto;
+}
+
+.mc-priority-page table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mc-priority-page th,
+.mc-priority-page td {
+    padding: 12px;
+    border-bottom: 1px solid #e6edf3;
+    text-align: left;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.mc-priority-page th {
+    background: #f7f9fc;
+    color: #60758a;
+}
+
+.mc-priority-page .badge {
+    display: inline-block;
+    padding: 7px 11px;
+    border-radius: 8px;
+    font-weight: 750;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.mc-priority-page .p1 {
+    background: #fde8e8;
+    color: #a32929;
+}
+
+.mc-priority-page .p2 {
+    background: #fff2de;
+    color: #9a5c0a;
+}
+
+.mc-priority-page .p3 {
+    background: #edf3f9;
+    color: #235f98;
+}
+
+.mc-priority-page .detail {
+    color: #235f98;
+    font-weight: 750;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.mc-priority-page .pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.mc-priority-page .pager-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mc-priority-page .pager input {
+    width: 75px;
+    padding: 10px;
+    border: 1px solid #dce7f2;
+    border-radius: 8px;
+}
+
+.mc-priority-page .empty {
+    background: #e2f6ec;
+    color: #16865d;
+    border-radius: 9px;
+    padding: 20px;
+    font-weight: 700;
+}
+
+@@media(max-width:900px) {
+    .mc-priority-page .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@@media(max-width:600px) {
+    .mc-priority-page {
+        padding: 12px;
+    }
+
+    .mc-priority-page .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .mc-priority-page th,
+    .mc-priority-page td {
+        padding: 8px;
+        font-size: 11px;
+    }
+}
+
+@@media print {
+    @@page {
+        size: A4 landscape;
+        margin: 12mm;
+    }
+
+    .mc-priority-page .toolbar,
+    .mc-priority-page .pager,
+    .mc-priority-page .detail {
+        display: none !important;
+    }
+
+    .mc-priority-page {
+        max-width: none;
+        padding: 0;
+    }
+
+    .mc-priority-page th,
+    .mc-priority-page td {
+        padding: 5px;
+        font-size: 9px;
+    }
+
+    .mc-priority-page thead {
+        display: table-header-group;
+    }
+
+    .mc-priority-page tr {
+        break-inside: avoid;
+    }
+}
+.mc-priority-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.mc-priority-filters .mc-pf {
+    display: inline-block;
+    padding: 12px 17px;
+    border-radius: 9px;
+    background: #edf3f9;
+    color: #235f98;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.mc-priority-filters .mc-pf.active {
+    background: #235f98;
+    color: white;
+}
+
+.mc-priority-filters .mc-pf:hover {
+    opacity: .85;
+}
+
+@@media print {
+    .mc-priority-filters {
+        display: none !important;
+    }
+}
+
+</style>
+
+<div class="mc-priority-page">
+
+    <h1>Tüm Sorunlu Virmanlar</h1>
+<!-- MC_PRIORITY_FILTER_V1 -->
+
+<!-- MC_PRIORITY_ADVANCED_SEARCH_V1 -->
+
+<style>
+.mc-priority-search {
+    background: #ffffff;
+    border: 1px solid #e0e7ef;
+    border-radius: 14px;
+    padding: 22px;
+    margin: 20px 0;
+}
+
+.mc-priority-search h3 {
+    font-size: 19px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #193047;
+}
+
+.mc-priority-search p {
+    color: #708398;
+    font-size: 13px;
+    margin-bottom: 18px;
+}
+
+.mc-priority-search .search-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.5fr 1fr;
+    gap: 14px;
+}
+
+.mc-priority-search .field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.mc-priority-search label {
+    font-size: 12px;
+    font-weight: 750;
+    color: #60758a;
+}
+
+.mc-priority-search input,
+.mc-priority-search select {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #dce7f2;
+    border-radius: 9px;
+    background: #fff;
+    color: #193047;
+    font-size: 13px;
+}
+
+.mc-priority-search input:focus,
+.mc-priority-search select:focus {
+    outline: 2px solid #a9c8e8;
+    border-color: #235f98;
+}
+
+.mc-priority-search .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.mc-priority-search .submit-btn {
+    padding: 12px 23px;
+    min-height: 44px;
+    background: #235f98;
+    border: none;
+    border-radius: 9px;
+    color: white;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.mc-priority-search .reset-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 20px;
+    min-height: 44px;
+    background: #edf3f9;
+    color: #235f98;
+    border-radius: 9px;
+    text-decoration: none;
+    font-weight: 750;
+    font-size: 13px;
+}
+
+.mc-priority-search .hint {
+    color: #708398;
+    font-size: 12px;
+}
+
+@@media(max-width:950px) {
+    .mc-priority-search .search-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@@media(max-width:600px) {
+    .mc-priority-search {
+        padding: 14px;
+    }
+
+    .mc-priority-search .search-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mc-priority-search .actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .mc-priority-search .submit-btn,
+    .mc-priority-search .reset-btn {
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+@@media print {
+    .mc-priority-search {
+        display: none !important;
+    }
+}
+</style>
+
+<div class="mc-priority-search">
+
+    <h3>Gelişmiş Virman Arama</h3>
+
+    <p>
+        Tarih aralığı, virman kodu, hesap adı ve
+        öncelik seviyesine göre sorunlu işlemleri filtreleyin.
+    </p>
+
+    <form method="get"
+          action="/MCBankCashAudit/PriorityList">
+
+        <input type="hidden"
+               name="status"
+               value="@Model.Status" />
+
+        <div class="search-grid">
+
+            <div class="field">
+                <label for="mc-priority-start">
+                    Başlangıç Tarihi
+                </label>
+
+                <input id="mc-priority-start"
+                       type="date"
+                       name="start"
+                       value="@Model.Start" />
+            </div>
+
+            <div class="field">
+                <label for="mc-priority-end">
+                    Bitiş Tarihi
+                </label>
+
+                <input id="mc-priority-end"
+                       type="date"
+                       name="end"
+                       value="@Model.End" />
+            </div>
+
+            <div class="field">
+                <label for="mc-priority-query">
+                    Virman Kodu / Hesap Ara
+                </label>
+
+                <input id="mc-priority-query"
+                       type="search"
+                       name="q"
+                       value="@Model.Search"
+                       maxlength="200"
+                       placeholder="Virman kodu veya banka / kasa adı" />
+            </div>
+
+            <div class="field">
+                <label for="mc-priority-level">
+                    Kontrol Önceliği
+                </label>
+
+                <select id="mc-priority-level"
+                        name="priority">
+
+                    <option value="0"
+                            selected="@(Model.SelectedPriority == 0)">
+                        Tüm Öncelikler
+                    </option>
+
+                    <option value="1"
+                            selected="@(Model.SelectedPriority == 1)">
+                        Öncelik 1 — Kayıt Sorunu
+                    </option>
+
+                    <option value="2"
+                            selected="@(Model.SelectedPriority == 2)">
+                        Öncelik 2 — Tutar Farkı
+                    </option>
+
+                    <option value="3"
+                            selected="@(Model.SelectedPriority == 3)">
+                        Öncelik 3 — Diğer Kontroller
+                    </option>
+
+                </select>
+            </div>
+
+        </div>
+
+        <div class="actions">
+
+            <button type="submit"
+                    class="submit-btn">
+                Filtrele ve Ara
+            </button>
+
+            <a class="reset-btn"
+               href="/MCBankCashAudit/PriorityList">
+                Filtreleri Temizle
+            </a>
+
+            <span class="hint">
+                Yeni aramada liste ilk sayfadan başlar.
+                Excel aktarımı seçilen filtreleri kullanır.
+            </span>
+
+        </div>
+
+    </form>
+
+</div>
+<!-- MC_PRIORITY_ACTIVE_SUMMARY_V1 -->
+<div class="mc-active-filter-summary"
+     role="status"
+     style="display:flex;flex-wrap:wrap;gap:10px;
+            padding:14px;margin:15px 0;
+            background:#eef5fc;border:1px solid #d7e4f2;
+            border-radius:10px;font-size:13px;color:#23415e">
+
+    <span>
+        <strong>Toplam Sorunlu Virman:</strong>
+        @Model.TotalCount
+    </span>
+
+    <span>
+        <strong>Başlangıç:</strong>
+        @(string.IsNullOrWhiteSpace(Model.Start) ? "Tümü" : Model.Start)
+    </span>
+
+    <span>
+        <strong>Bitiş:</strong>
+        @(string.IsNullOrWhiteSpace(Model.End) ? "Tümü" : Model.End)
+    </span>
+
+    <span>
+        <strong>Öncelik:</strong>
+        @(Model.SelectedPriority == 0
+            ? "Tümü"
+            : "Öncelik " + Model.SelectedPriority)
+    </span>
+
+    <!-- MC_FILTER_SUMMARY_STATUS_V2 -->
+    <span>
+        <strong>Durum:</strong>
+        @(string.IsNullOrWhiteSpace(Model.Status) ||
+          string.Equals(
+              Model.Status,
+              "all",
+              System.StringComparison.OrdinalIgnoreCase)
+            ? "Tümü"
+            : Model.Status)
+    </span>
+    @if (!string.IsNullOrWhiteSpace(Model.Search))
+    {
+        <span>
+            <strong>Arama:</strong>
+            @Model.Search
+        </span>
+    }
+</div>
+<div class="mc-priority-filters">
+
+    <a class="mc-pf @(Model.SelectedPriority == 0 ? "active" : "")"
+       href="/MCBankCashAudit/PriorityListüstart=@Uri.EscapeDataString(Model.Start ?? string.Empty)&amp;end=@Uri.EscapeDataString(Model.End ?? string.Empty)&amp;status=@Uri.EscapeDataString(Model.Status ?? string.Empty)&amp;q=@Uri.EscapeDataString(Model.Search ?? string.Empty)&amp;priority=0">
+        Tümü (@(Model.PriorityOne + Model.PriorityTwo + Model.PriorityThree))
+    </a>
+
+    <a class="mc-pf @(Model.SelectedPriority == 1 ? "active" : "")"
+       href="/MCBankCashAudit/PriorityListüstart=@Uri.EscapeDataString(Model.Start ?? string.Empty)&amp;end=@Uri.EscapeDataString(Model.End ?? string.Empty)&amp;status=@Uri.EscapeDataString(Model.Status ?? string.Empty)&amp;q=@Uri.EscapeDataString(Model.Search ?? string.Empty)&amp;priority=1">
+        Öncelik 1 (@Model.PriorityOne)
+    </a>
+
+    <a class="mc-pf @(Model.SelectedPriority == 2 ? "active" : "")"
+       href="/MCBankCashAudit/PriorityListüstart=@Uri.EscapeDataString(Model.Start ?? string.Empty)&amp;end=@Uri.EscapeDataString(Model.End ?? string.Empty)&amp;status=@Uri.EscapeDataString(Model.Status ?? string.Empty)&amp;q=@Uri.EscapeDataString(Model.Search ?? string.Empty)&amp;priority=2">
+        Öncelik 2 (@Model.PriorityTwo)
+    </a>
+
+    <a class="mc-pf @(Model.SelectedPriority == 3 ? "active" : "")"
+       href="/MCBankCashAudit/PriorityListüstart=@Uri.EscapeDataString(Model.Start ?? string.Empty)&amp;end=@Uri.EscapeDataString(Model.End ?? string.Empty)&amp;status=@Uri.EscapeDataString(Model.Status ?? string.Empty)&amp;q=@Uri.EscapeDataString(Model.Search ?? string.Empty)&amp;priority=3">
+        Öncelik 3 (@Model.PriorityThree)
+    </a>
+
+</div>
+
+
+    <p class="muted">
+        Dönem: @Model.Start - @Model.End |
+        Toplam @Model.TotalCount sorunlu virman
+    </p>
+
+    <div class="toolbar">
+
+        <a class="btn btn-blue"
+           href="/MCBankCashAuditüstart=@Uri.EscapeDataString(Model.Start ?? string.Empty)&amp;end=@Uri.EscapeDataString(Model.End ?? string.Empty)&amp;status=@Uri.EscapeDataString(Model.Status ?? string.Empty)&amp;q=@Uri.EscapeDataString(Model.Search ?? string.Empty)">
+            ← Virman Mutabakatına Dön
+        </a>
+
+        <a class="btn btn-green"
+           href="/MCBankCashAudit/PriorityExport?priority=@Model.SelectedPriority&amp;start=@Uri.EscapeDataString(Model.Start ?? string.Empty)&amp;end=@Uri.EscapeDataString(Model.End ?? string.Empty)&amp;status=@Uri.EscapeDataString(Model.Status ?? string.Empty)&amp;q=@Uri.EscapeDataString(Model.Search ?? string.Empty)">
+            Tüm Sorunlu Virmanları Excel'e Aktar
+        </a>
+
+        <button type="button"
+                class="btn btn-light"
+                onclick="window.print()">
+            Yazdır / PDF
+        </button>
+
+    </div>
+
+<!-- MC_VIRMAN_AGING_V1 -->
+
+<style>
+.mc-aging-panel {
+    background: #fff;
+    border: 1px solid #e0e7ef;
+    border-radius: 14px;
+    padding: 22px;
+    margin: 22px 0;
+}
+
+.mc-aging-panel h2 {
+    font-size: 21px;
+    font-weight: 800;
+    color: #193047;
+    margin-bottom: 8px;
+}
+
+.mc-aging-panel .description {
+    color: #708398;
+    font-size: 13px;
+    margin-bottom: 18px;
+}
+
+.mc-aging-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.mc-aging-card {
+    padding: 18px;
+    border-radius: 11px;
+    border: 1px solid #e0e7ef;
+    background: #f8fafc;
+}
+
+.mc-aging-card .label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.mc-aging-card strong {
+    display: block;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.mc-aging-card.a1 {
+    background: #e9f7ef;
+    color: #16865d;
+}
+
+.mc-aging-card.a2 {
+    background: #edf3f9;
+    color: #235f98;
+}
+
+.mc-aging-card.a3 {
+    background: #fff2de;
+    color: #9a5c0a;
+}
+
+.mc-aging-card.a4 {
+    background: #fde8e8;
+    color: #a32929;
+}
+
+.mc-aging-footer {
+    margin-top: 17px;
+    padding: 13px 15px;
+    background: #f7f9fc;
+    border-radius: 9px;
+    color: #60758a;
+    font-size: 13px;
+}
+
+.mc-aging-days {
+    display: block;
+    font-size: 11px;
+    margin-top: 5px;
+    color: #708398;
+}
+
+.mc-aging-days.old {
+    color: #bd4545;
+    font-weight: 800;
+}
+
+@@media(max-width:900px) {
+    .mc-aging-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@@media(max-width:500px) {
+    .mc-aging-panel {
+        padding: 13px;
+    }
+
+    .mc-aging-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .mc-aging-card {
+        padding: 12px;
+    }
+
+    .mc-aging-card strong {
+        font-size: 23px;
+    }
+}
+
+@@media print {
+    .mc-aging-panel {
+        break-inside: avoid;
+    }
+}
+</style>
+
+<!-- MC_AGING_PROGRESS_BARS_V1 -->
+<style>
+.mc-aging-progress {
+    width: 100%;
+    height: 9px;
+    margin-top: 12px;
+    margin-bottom: 10px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.10);
+}
+
+.mc-aging-progress-fill {
+    height: 100%;
+    min-width: 0;
+    border-radius: 20px;
+    transition: width .35s ease;
+}
+
+.mc-aging-progress-fill.green {
+    background: #16865d;
+}
+
+.mc-aging-progress-fill.blue {
+    background: #235f98;
+}
+
+.mc-aging-progress-fill.orange {
+    background: #dc8e22;
+}
+
+.mc-aging-progress-fill.red {
+    background: #bc3434;
+}
+</style>
+<!-- MC_AGING_PERCENT_V1 -->
+<!-- MC_VIRMAN_RESULT_WARNINGS_V1 -->
+<style>
+.mc-result-alert {
+    margin: 16px 0;
+    padding: 17px 20px;
+    border-radius: 12px;
+    border: 1px solid;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.mc-result-alert.empty {
+    background: #eef5fc;
+    border-color: #bed8ef;
+    color: #24476b;
+}
+
+.mc-result-alert.warning {
+    background: #fff3de;
+    border-color: #efcf8f;
+    color: #805016;
+}
+
+.mc-result-alert strong {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.mc-result-alert a {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 9px 14px;
+    border-radius: 8px;
+    background: #234f78;
+    color: white;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.mc-result-alert a:hover {
+    background: #183b5e;
+    color: white;
+}
+</style>
+
+@if (Model.TotalCount == 0)
+{
+    <div class="mc-result-alert empty" role="status">
+        <strong>Seçilen filtrelerde sorunlu virman bulunamadı.</strong>
+
+        Tarih aralığını, öncelik seçimini veya arama kelimesini
+        değiştirerek tekrar arama yapabilirsiniz.
+
+        <div>
+            <a href="/MCBankCashAudit/PriorityList">
+                Tüm Filtreleri Temizle
+            </a>
+        </div>
+    </div>
+}
+
+@if (Model.AgeUnknown > 0)
+{
+    <div class="mc-result-alert warning" role="alert">
+        <strong>Hareket Tarihi Kontrolü Gerekiyor</strong>
+
+        Seçilen filtrelerdeki
+        <strong style="display:inline">@Model.AgeUnknown</strong>
+        sorunlu virmanın hareket tarihi yaşlandırma hesabına
+        dahil edilemedi.
+
+        Bu kayıtların tarih bilgilerini kontrol ediniz.
+        Yaşlandırma yüzdeleri toplam sorunlu virman sayısı
+        üzerinden hesaplanmaktadır.
+    </div>
+}
+<!-- MC_AUDIT_CRITICAL_TRIAGE_V1 -->
+@{
+    var mcUrgentP1 = Model.FilteredRows.Count(x =>
+        x.Priority == 1 &&
+        x.DaysSinceLastMovement.HasValue &&
+        x.DaysSinceLastMovement.Value >= 8);
+
+    var mcOldP1 = Model.FilteredRows.Count(x =>
+        x.Priority == 1 &&
+        x.DaysSinceLastMovement.HasValue &&
+        x.DaysSinceLastMovement.Value >= 31);
+}
+
+<style>
+.mc-critical-triage {
+    background: #fff7ed;
+    border: 1px solid #f1c58d;
+    border-left: 5px solid #df8423;
+    border-radius: 12px;
+    padding: 19px;
+    margin: 20px 0;
+    color: #754615;
+}
+
+.mc-critical-triage h3 {
+    font-size: 19px;
+    font-weight: 800;
+    margin: 0 0 12px;
+}
+
+.mc-critical-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.mc-critical-box {
+    background: #fff;
+    border: 1px solid #f2ddc1;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.mc-critical-box strong {
+    display: block;
+    font-size: 28px;
+    font-weight: 800;
+    color: #a84626;
+}
+
+.mc-critical-box span {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 5px;
+}
+
+.mc-critical-note {
+    font-size: 12px;
+    line-height: 1.6;
+    margin-top: 14px;
+}
+
+.mc-critical-link {
+    display: inline-block;
+    margin-top: 15px;
+    background: #9b412b;
+    color: #fff !important;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.mc-critical-link:hover {
+    background: #762b1c;
+}
+
+@@media(max-width:650px) {
+    .mc-critical-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@@media print {
+    .mc-critical-triage {
+        break-inside: avoid;
+    }
+
+    .mc-critical-link {
+        display: none;
+    }
+}
+</style>
+
+@if (mcUrgentP1 > 0 || Model.Age31Plus > 0)
+{
+    <section class="mc-critical-triage" aria-label="Kritik virman inceleme özeti">
+
+        <h3>⚠ Kritik Virman İnceleme Listesi</h3>
+
+        <div class="mc-critical-grid">
+
+            <div class="mc-critical-box">
+                <strong>@mcUrgentP1</strong>
+                <span>Öncelik 1 — 8 Gün ve Üzeri</span>
+            </div>
+
+            <div class="mc-critical-box">
+                <strong>@mcOldP1</strong>
+                <span>Öncelik 1 — 31 Gün ve Üzeri</span>
+            </div>
+
+            <div class="mc-critical-box">
+                <strong>@Model.Age31Plus</strong>
+                <span>Tüm Öncelikler — 31 Gün ve Üzeri</span>
+            </div>
+
+        </div>
+
+        <div class="mc-critical-note">
+            Bu sayılar seçili filtrelerdeki tüm sorunlu virmanlar
+            üzerinden hesaplanır; yalnızca ekranda görünen
+            50 kayıtla sınırlı değildir.
+
+            Yaşlandırma son hareket tarihini esas alır.
+            Bu uyarı finansal risk tutarı veya kesin zarar
+            anlamına gelmez.
+        </div>
+
+        @if (mcUrgentP1 > 0)
+        {
+            <a class="mc-critical-link"
+               href="/MCBankCashAudit/PriorityListüstart=@Uri.EscapeDataString(Model.Start ?? string.Empty)&amp;end=@Uri.EscapeDataString(Model.End ?? string.Empty)&amp;status=@Uri.EscapeDataString(Model.Status ?? string.Empty)&amp;q=@Uri.EscapeDataString(Model.Search ?? string.Empty)&amp;priority=1&amp;p=1">
+                Öncelik 1 Kayıtlarını Göster
+            </a>
+        }
+
+    </section>
+}
+<div class="mc-aging-panel">
+
+    <h2>Sorunlu Virman Yaşlandırma Analizi</h2>
+
+<!-- MC_VIRMAN_AGING_EXCEL_V1 -->
+<div style="margin:16px 0">
+    <a class="btn green mc-aging-excel"
+       href="/MCBankCashAudit/AgingExportüstart=@Uri.EscapeDataString(Model.Start ?? string.Empty)&amp;end=@Uri.EscapeDataString(Model.End ?? string.Empty)&amp;status=@Uri.EscapeDataString(Model.Status ?? string.Empty)&amp;q=@Uri.EscapeDataString(Model.Search ?? string.Empty)&amp;priority=@Model.SelectedPriority">
+        Yaşlandırma Raporunu Excel'e Aktar
+    </a>
+</div>
+
+<style>
+@@media print {
+    .mc-aging-excel {
+        display:none !important;
+    }
+}
+</style>
+
+    <p class="description">
+        Seçilen tarih, arama, durum ve öncelik filtrelerine göre
+        sorunlu virmanların son hareket tarihinden itibaren
+        geçen gün sayısı hesaplanır.
+    </p>
+
+    <div class="mc-aging-grid">
+
+        <div class="mc-aging-card a1">
+            <span class="label">0–2 Gün</span>
+            <strong>@Model.Age0To2</strong>
+<div class="mc-aging-progress"
+     role="progressbar"
+     aria-label="0-2 gun"
+     aria-valuemin="0"
+     aria-valuemax="100"
+     aria-valuenow="@(Model.TotalCount > 0 ? (100.0 * Model.Age0To2 / Model.TotalCount).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "0")">
+    <div class="mc-aging-progress-fill green"
+         style="width:@(Model.TotalCount > 0 ? (100.0 * Model.Age0To2 / Model.TotalCount).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "0")%">
+    </div>
+</div>
+            <small>Yeni hareketler</small>
+<small style="display:block;margin-top:9px;font-size:12px;font-weight:700">
+    Toplam içindeki pay:
+    %@(Model.TotalCount > 0
+        ? (100.0 * Model.Age0To2 / Model.TotalCount)
+            .ToString("N1", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))
+        : "0,0")
+</small>
+        </div>
+
+        <div class="mc-aging-card a2">
+            <span class="label">3–7 Gün</span>
+            <strong>@Model.Age3To7</strong>
+<div class="mc-aging-progress"
+     role="progressbar"
+     aria-label="3-7 gun"
+     aria-valuemin="0"
+     aria-valuemax="100"
+     aria-valuenow="@(Model.TotalCount > 0 ? (100.0 * Model.Age3To7 / Model.TotalCount).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "0")">
+    <div class="mc-aging-progress-fill blue"
+         style="width:@(Model.TotalCount > 0 ? (100.0 * Model.Age3To7 / Model.TotalCount).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "0")%">
+    </div>
+</div>
+            <small>Kontrol edilecekler</small>
+<small style="display:block;margin-top:9px;font-size:12px;font-weight:700">
+    Toplam içindeki pay:
+    %@(Model.TotalCount > 0
+        ? (100.0 * Model.Age3To7 / Model.TotalCount)
+            .ToString("N1", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))
+        : "0,0")
+</small>
+        </div>
+
+        <div class="mc-aging-card a3">
+            <span class="label">8–30 Gün</span>
+            <strong>@Model.Age8To30</strong>
+<div class="mc-aging-progress"
+     role="progressbar"
+     aria-label="8-30 gun"
+     aria-valuemin="0"
+     aria-valuemax="100"
+     aria-valuenow="@(Model.TotalCount > 0 ? (100.0 * Model.Age8To30 / Model.TotalCount).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "0")">
+    <div class="mc-aging-progress-fill orange"
+         style="width:@(Model.TotalCount > 0 ? (100.0 * Model.Age8To30 / Model.TotalCount).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "0")%">
+    </div>
+</div>
+            <small>Takip gerektirenler</small>
+<small style="display:block;margin-top:9px;font-size:12px;font-weight:700">
+    Toplam içindeki pay:
+    %@(Model.TotalCount > 0
+        ? (100.0 * Model.Age8To30 / Model.TotalCount)
+            .ToString("N1", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))
+        : "0,0")
+</small>
+        </div>
+
+        <div class="mc-aging-card a4">
+            <span class="label">31 Gün ve Üzeri</span>
+            <strong>@Model.Age31Plus</strong>
+<div class="mc-aging-progress"
+     role="progressbar"
+     aria-label="31 gun ve uzeri"
+     aria-valuemin="0"
+     aria-valuemax="100"
+     aria-valuenow="@(Model.TotalCount > 0 ? (100.0 * Model.Age31Plus / Model.TotalCount).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "0")">
+    <div class="mc-aging-progress-fill red"
+         style="width:@(Model.TotalCount > 0 ? (100.0 * Model.Age31Plus / Model.TotalCount).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "0")%">
+    </div>
+</div>
+            <small>Uzun süredir hareket olmayanlar</small>
+<small style="display:block;margin-top:9px;font-size:12px;font-weight:700">
+    Toplam içindeki pay:
+    %@(Model.TotalCount > 0
+        ? (100.0 * Model.Age31Plus / Model.TotalCount)
+            .ToString("N1", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))
+        : "0,0")
+</small>
+        </div>
+
+    </div>
+
+    <div class="mc-aging-footer">
+
+        <strong>Toplam sorunlu virman:</strong>
+        @Model.TotalCount
+
+        &nbsp; | &nbsp;
+
+        <strong>En eski son hareket:</strong>
+        @(Model.AgeKnownCount > 0
+            ? Model.AgeOldestDays.ToString() + " gün önce"
+            : "Tarih bulunamadı")
+
+        @if (Model.AgeUnknown > 0)
+        {
+            <span>
+                &nbsp; | &nbsp;
+                <strong>Tarihi kontrol edilecek:</strong>
+                @Model.AgeUnknown
+            </span>
+        }
+
+    </div>
+
+    <p class="description" style="margin-top:14px;margin-bottom:0">
+        Bu analiz virmanın ilk kez ne zaman sorunlu hale geldiğini değil,
+        son hareket tarihinden bu yana geçen süreyi gösterir.
+        Geçersiz veya ileri tarihli kayıtlar ayrıca sayılır.
+        Finansal risk tutarı olarak değerlendirilmemelidir.
+    </p>
+
+</div>
+    <div class="stats">
+
+        <div class="stat">
+            <div class="muted">Toplam Sorunlu Virman</div>
+            <div class="value blue">@Model.TotalCount</div>
+        </div>
+
+        <div class="stat">
+            <div class="muted">Öncelik 1 — Kayıt Sorunu</div>
+            <div class="value red">@Model.PriorityOne</div>
+        </div>
+
+        <div class="stat">
+            <div class="muted">Öncelik 2 — Tutar Farkı</div>
+            <div class="value orange">@Model.PriorityTwo</div>
+        </div>
+
+        <div class="stat">
+            <div class="muted">Öncelik 3 — Diğer</div>
+            <div class="value blue">@Model.PriorityThree</div>
+        </div>
+
+    </div>
+
+    <div class="panel">
+
+        <h2>Kontrol Bekleyen Virmanlar</h2>
+
+        <p class="muted">
+            Öncelik sıralamasına göre sayfa başına
+            en fazla 50 kayıt gösterilir.
+            Toplam mutlak tutar farkı:
+            @Model.TotalDifference.ToString("N2", tr) ₺
+        </p>
+
+        @if (Model.Rows.Count == 0)
+        {
+            <div class="empty">
+                Seçilen filtrelerde sorunlu virman bulunmuyor.
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Öncelik</th>
+                            <th>Tarih</th>
+                            <th>Virman Kodu</th>
+                            <th>Çıkış Hesabı</th>
+                            <th>Giriş Hesabı</th>
+                            <th>Çıkış Tutarı</th>
+                            <th>Giriş Tutarı</th>
+                            <th>Mutlak Fark</th>
+                            <th>Sorun</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var row in Model.Rows)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="badge p@(row.Priority)">
+                                        Öncelik @row.Priority
+                                    </span>
+                                </td>
+
+                                <td>
+    @row.Item.Date
+
+    @if (row.DaysSinceLastMovement.HasValue)
+    {
+        <span class="mc-aging-days @(row.DaysSinceLastMovement.Value >= 31 ? "old" : "")">
+            @row.DaysSinceLastMovement.Value gün önce
+        </span>
+    }
+    else
+    {
+        <span class="mc-aging-days">
+            Tarihi kontrol et
+        </span>
+    }
+</td>
+
+                                <td>@row.Item.Token</td>
+
+                                <td>@row.Item.Source</td>
+
+                                <td>@row.Item.Target</td>
+
+                                <td>
+                                    @row.Item.TotalOut.ToString("N2", tr) ₺
+                                </td>
+
+                                <td>
+                                    @row.Item.TotalIn.ToString("N2", tr) ₺
+                                </td>
+
+                                <td class="red">
+                                    <strong>
+                                        @row.Difference.ToString("N2", tr) ₺
+                                    </strong>
+                                </td>
+
+                                <td>@row.Item.Issue</td>
+
+                                <td>
+                                    <a class="detail"
+                                       href="/MCBankCashAudit/Details?token=@Uri.EscapeDataString(row.Item.Token)&amp;start=@Uri.EscapeDataString(Model.Start ?? string.Empty)&amp;end=@Uri.EscapeDataString(Model.End ?? string.Empty)&amp;status=@Uri.EscapeDataString(Model.Status ?? string.Empty)&amp;q=@Uri.EscapeDataString(Model.Search ?? string.Empty)">
+                                        Detayları İncele →
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+
+            </div>
+        }
+
+        <div class="pager">
+
+            <div class="muted">
+                Gösterilen: @Model.FirstRow - @Model.LastRow /
+                @Model.TotalCount kayıt
+                | Sayfa @Model.CurrentPage / @Model.TotalPages
+            </div>
+
+            <div class="pager-actions">
+
+                @if (Model.CurrentPage > 1)
+                {
+                    <a class="btn btn-light"
+                       href="/MCBankCashAudit/PriorityListüstart=@Uri.EscapeDataString(Model.Start ?? string.Empty)&amp;end=@Uri.EscapeDataString(Model.End ?? string.Empty)&amp;status=@Uri.EscapeDataString(Model.Status ?? string.Empty)&amp;q=@Uri.EscapeDataString(Model.Search ?? string.Empty)&amp;priority=@Model.SelectedPriority&amp;p=@(Model.CurrentPage - 1)">
+                        ← Önceki
+                    </a>
+                }
+
+                @if (Model.CurrentPage < Model.TotalPages)
+                {
+                    <a class="btn btn-blue"
+                       href="/MCBankCashAudit/PriorityListüstart=@Uri.EscapeDataString(Model.Start ?? string.Empty)&amp;end=@Uri.EscapeDataString(Model.End ?? string.Empty)&amp;status=@Uri.EscapeDataString(Model.Status ?? string.Empty)&amp;q=@Uri.EscapeDataString(Model.Search ?? string.Empty)&amp;priority=@Model.SelectedPriority&amp;p=@(Model.CurrentPage + 1)">
+                        Sonraki →
+                    </a>
+                }
+
+                <form method="get"
+                      action="/MCBankCashAudit/PriorityList"
+                      style="display:flex;align-items:center;gap:8px">
+
+                    <input type="hidden" name="start" value="@Model.Start" />
+                    <input type="hidden" name="end" value="@Model.End" />
+                    <input type="hidden" name="status" value="@Model.Status" />
+                    <input type="hidden" name="q" value="@Model.Search" />
+
+                    <input type="hidden"
+                           name="priority"
+                           value="@Model.SelectedPriority" />
+
+                    <input type="number"
+                           name="p"
+                           min="1"
+                           max="@Model.TotalPages"
+                           value="@Model.CurrentPage"
+                           aria-label="Sayfa numarası" />
+
+                    <button type="submit" class="btn btn-light">
+                        Git
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <p class="muted">
+        Öncelik değerleri otomatik kontrol sıralamasıdır;
+        finansal risk derecelendirmesi değildir.
+        Bu ekran yalnızca kayıtları görüntüler.
+        Finansal verileri değiştirmez.
+    </p>
+
+</div>
+
+<!-- MC_PRIORITY_QUICK_DATES_V1 -->
+
+<style>
+.mc-quick-dates {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 15px 0;
+    padding: 13px;
+    background: #f4f7fb;
+    border: 1px solid #e1e8f0;
+    border-radius: 10px;
+}
+
+.mc-quick-dates-label {
+    width: 100%;
+    font-size: 13px;
+    font-weight: 700;
+    color: #33465c;
+}
+
+.mc-quick-date-btn {
+    appearance: none;
+    background: #fff;
+    border: 1px solid #ccd7e3;
+    border-radius: 8px;
+    color: #25476b;
+    padding: 9px 13px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+}
+
+.mc-quick-date-btn:hover {
+    background: #e8f2ff;
+    border-color: #6e9dd0;
+}
+
+.mc-quick-date-btn:focus-visible {
+    outline: 3px solid #7db5ef;
+    outline-offset: 2px;
+}
+
+.mc-quick-date-btn.mc-clear-date {
+    background: #fff5f5;
+    border-color: #f1cdcd;
+    color: #a33b3b;
+}
+</style>
+
+<script>
+(function () {
+    "use strict";
+
+    function setupQuickDates() {
+        var forms = Array.from(document.querySelectorAll("form"));
+
+        var form = forms.find(function (element) {
+            var action = element.getAttribute("action") || "";
+
+            return action.indexOf("/MCBankCashAudit/PriorityList") >= 0 &&
+                   element.querySelector('input[name="start"]') &&
+                   element.querySelector('input[name="end"]');
+        });
+
+        if (!form || form.querySelector(".mc-quick-dates")) {
+            return;
+        }
+
+        var startInput = form.querySelector('input[name="start"]');
+        var endInput = form.querySelector('input[name="end"]');
+
+        var container = document.createElement("div");
+        container.className = "mc-quick-dates";
+
+        var label = document.createElement("div");
+        label.className = "mc-quick-dates-label";
+        label.textContent = "Hızlı Tarih Seçimi";
+
+        container.appendChild(label);
+
+        function formatDate(date) {
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, "0");
+            var day = String(date.getDate()).padStart(2, "0");
+
+            return year + "-" + month + "-" + day;
+        }
+
+        function submitDates(days, monthMode, clearMode) {
+            if (clearMode) {
+                startInput.value = "";
+                endInput.value = "";
+            } else {
+                var today = new Date();
+                var beginning = new Date(today);
+
+                if (monthMode) {
+                    beginning.setDate(1);
+                } else {
+                    beginning.setDate(
+                        today.getDate() - (days - 1)
+                    );
+                }
+
+                startInput.value = formatDate(beginning);
+                endInput.value = formatDate(today);
+            }
+
+            // Arama, durum ve oncelik alanlari degistirilmez.
+            // Yalnizca tarih araligi guncellenir.
+            form.requestSubmit();
+        }
+
+        var options = [
+            { text: "Bugün", days: 1 },
+            { text: "Son 7 Gün", days: 7 },
+            { text: "Son 30 Gün", days: 30 },
+            { text: "Bu Ay", month: true },
+            { text: "Tarihleri Temizle", clear: true }
+        ];
+
+        options.forEach(function (option) {
+            var button = document.createElement("button");
+
+            button.type = "button";
+            button.className = "mc-quick-date-btn";
+
+            if (option.clear) {
+                button.className += " mc-clear-date";
+            }
+
+            button.textContent = option.text;
+
+            button.addEventListener("click", function () {
+                submitDates(
+                    option.days || 0,
+                    option.month === true,
+                    option.clear === true
+                );
+            });
+
+            container.appendChild(button);
+        });
+
+        form.appendChild(container);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            setupQuickDates
+        );
+    } else {
+        setupQuickDates();
+    }
+})();
+</script>
+
+
+<!-- MC_DATE_RANGE_VALIDATION_V1 -->
+<script>
+(function () {
+    "use strict";
+
+    function initializeDateValidation() {
+
+        var forms = Array.from(document.querySelectorAll("form"));
+
+        var form = forms.find(function (element) {
+            var action = element.getAttribute("action") || "";
+
+            return action.indexOf("/MCBankCashAudit/PriorityList") >= 0 &&
+                   element.querySelector('input[name="start"]') &&
+                   element.querySelector('input[name="end"]');
+        });
+
+        if (!form) {
+            return;
+        }
+
+        var startInput = form.querySelector('input[name="start"]');
+        var endInput = form.querySelector('input[name="end"]');
+
+        if (!startInput || !endInput) {
+            return;
+        }
+
+        function clearErrors() {
+            startInput.setCustomValidity("");
+            endInput.setCustomValidity("");
+        }
+
+        function validateDates() {
+
+            clearErrors();
+
+            var start = startInput.value;
+            var end = endInput.value;
+
+            if (!start || !end) {
+                return true;
+            }
+
+            if (start > end) {
+
+                endInput.setCustomValidity(
+                    "Bitiş tarihi başlangıç tarihinden önce olamaz."
+                );
+
+                endInput.reportValidity();
+
+                endInput.focus();
+
+                return false;
+            }
+
+            return true;
+        }
+
+        startInput.addEventListener("input", clearErrors);
+        startInput.addEventListener("change", clearErrors);
+
+        endInput.addEventListener("input", clearErrors);
+        endInput.addEventListener("change", clearErrors);
+
+        form.addEventListener("submit", function (event) {
+
+            if (!validateDates()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+        });
+
+        // Klavyeyle Enter kullanildiginda da form kontrol edilir.
+        // Hizli tarih butonlarinin requestSubmit() cagrisi
+        // ayni dogrulama mekanizmasindan gecer.
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeDateValidation
+        );
+    } else {
+        initializeDateValidation();
+    }
+
+})();
+</script>

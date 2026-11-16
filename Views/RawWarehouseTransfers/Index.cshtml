@@ -1,0 +1,167 @@
+
+@model MasterChefTakip.Controllers.RawTransferInput
+@{
+    ViewData["Title"] = "Depolar Arasi Transfer";
+
+    var materials = (List<MasterChefTakip.Models.RawMaterial>)ViewBag.Materials;
+
+    var warehouses =
+        (List<MasterChefTakip.Models.RawMaterialWarehouse>)ViewBag.Warehouses;
+
+    var history =
+        (List<MasterChefTakip.Models.RawMaterialStockMovement>)ViewBag.History;
+}
+
+<!-- MC_RAW_WAREHOUSE_TRANSFER_2026 -->
+
+<style>
+.mc-transfer{max-width:1180px;margin:auto}
+.mc-transfer h1{font-size:24px;color:#17365b}
+.mc-transfer h2{font-size:17px;color:#17365b}
+.mc-transfer-card{padding:20px;margin:16px 0;background:#fff;border:1px solid #e2e8f0;border-radius:12px}
+.mc-transfer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.mc-transfer-field{display:flex;flex-direction:column;gap:6px}
+.mc-transfer-field label{font-size:12px;font-weight:600;color:#475569}
+.mc-transfer-field input,.mc-transfer-field select,.mc-transfer-field textarea{padding:11px;width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:8px}
+.mc-transfer-btn{display:inline-block;background:#17406a;color:white;border:0;border-radius:8px;padding:11px 17px;cursor:pointer;font-size:13px}
+.mc-transfer-table-wrap{overflow-x:auto}
+.mc-transfer-table{width:100%;min-width:750px;border-collapse:collapse}
+.mc-transfer-table th{text-align:left;background:#f8fafc;padding:12px;font-size:12px;color:#475569}
+.mc-transfer-table td{padding:12px;border-bottom:1px solid #e2e8f0;font-size:13px}
+.mc-transfer-muted{color:#64748b;font-size:12px}
+.mc-transfer-alert{padding:12px;background:#fef2f2;color:#991b1b;border-radius:8px;margin:12px 0}
+.mc-transfer-success{padding:12px;background:#dcfce7;color:#166534;border-radius:8px;margin:12px 0}
+@@media(max-width:700px){.mc-transfer-grid{grid-template-columns:1fr}}
+</style>
+
+<div class="mc-transfer">
+    <h1>Depolar Aras&#305; Hammadde Transferi</h1>
+
+    <p class="mc-transfer-muted">
+        Kaynak depodan &#231;&#305;k&#305;&#351; ve hedef depoya giri&#351;
+        ayn&#305; transfer belgesiyle kaydedilir.
+    </p>
+
+    @if (TempData["RawTransferSuccess"] is string success)
+    {
+        <div class="mc-transfer-success">@success</div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All" class="mc-transfer-alert"></div>
+    }
+
+    <form asp-action="Index" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="mc-transfer-card">
+            <h2>Yeni Transfer</h2>
+
+            <div class="mc-transfer-grid">
+
+                <div class="mc-transfer-field">
+                    <label>Hammadde</label>
+                    <select asp-for="RawMaterialId" required>
+                        <option value="">Hammadde Se&#231;iniz</option>
+                        @foreach (var m in materials)
+                        {
+                            <option value="@m.Id">
+                                @m.Code - @m.Name (@m.Unit)
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-transfer-field">
+                    <label>Miktar</label>
+                    <input asp-for="Quantity"
+                           type="number"
+                           step="0.0001"
+                           min="0.0001"
+                           required />
+                </div>
+
+                <div class="mc-transfer-field">
+                    <label>Kaynak Depo</label>
+                    <select asp-for="SourceWarehouseId" required>
+                        <option value="">Kaynak Depo Se&#231;iniz</option>
+                        @foreach (var w in warehouses)
+                        {
+                            <option value="@w.Id">
+                                @w.Code - @w.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-transfer-field">
+                    <label>Hedef Depo</label>
+                    <select asp-for="TargetWarehouseId" required>
+                        <option value="">Hedef Depo Se&#231;iniz</option>
+                        @foreach (var w in warehouses)
+                        {
+                            <option value="@w.Id">
+                                @w.Code - @w.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-transfer-field">
+                    <label>A&#231;&#305;klama</label>
+                    <textarea asp-for="Notes"
+                              rows="2"
+                              maxlength="500"></textarea>
+                </div>
+
+            </div>
+
+            <br />
+
+            <button class="mc-transfer-btn" type="submit"
+                    onclick="return confirm('Depolar arasi transferi onayliyor musunuz?')">
+                Transferi Kaydet
+            </button>
+
+        </div>
+    </form>
+
+    <div class="mc-transfer-card mc-transfer-table-wrap">
+        <h2>Transfer Hareketleri</h2>
+
+        <table class="mc-transfer-table">
+            <thead>
+                <tr>
+                    <th>Belge</th>
+                    <th>Tarih</th>
+                    <th>Hammadde</th>
+                    <th>Depo</th>
+                    <th>Hareket</th>
+                    <th>Miktar</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var m in history)
+            {
+                <tr>
+                    <td>@m.ReferenceNumber</td>
+                    <td>@m.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@m.RawMaterial.Name</td>
+                    <td>@m.Warehouse.Name</td>
+                    <td>
+                        @(m.MovementType == "IN" ? "Giri?" : "??k??")
+                    </td>
+                    <td>@m.Quantity.ToString("N4") @m.Unit</td>
+                </tr>
+            }
+            @if (!history.Any())
+            {
+                <tr>
+                    <td colspan="6">Transfer kayd&#305; bulunmuyor.</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

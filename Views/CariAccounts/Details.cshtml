@@ -1,0 +1,322 @@
+@using Microsoft.EntityFrameworkCore
+@inject MasterChefTakip.Data.ApplicationDbContext CariOverviewDb
+
+@model MasterChefTakip.Models.CariAccount
+@{
+    ViewData["Title"] = "Cari Detayı";
+}
+<style>
+.cd-wrap{max-width:1100px;margin:auto}
+.cd-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.cd-card{background:white;border:1px solid #e2e8f0;border-radius:14px;padding:24px;margin-bottom:18px}
+.cd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.cd-label{color:#64748b;font-size:12px;margin-bottom:5px}
+.cd-value{font-size:15px;font-weight:650;overflow-wrap:anywhere}
+.cd-btn{display:inline-block;padding:11px 17px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#0f172a;text-decoration:none;cursor:pointer}
+.cd-primary{background:#17406a;color:white;border-color:#17406a}
+.cd-tag{display:inline-block;background:#f1f5f9;color:#475569;padding:10px;border-radius:8px;margin:3px;font-size:13px}
+@@media(max-width:600px){.cd-grid{grid-template-columns:1fr}}
+</style>
+
+<div class="cd-wrap">\n
+    <!-- MC_CARI_RELATED_NAV_2026 -->
+    <div class="cd-card">
+        <h2 style="font-size:18px;margin-top:0">Cari Kart? Yönetimi</h2>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <a class="cd-btn" asp-controller="CariDetails" asp-action="Index"
+               asp-route-cariId="@Model.Id" asp-route-section="Bank">
+               Banka Hesaplar? / IBAN
+            </a>
+            <a class="cd-btn" asp-controller="CariDetails" asp-action="Index"
+               asp-route-cariId="@Model.Id" asp-route-section="Contact">
+               Firma Yetkilileri
+            </a>
+            <a class="cd-btn" asp-controller="CariDetails" asp-action="Index"
+               asp-route-cariId="@Model.Id" asp-route-section="Address">
+               Adres Yönetimi
+            </a>
+            <a class="cd-btn" asp-controller="CariDetails" asp-action="History"
+               asp-route-cariId="@Model.Id">
+               ??lem Geçmişi
+            </a>
+        </div>
+    </div>
+
+    <div class="cd-head">
+        <div>
+            <small style="color:#64748b">@Model.Code</small>
+            <h1 style="font-size:26px;margin:5px 0">@Model.CompanyName</h1>
+            <div style="color:#64748b">
+                @(Model.IsCustomer ? "Müşteri" : "")
+                @(Model.IsSupplier ? "Tedarikçi" : "")
+                ? @(Model.IsActive ? "Aktif" : "Pasif")
+            </div>
+        </div>
+        <div style="display:flex;gap:8px">
+            <a asp-action="Index" class="cd-btn">Cari Listesi</a>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="cd-btn cd-primary">Düzenle</a>
+        </div>
+    </div>
+
+    @if (TempData["CariMessage"] != null)
+    {
+        <div class="cd-card">@TempData["CariMessage"]</div>
+    }
+
+    <div class="cd-card">
+        <h2 style="font-size:18px;margin-top:0">Firma Bilgileri</h2>
+        <div class="cd-grid">
+            <div><div class="cd-label">Vergi Dairesi</div><div class="cd-value">@(Model.TaxOffice ?? "?")</div></div>
+            <div><div class="cd-label">Vergi No / TCKN</div><div class="cd-value">@(Model.TaxNumber ?? "?")</div></div>
+            <div><div class="cd-label">Yetkili</div><div class="cd-value">@(Model.ContactPerson ?? "?")</div></div>
+            <div><div class="cd-label">Telefon</div><div class="cd-value">@(Model.Phone ?? "?")</div></div>
+            <div><div class="cd-label">E-posta</div><div class="cd-value">@(Model.Email ?? "?")</div></div>
+            <div><div class="cd-label">İl / İlçe</div><div class="cd-value">@Model.City / @Model.District</div></div>
+            <div><div class="cd-label">Adres</div><div class="cd-value">@(Model.Address ?? "?")</div></div>
+        </div>
+    </div>
+
+    <div class="cd-card">
+        <h2 style="font-size:18px;margin-top:0">Ticari Bilgiler</h2>
+        <div class="cd-grid">
+            <div><div class="cd-label">Para Birimi</div><div class="cd-value">@Model.Currency</div></div>
+            <div><div class="cd-label">Ödeme Vadesi</div><div class="cd-value">@Model.PaymentTermDays gün</div></div>
+            <div><div class="cd-label">Açıklamalar</div><div class="cd-value">@(Model.Notes ?? "?")</div></div>
+        </div>
+    </div>
+
+    
+    <div class="cd-card">
+        <h2 style="font-size:18px;margin-top:0">Ticari Ko&#351;ullar</h2>
+        <div class="cd-grid">
+            <div><div class="cd-label">Cari Grubu</div><div class="cd-value">@Model.AccountGroup</div></div>
+            <div><div class="cd-label">&#214;deme &#350;ekli</div><div class="cd-value">@Model.PaymentMethod</div></div>
+            <div><div class="cd-label">Fiyat Listesi</div><div class="cd-value">@Model.PriceListName</div></div>
+            <div><div class="cd-label">&#304;skonto</div><div class="cd-value">@Model.DefaultDiscountPercent %</div></div>
+            <div><div class="cd-label">Kredi Limiti</div><div class="cd-value">@Model.CreditLimit.ToString("N2") @Model.Currency</div></div>
+            <div><div class="cd-label">Risk Durumu</div><div class="cd-value">@Model.RiskStatus</div></div>
+            <div><div class="cd-label">Sat&#305;&#351; Temsilcisi</div><div class="cd-value">@Model.SalesRepresentative</div></div>
+            <div><div class="cd-label">&#214;deme Ko&#351;ullar&#305;</div><div class="cd-value">@Model.PaymentTerms</div></div>
+        </div>
+    </div>
+
+    <div class="cd-card">
+        <h2 style="font-size:18px;margin-top:0">Vergi ve Fatura Bilgileri</h2>
+        <div class="cd-grid">
+            <div><div class="cd-label">E-Belge T&#252;r&#252;</div><div class="cd-value">@Model.EDocumentType</div></div>
+            <div><div class="cd-label">Fatura E-posta</div><div class="cd-value">@Model.InvoiceEmail</div></div>
+            <div><div class="cd-label">KDV &#304;stisnas&#305;</div><div class="cd-value">@(Model.IsVatExempt ? "Evet" : "Hay&#305;r")</div></div>
+            <div><div class="cd-label">&#304;stisna A&#231;&#305;klamas&#305;</div><div class="cd-value">@Model.VatExemptionReason</div></div>
+            <div style="grid-column:1/-1"><div class="cd-label">Fatura Adresi</div><div class="cd-value">@Model.InvoiceAddress</div></div>
+            <div style="grid-column:1/-1"><div class="cd-label">Fatura Notu</div><div class="cd-value">@Model.DefaultInvoiceNote</div></div>
+            <div style="grid-column:1/-1"><div class="cd-label">&#304;rsaliye Notu</div><div class="cd-value">@Model.DefaultDispatchNote</div></div>
+        </div>
+    </div>
+
+    <div class="cd-card">
+        <h2 style="font-size:18px;margin-top:0">Sevkiyat Bilgileri</h2>
+        <div class="cd-grid">
+            <div><div class="cd-label">Nakliye Firmas&#305;</div><div class="cd-value">@Model.PreferredCarrier</div></div>
+            <div><div class="cd-label">Teslimat &#350;ekli</div><div class="cd-value">@Model.DeliveryMethod</div></div>
+            <div><div class="cd-label">Varsay&#305;lan Depo</div><div class="cd-value">@Model.DefaultWarehouse</div></div>
+            <div><div class="cd-label">Teslimat Talimatlar&#305;</div><div class="cd-value">@Model.DeliveryInstructions</div></div>
+        </div>
+    </div>
+
+<div class="cd-card">
+        <h2 style="font-size:18px;margin-top:0">Cari İşlemler</h2>
+        <span class="cd-tag">Siparişler</span>
+        <span class="cd-tag">İrsaliyeler</span>
+        <span class="cd-tag">Faturalar</span>
+        <span class="cd-tag">Tahsilat / Ödeme</span>
+        <span class="cd-tag">Cari Ekstre</span>
+        <p style="color:#64748b;font-size:13px">
+            Bu alanlar sonraki aşamalarda gerçek işlemlerle ilişkilendirilecek.
+            Henüz cari bakiye hesaplanmıyor.
+        </p>
+    </div>
+
+    <div class="cd-card">
+        <form asp-action="ChangeStatus" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="concurrencyStamp" value="@Model.ConcurrencyStamp" />
+            <button class="cd-btn" type="submit">
+                @(Model.IsActive ? "Cari Kartını Pasife Al" : "Cari Kartını Aktifleştir")
+            </button>
+        </form>
+    </div>
+
+    <!-- MC_CARI_OVERVIEW_2026 -->
+    @{
+        var overviewBanks = await CariOverviewDb
+            .Set<MasterChefTakip.Models.CariBankAccount>()
+            .AsNoTracking()
+            .Where(x => x.CariAccountId == Model.Id &&
+                        x.IsActive && x.IsDefault)
+            .Take(1)
+            .ToListAsync();
+
+        var overviewContacts = await CariOverviewDb
+            .Set<MasterChefTakip.Models.CariContact>()
+            .AsNoTracking()
+            .Where(x => x.CariAccountId == Model.Id &&
+                        x.IsActive && x.IsPrimary)
+            .Take(1)
+            .ToListAsync();
+
+        var overviewAddresses = await CariOverviewDb
+            .Set<MasterChefTakip.Models.CariAddress>()
+            .AsNoTracking()
+            .Where(x => x.CariAccountId == Model.Id &&
+                        x.IsActive && x.IsDefault &&
+                        x.AddressType == "Teslimat")
+            .Take(1)
+            .ToListAsync();
+
+        var overviewBank = overviewBanks.FirstOrDefault();
+        var overviewContact = overviewContacts.FirstOrDefault();
+        var overviewAddress = overviewAddresses.FirstOrDefault();
+    }
+
+    <section class="cd-card mc-cari-overview">
+        <h2 style="font-size:17px;margin:0 0 15px">
+            Cari &#304;leti&#351;im ve Teslimat &#214;zeti
+        </h2>
+
+        <div class="mc-cari-overview-grid">
+
+            <div class="mc-cari-overview-item">
+                <div class="mc-cari-overview-label">
+                    Varsay&#305;lan Banka
+                </div>
+
+                @if (overviewBank != null)
+                {
+                    <strong>@overviewBank.BankName</strong>
+                    <div>@overviewBank.AccountHolder</div>
+                    <div class="mc-cari-overview-mono">
+                        @overviewBank.Iban
+                    </div>
+                    <small>@overviewBank.Currency</small>
+                }
+                else
+                {
+                    <p>Varsay&#305;lan banka hesab&#305; se&#231;ilmemi&#351;.</p>
+                }
+
+                <a asp-controller="CariDetails"
+                   asp-action="Index"
+                   asp-route-cariId="@Model.Id"
+                   asp-route-section="Bank">
+                    Banka hesaplar&#305;n&#305; y&#246;net
+                </a>
+            </div>
+
+            <div class="mc-cari-overview-item">
+                <div class="mc-cari-overview-label">
+                    Birincil Firma Yetkilisi
+                </div>
+
+                @if (overviewContact != null)
+                {
+                    <strong>@overviewContact.FullName</strong>
+                    <div>@overviewContact.JobTitle</div>
+                    <div>@overviewContact.Phone</div>
+                    <div>@overviewContact.Email</div>
+                }
+                else
+                {
+                    <p>Birincil yetkili se&#231;ilmemi&#351;.</p>
+                }
+
+                <a asp-controller="CariDetails"
+                   asp-action="Index"
+                   asp-route-cariId="@Model.Id"
+                   asp-route-section="Contact">
+                    Yetkilileri y&#246;net
+                </a>
+            </div>
+
+            <div class="mc-cari-overview-item">
+                <div class="mc-cari-overview-label">
+                    Varsay&#305;lan Teslimat Adresi
+                </div>
+
+                @if (overviewAddress != null)
+                {
+                    <strong>@overviewAddress.Title</strong>
+                    <div>@overviewAddress.AddressLine</div>
+                    <div>
+                        @overviewAddress.District /
+                        @overviewAddress.City
+                    </div>
+                }
+                else
+                {
+                    <p>Teslimat adresi se&#231;ilmemi&#351;.</p>
+                }
+
+                <a asp-controller="CariDetails"
+                   asp-action="Index"
+                   asp-route-cariId="@Model.Id"
+                   asp-route-section="Address">
+                    Adresleri y&#246;net
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <style>
+    .mc-cari-overview-grid {
+        display:grid;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:12px;
+    }
+    .mc-cari-overview-item {
+        min-width:0;
+        padding:15px;
+        border:1px solid #e2e8f0;
+        border-radius:10px;
+        background:#f8fafc;
+        font-size:13px;
+        overflow-wrap:anywhere;
+    }
+    .mc-cari-overview-label {
+        font-size:12px;
+        font-weight:700;
+        color:#64748b;
+        margin-bottom:10px;
+    }
+    .mc-cari-overview-item strong {
+        display:block;
+        color:#10213d;
+        margin-bottom:7px;
+    }
+    .mc-cari-overview-item div {
+        margin-bottom:5px;
+    }
+    .mc-cari-overview-item p {
+        color:#64748b;
+        margin:0 0 12px;
+    }
+    .mc-cari-overview-item a {
+        display:inline-block;
+        margin-top:12px;
+        font-size:12px;
+        font-weight:650;
+        color:#17406a;
+    }
+    .mc-cari-overview-mono {
+        font-family:Consolas,monospace;
+        font-size:12px;
+        overflow-wrap:anywhere;
+    }
+    @@media(max-width:850px) {
+        .mc-cari-overview-grid {
+            grid-template-columns:1fr;
+        }
+    }
+    </style>
+
+</div>

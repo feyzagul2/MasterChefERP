@@ -1,0 +1,142 @@
+<!-- MC_RAW_WAREHOUSE_MANAGEMENT_2026 -->
+@model MasterChefTakip.Controllers.MCRawWarehousePage
+
+@{
+    ViewData["Title"] = "Hammadde Depoları";
+}
+
+<style>
+.mc-wh{max-width:1150px;margin:auto}
+.mc-wh-card{background:#fff;border:1px solid #e2e8f0;
+border-radius:12px;padding:20px;margin:18px 0}
+.mc-wh-grid{display:grid;grid-template-columns:1fr 2fr 2fr auto;
+gap:12px;align-items:end}
+.mc-wh label{display:block;font-size:13px;font-weight:600;
+margin-bottom:6px}
+.mc-wh input{width:100%;padding:11px;border-radius:7px;
+border:1px solid #cbd5e1;box-sizing:border-box}
+.mc-wh button{background:#17406a;color:white;border:0;
+border-radius:7px;padding:12px 18px;cursor:pointer}
+.mc-wh table{width:100%;border-collapse:collapse}
+.mc-wh th,.mc-wh td{padding:12px;border-bottom:1px solid #e2e8f0;
+text-align:left}
+.mc-wh th{background:#f8fafc}
+.mc-wh-scroll{overflow-x:auto}
+@@media(max-width:850px){
+.mc-wh-grid{grid-template-columns:1fr}
+.mc-wh table{min-width:650px}
+}
+</style>
+
+<div class="mc-wh">
+
+    <h1>Hammadde Depoları</h1>
+
+    <p>
+        <a asp-controller="MaterialStockMapping"
+           asp-action="Index">
+            ← Malzeme ve Stok Kartı Eşleştirme
+        </a>
+    </p>
+
+    @if (TempData["MCWarehouseSuccess"] != null)
+    {
+        <div class="mc-wh-card" style="color:#166534">
+            @TempData["MCWarehouseSuccess"]
+        </div>
+    }
+
+    @if (TempData["MCWarehouseError"] != null)
+    {
+        <div class="mc-wh-card" style="color:#b91c1c">
+            @TempData["MCWarehouseError"]
+        </div>
+    }
+
+    <div class="mc-wh-card">
+
+        <h3>Yeni Hammadde Deposu</h3>
+
+        <form asp-action="Create" method="post">
+
+            @Html.AntiForgeryToken()
+
+            <div class="mc-wh-grid">
+
+                <div>
+                    <label>Depo Kodu</label>
+                    <input name="code"
+                           maxlength="50"
+                           placeholder="Depo kodu"
+                           required />
+                </div>
+
+                <div>
+                    <label>Depo Adı</label>
+                    <input name="name"
+                           maxlength="200"
+                           placeholder="Depo adı"
+                           required />
+                </div>
+
+                <div>
+                    <label>Konum / Açıklama</label>
+                    <input name="location"
+                           maxlength="250"
+                           placeholder="Depo konumu" />
+                </div>
+
+                <div>
+                    <button type="submit">
+                        Depo Oluştur
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+
+    <div class="mc-wh-card">
+
+        <h3>Tanımlı Depolar (@Model.Warehouses.Count)</h3>
+
+        <div class="mc-wh-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kod</th>
+                        <th>Depo Adı</th>
+                        <th>Konum</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                @foreach (var depot in Model.Warehouses)
+                {
+                    <tr>
+                        <td><strong>@depot.Code</strong></td>
+                        <td>@depot.Name</td>
+                        <td>@depot.Location</td>
+                        <td>
+                            @(depot.IsActive ? "Aktif" : "Pasif")
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!Model.Warehouses.Any())
+        {
+            <p>Henüz depo tanımlanmamış.</p>
+        }
+
+    </div>
+
+    <p style="color:#64748b">
+        Depo oluşturma işlemi stok miktarını değiştirmez.
+    </p>
+
+</div>

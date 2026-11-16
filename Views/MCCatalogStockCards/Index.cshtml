@@ -1,0 +1,221 @@
+@model MasterChefTakip.Controllers.MCCatalogStockCardPage
+
+@{
+    ViewData["Title"] = "Stok Kart\u0131 Olu\u015ftur";
+}
+
+<!-- MC_CATALOG_STOCK_CARD_V1 -->
+
+<style>
+.mc-stock-create {
+    width: 100%;
+    max-width: 820px;
+    margin: 18px auto;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #17375c;
+}
+
+.mc-stock-create * {
+    box-sizing: border-box;
+}
+
+.mc-stock-create .card {
+    border: 1px solid #dce5ef;
+    border-radius: 14px;
+    background: #fff;
+    padding: 24px;
+}
+
+.mc-stock-create h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.mc-stock-create p {
+    color: #64748b;
+}
+
+.mc-stock-create label {
+    display: block;
+    margin: 16px 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.mc-stock-create input,
+.mc-stock-create select {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font: inherit;
+}
+
+.mc-stock-create .material {
+    padding: 14px;
+    margin-top: 16px;
+    border: 1px solid #dce5ef;
+    border-radius: 9px;
+    background: #f8fafc;
+}
+
+.mc-stock-create .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.mc-stock-create .btn-main {
+    background: #183f69;
+    color: white;
+    border: 0;
+    border-radius: 8px;
+    padding: 12px 20px;
+    cursor: pointer;
+    font: inherit;
+}
+
+.mc-stock-create .btn-light {
+    color: #183f69;
+    background: #eaf0f7;
+    border: 0;
+    border-radius: 8px;
+    padding: 12px 20px;
+    text-decoration: none;
+    font: inherit;
+}
+
+.mc-stock-create .notice {
+    margin: 14px 0;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #fff1f2;
+    color: #991b1b;
+}
+
+.mc-stock-create .success {
+    margin: 14px 0;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #ecfdf5;
+    color: #065f46;
+}
+
+@@media (max-width: 600px) {
+    .mc-stock-create {
+        margin: 8px auto;
+    }
+
+    .mc-stock-create .card {
+        padding: 15px;
+    }
+
+    .mc-stock-create h1 {
+        font-size: 22px;
+    }
+
+    .mc-stock-create .buttons > * {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+
+<section class="mc-stock-create">
+
+    <div class="card">
+
+        <h1>Stok Kart&#305; Olu&#351;tur</h1>
+
+        <p>
+            Malzeme katalogundan se&#231;ilen kay&#305;t i&#231;in
+            stok kart&#305; olu&#351;turun.
+        </p>
+
+        @if (TempData["MCStockCardSuccess"] != null)
+        {
+            <div class="success">
+                @TempData["MCStockCardSuccess"]
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Error))
+        {
+            <div class="notice">@Model.Error</div>
+        }
+
+        <form method="get"
+              action="/MCCatalogStockCards">
+
+            <label>Malzeme Kodu</label>
+
+            <input type="text"
+                   name="code"
+                   value="@Model.Code"
+                   placeholder="&#214;rnek: 150.01"
+                   required />
+
+            <div class="buttons">
+                <button class="btn-main" type="submit">
+                    Malzemeyi Bul
+                </button>
+            </div>
+        </form>
+
+        @if (Model.Found)
+        {
+            <div class="material">
+                <strong>@Model.Code</strong><br />
+                @Model.Name<br />
+                <small>Malzeme t&#252;r&#252;: @Model.Category</small>
+            </div>
+
+            <form method="post"
+                  action="/MCCatalogStockCards/Create">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="code"
+                       value="@Model.Code" />
+
+                <label>&#214;l&#231;&#252; Birimi</label>
+
+                <select name="unit" required>
+                    <option value="">Birim se&#231;iniz</option>
+                    <option value="KG">Kilogram (KG)</option>
+                    <option value="GR">Gram (GR)</option>
+                    <option value="LT">Litre (LT)</option>
+                    <option value="ML">Mililitre (ML)</option>
+                    <option value="ADET">Adet</option>
+                    <option value="TON">Ton</option>
+                    <option value="METRE">Metre</option>
+                    <option value="M2">Metrekare (M2)</option>
+                    <option value="M3">Metrek&#252;p (M3)</option>
+                </select>
+
+                <p>
+                    &#214;l&#231;&#252; birimini kontrol ederek se&#231;iniz.
+                    Stok miktar&#305; eklenmeyecektir.
+                </p>
+
+                <div class="buttons">
+                    <button class="btn-main" type="submit">
+                        Stok Kart&#305; Olu&#351;tur ve E&#351;le&#351;tir
+                    </button>
+                </div>
+            </form>
+        }
+
+        <div class="buttons">
+            <a class="btn-light" href="/MaterialCatalog?mcEmbed=1">
+                Malzeme Katalo&#287;una D&#246;n
+            </a>
+        </div>
+
+    </div>
+</section>

@@ -1,0 +1,119 @@
+
+@model List<MasterChefTakip.Models.CariAccount>
+@{
+    ViewData["Title"] = "Cari Hesaplar";
+    var search = ViewBag.Search as string;
+    var type = ViewBag.Type as string;
+    var inactive = ViewBag.ShowInactive is true;
+}
+<style>
+.ca-wrap{max-width:1450px;margin:auto}
+.ca-head{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:20px}
+.ca-head h1{font-size:26px;margin:0}
+.ca-card{background:white;border:1px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:18px}
+.ca-filter{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+.ca-field{flex:1;min-width:180px;display:flex;flex-direction:column;gap:6px}
+.ca-field input,.ca-field select{padding:11px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#0f172a;width:100%}
+.ca-field label{font-size:13px;font-weight:600}
+.ca-btn{padding:11px 17px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#0f172a;text-decoration:none;cursor:pointer;display:inline-block}
+.ca-primary{
+    background:#17406a !important;
+    color:#ffffff !important;
+    border-color:#17406a !important;
+    opacity:1 !important;
+    font-weight:700 !important;
+    text-decoration:none !important;
+}
+.ca-btn.ca-primary,
+.ca-btn.ca-primary:link,
+.ca-btn.ca-primary:visited,
+.ca-btn.ca-primary:hover,
+.ca-btn.ca-primary:active,
+.ca-btn.ca-primary:focus{
+    background:#17406a !important;
+    color:#ffffff !important;
+    border-color:#17406a !important;
+    opacity:1 !important;
+    text-decoration:none !important;
+}
+.ca-scroll{overflow-x:auto}
+.ca-table{width:100%;min-width:800px;border-collapse:collapse}
+.ca-table th{text-align:left;background:#f8fafc;color:#64748b;font-size:12px;padding:14px}
+.ca-table td{padding:14px;border-top:1px solid #edf2f7;font-size:14px}
+.ca-table a{color:#17406a;font-weight:650;text-decoration:none}
+.ca-tag{background:#e7f0fa;color:#17406a;border-radius:20px;padding:5px 9px;font-size:12px}
+</style>
+
+<div class="ca-wrap">
+    <div class="ca-head">
+        <div>
+            <h1>Cari Hesaplar</h1>
+            <small style="color:#64748b">Müşteri ve tedarikçi kayıtları · @Model.Count kayıt</small>
+        </div>
+        <a asp-action="Create" class="ca-btn ca-primary">+ Yeni Cari Kartı</a>
+    </div>
+
+    <div class="ca-card">
+        <form asp-action="Index" method="get" class="ca-filter">
+            <div class="ca-field">
+                <label>Firma / Cari Kodu / Vergi No / Telefon</label>
+                <input name="search" value="@search" placeholder="Cari ara..." />
+            </div>
+            <div class="ca-field" style="flex:0 1 190px">
+                <label>Cari Türü</label>
+                <select name="type">
+                    <option value="">Tümü</option>
+                    <option value="customer" selected="@(type == "customer")">Müşteri</option>
+                    <option value="supplier" selected="@(type == "supplier")">Tedarikçi</option>
+                </select>
+            </div>
+            <label style="display:flex;gap:6px;align-items:center;padding-bottom:11px">
+                <input type="checkbox" name="showInactive" value="true" checked="@inactive" />
+                Pasifleri göster
+            </label>
+            <button class="ca-btn ca-primary">Ara</button>
+            <a asp-action="Index" class="ca-btn">Temizle</a>
+        </form>
+    </div>
+
+    <div class="ca-card" style="padding:0">
+        <div class="ca-scroll">
+            <table class="ca-table">
+                <thead>
+                    <tr>
+                        <th>Cari Kodu</th>
+                        <th>Firma Unvanı</th>
+                        <th>Tür</th>
+                        <th>Vergi No</th>
+                        <th>Telefon</th>
+                        <th>Şehir</th>
+                        <th>Durum</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td><a asp-action="Details" asp-route-id="@item.Id">@item.Code</a></td>
+                            <td><strong>@item.CompanyName</strong></td>
+                            <td>
+                                @if (item.IsCustomer) { <span class="ca-tag">Müşteri</span> }
+                                @if (item.IsSupplier) { <span class="ca-tag">Tedarikçi</span> }
+                            </td>
+                            <td>@(item.TaxNumber ?? "?")</td>
+                            <td>@(item.Phone ?? "?")</td>
+                            <td>@(item.City ?? "?")</td>
+                            <td>@(item.IsActive ? "Aktif" : "Pasif")</td>
+                            <td><a asp-action="Edit" asp-route-id="@item.Id">Düzenle</a></td>
+                        </tr>
+                    }
+                    @if (Model.Count == 0)
+                    {
+                        <tr><td colspan="8" style="padding:35px;text-align:center">Cari hesap bulunamadı.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

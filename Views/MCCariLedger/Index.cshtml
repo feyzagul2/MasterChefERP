@@ -1,0 +1,786 @@
+@model MasterChefTakip.Controllers.MCCariLedgerPage
+@{
+    ViewData["Title"] = "Cari Borç ve Alacak Hareketleri";
+    var tr = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
+}
+
+<style>
+    .mc-ledger{max-width:1400px;margin:24px auto;padding:0 16px;font-family:system-ui,sans-serif}
+    .mc-ledger h1{font-size:28px;color:#183b59;margin-bottom:8px}
+    .mc-ledger .lead{color:#64748b;margin-bottom:22px}
+    .mc-ledger .panel{background:white;border:1px solid #dce5ee;border-radius:14px;padding:20px;margin-bottom:16px}
+    .mc-ledger .actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+    .mc-ledger .actions .button{display:inline-flex;align-items:center;justify-content:center;background:#183b59!important;border:1px solid #183b59!important;color:#fff!important;padding:10px 14px;border-radius:8px;text-decoration:none!important;font-weight:700}.mc-ledger .actions .button:hover,.mc-ledger .actions .button:focus{background:#24486d!important;border-color:#24486d!important;color:#fff!important}
+    .mc-ledger .actions .button.secondary{background:#eef3f7!important;border-color:#dce5ee!important;color:#183b59!important}.mc-ledger .actions .button.secondary:hover,.mc-ledger .actions .button.secondary:focus{background:#183b59!important;border-color:#183b59!important;color:#fff!important}
+    .mc-ledger .notice{background:#fff8e8;border:1px solid #f2dfa7;border-radius:10px;padding:15px;margin:16px 0}
+    .mc-ledger table{border-collapse:collapse;width:100%;font-size:14px}
+    .mc-ledger th,.mc-ledger td{padding:11px;text-align:left;border-bottom:1px solid #e6edf4}
+    .mc-ledger th{background:#f2f6fa;white-space:nowrap}
+    .mc-ledger .right{text-align:right}
+    .mc-ledger .muted{color:#64748b}
+</style>
+
+<div class="mc-ledger">
+    <h1>Cari Borç ve Alacak Hareketleri</h1>
+    <p class="lead">Müşteri ve tedarikçi hesaplarına ait kayıtlı hareketler.</p>
+
+    <div class="actions">
+        <a class="button secondary" href="@Url.Action("Index","MCFinanceOverview")">
+            Finans Kontrol Merkezi
+        </a>
+        <a class="button" href="@Url.Action("Index","CariAccounts")">
+            Müşteri / Tedarikçi Kartları
+        </a>
+        <a class="button secondary" href="@Url.Action("Index","MCBankCash")">
+            Kasa ve Banka
+        </a>
+    </div>
+
+    <!-- MC_CARI_ENTRY_V1 -->
+    @if (TempData["MCCariSuccess"] != null)
+    {
+        <div class="notice" style="background:#ecfdf5;border-color:#86efac">
+            @TempData["MCCariSuccess"]
+        </div>
+    }
+
+    <div class="panel">
+        <h2>Yeni Cari İşlem</h2>
+
+        <p class="muted">
+            Satış müşteri alacağını artırır. Alış tedarikçi borcunu artırır.
+            Tahsilat ve ödeme seçilen kasa/banka hesabına da kaydedilir.
+        </p>
+
+        @if (Model.AccountOptions.Count == 0)
+        {
+            <div class="notice">
+                İşlem kaydetmek için önce müşteri veya tedarikçi kartı tanımlayın.
+            </div>
+        }
+        else
+        {
+            <form id="mcCariRecordForm" method="post" action="@Url.Action("Record","MCCariLedger")">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="requestToken"
+                       value="@Guid.NewGuid().ToString("N")" />
+
+                <div style="display:grid;
+                            grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+                            gap:14px">
+
+                    <label>
+                        <strong>İşlem Türü</strong><br />
+                        <select id="mcMovementType" name="movementType" required
+                                style="width:100%;padding:10px">
+                            <option value="Sale">Satış - Müşteri Alacağı</option>
+                            <option value="Purchase">Alış - Tedarikçi Borcu</option>
+                            <option value="Collection">Müşteri Tahsilatı</option>
+                            <option value="Payment">Tedarikçiye Ödeme</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <strong>Cari Hesap</strong><br />
+                        <select name="cariId" required
+                                style="width:100%;padding:10px">
+                            <option value="">Hesap seçin</option>
+                            @foreach (var item in Model.AccountOptions)
+                            {
+                                <option value="@item.Id">
+                                    @item.Name - @item.Currency
+                                    @(item.IsCustomer && item.IsSupplier
+                                        ? "(Müşteri / Tedarikçi)"
+                                        : item.IsCustomer ? "(Müşteri)" : "(Tedarikçi)")
+                                </option>
+                            }
+                        </select>
+                    </label>
+
+                    <label>
+                        <strong>Tutar</strong><br />
+                        <input name="amount"
+                               type="text"
+                               inputmode="decimal"
+                               placeholder="1250,50"
+                               required
+                               style="width:100%;padding:10px" />
+                    </label>
+
+                    <label>
+                        <strong>Vade Tarihi</strong><br />
+                        <input name="dueDate" type="date"
+                               style="width:100%;padding:10px" />
+                    </label>
+
+                    <label>
+                        <strong>Kasa / Banka</strong><br />
+                        <select id="mcBankAccount" name="bankAccountId"
+                                style="width:100%;padding:10px">
+                            <option value="">Satış ve alışta boş bırakın</option>
+                            @foreach (var item in Model.BankOptions)
+                            {
+                                <option value="@item.Id">
+                                    @item.Name - @item.Currency
+                                </option>
+                            }
+                        </select>
+                        <small class="muted">
+                            Tahsilat ve ödemede zorunludur.
+                        </small>
+                    </label>
+
+                    <label>
+                        <strong>Referans No</strong><br />
+                        <input name="referenceNumber"
+                               maxlength="100"
+                               style="width:100%;padding:10px" />
+                    </label>
+                </div>
+
+                <label style="display:block;margin-top:14px">
+                    <strong>Açıklama</strong><br />
+                    <input name="description"
+                           maxlength="500"
+                           style="width:100%;padding:10px" />
+                </label>
+
+                <button type="submit"
+                        class="button"
+                        style="border:0;margin-top:18px;cursor:pointer">
+                    İşlemi Kaydet
+                </button>
+            </form>
+        }
+    </div>
+    <div class="panel">
+        <strong>Tanımlı cari hesap:</strong> @Model.CariCount
+        <span style="margin-left:20px">
+            <strong>Kayıtlı cari hareket:</strong> @Model.Rows.Count
+        </span>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Warning))
+    {
+        <div class="notice">@Model.Warning</div>
+    }
+    else if (Model.Rows.Count == 0)
+    {
+        <div class="panel">
+            <h2>Henüz cari hareket bulunmuyor</h2>
+            <p class="muted">
+                Önce müşteri ve tedarikçi kartları tanımlanmalıdır.
+                Cari bakiye, kayıt yokken sıfır kabul edilmez.
+            </p>
+        </div>
+    }
+    else
+    {
+        var groups = Model.Rows
+            .GroupBy(x => x.Currency)
+            .OrderBy(x => x.Key)
+            .ToList();
+
+        <div class="panel">
+            <h2>Para Birimine Göre Kayıtlı Net Hareket</h2>
+            <p class="muted">
+                Net hareket = Borç sütunu - Alacak sütunu.
+                Bu tutarlar tahsil edilebilir müşteri alacağı
+                veya ödenecek tedarikçi borcu olarak yorumlanmamalıdır.
+                Bunların ayrı hesaplanması için işlem türleri
+                ve hesap rolleri birlikte değerlendirilecektir.
+            </p>
+            @foreach (var group in groups)
+            {
+                <p>
+                    <strong>@group.Key:</strong>
+                    @group.Sum(x => x.Debit - x.Credit).ToString("N2", tr)
+                    <span class="muted">(@group.Count() hareket)</span>
+                </p>
+            }
+        </div>
+
+                <!-- MC_CARI_BALANCE_SUMMARY_V2 -->
+        <div class="panel">
+            <h2>Müşteri Alacakları ve Tedarikçi Borçları</h2>
+
+            <p class="muted">
+                Tutarlar yalnızca kayıtlı cari hareketlerden hesaplanır.
+                Kaydedilmemiş faturalar ve açılış bakiyeleri dahil değildir.
+            </p>
+
+            @{
+                var balances = Model.Rows
+                    .GroupBy(x => new
+                    {
+                        x.CariId,
+                        x.CariName,
+                        x.CariCode,
+                        x.Currency,
+                        x.IsCustomer,
+                        x.IsSupplier
+                    })
+                    .OrderBy(x => x.Key.CariName)
+                    .ToList();
+            }
+
+            <div style="overflow-x:auto">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cari Hesap</th>
+                            <th>Hesap Türü</th>
+                            <th>Para Birimi</th>
+                            <th class="right">Borç / Alacak</th>
+                            <th class="right">Avans</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var group in balances)
+                        {
+                            var customer = group.Key.IsCustomer;
+                            var supplier = group.Key.IsSupplier;
+
+                            var valid = customer != supplier &&
+                                !string.IsNullOrWhiteSpace(group.Key.Currency) &&
+                                group.All(x =>
+                                    string.Equals(
+                                        x.Currency?.Trim(),
+                                        x.AccountCurrency?.Trim(),
+                                        StringComparison.OrdinalIgnoreCase));
+
+                            var net = group.Sum(x => x.Debit - x.Credit);
+
+                            var position = customer ? net : -net;
+
+                            <tr>
+                                <td>
+                                    <strong>@group.Key.CariName</strong><br />
+                                    <small>@group.Key.CariCode</small>
+                                </td>
+
+                                <td>
+                                    @(customer && supplier
+                                        ? "Müşteri / Tedarikçi"
+                                        : customer
+                                            ? "Müşteri"
+                                            : supplier
+                                                ? "Tedarikçi"
+                                                : "Tanımsız")
+                                </td>
+
+                                <td>@group.Key.Currency</td>
+
+                                @if (!valid)
+                                {
+                                    <td colspan="2">
+                                        Hesap türü veya para birimi kontrol edilmeli.
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="right">
+                                        @Math.Max(position, 0m).ToString("N2", tr)
+                                    </td>
+
+                                    <td class="right">
+                                        @Math.Max(-position, 0m).ToString("N2", tr)
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+<div class="panel" style="overflow-x:auto">
+            <h2>Cari Hareket Listesi</h2>
+<!-- MC_CARI_FILTER_CSV_V2 -->
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin:15px 0">
+
+    <input id="mcCariSearch"
+           type="search"
+           placeholder="Cari hesap, açıklama veya referans ara"
+           style="flex:2;min-width:220px;padding:10px" />
+
+    <select id="mcCariTypeFilter"
+            style="flex:1;min-width:140px;padding:10px">
+        <option value="">Tüm İşlemler</option>
+        <option value="Sale">Satış</option>
+        <option value="Purchase">Alış</option>
+        <option value="Collection">Tahsilat</option>
+        <option value="Payment">Ödeme</option>
+        <option value="OpeningDebit">Açılış Borcu</option>
+        <option value="OpeningCredit">Açılış Alacağı</option>
+        <option value="Correction">Düzeltme</option>
+    </select>
+
+    <select id="mcCariCurrencyFilter"
+            style="flex:1;min-width:120px;padding:10px">
+        <option value="">Tüm Para Birimleri</option>
+
+        @foreach (var currency in Model.Rows
+            .Select(x => x.Currency)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()
+            .OrderBy(x => x))
+        {
+            <option value="@currency">@currency</option>
+        }
+    </select>
+
+    <!-- MC_CARI_DATE_FILTER_V3 -->
+<label style="display:flex;flex-direction:column;gap:4px">
+    <span style="font-size:13px">Başlangıç</span>
+    <input id="mcCariDateFrom"
+           type="date"
+           style="padding:10px;border:1px solid #cbd5e1;border-radius:8px" />
+</label>
+
+<label style="display:flex;flex-direction:column;gap:4px">
+    <span style="font-size:13px">Bitiş</span>
+    <input id="mcCariDateTo"
+           type="date"
+           style="padding:10px;border:1px solid #cbd5e1;border-radius:8px" />
+</label>
+
+<button id="mcCariClearFilters"
+        type="button"
+        style="background:#eef2f7;color:#183b59;
+               border:1px solid #cbd5e1;
+               border-radius:8px;padding:10px 16px;cursor:pointer">
+    Filtreleri Temizle
+</button>
+<!-- MC_CARI_SERVER_EXPORT_V1 -->
+<button id="mcCariServerExport"
+        type="button"
+        style="background:#0f766e;color:white;border:0;
+               border-radius:8px;padding:10px 18px;cursor:pointer">
+    Tüm Kayıtlardan CSV
+</button>
+<button id="mcCariExport"
+            type="button"
+            style="background:#183b59;color:white;
+                   border:0;border-radius:8px;
+                   padding:10px 18px;cursor:pointer">
+        CSV Raporu
+    </button>
+</div>
+
+<!-- MC_CARI_FILTER_TOTALS_V1 -->
+<div id="mcCariTotals"
+     style="display:flex;gap:12px;flex-wrap:wrap;margin:15px 0">
+</div>
+
+<p style="font-size:12px;color:#64748b">
+    Toplamlar yalnızca filtrelenmiş hareketlere aittir.
+    Gerçek cari hesap bakiyesi veya banka mutabakatı değildir.
+</p>
+<p id="mcCariVisibleCount"
+   style="color:#64748b;font-size:13px"></p>
+            <table id="mcCariMovementTable">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Cari Hesap</th>
+                        <th>İşlem</th>
+                        <th>Vade</th>
+                        <th class="right">Borç</th>
+                        <th class="right">Alacak</th>
+                        <th>Para Birimi</th>
+                        <th>Açıklama</th>
+                        <th>Referans</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td>@row.Date</td>
+                            <td>
+                                <strong>@row.CariName</strong><br />
+                                <small class="muted">@row.CariCode</small>
+                            </td>
+                            <td>@row.Type</td>
+                            <td>@row.DueDate</td>
+                            <td class="right">@row.Debit.ToString("N2",tr)</td>
+                            <td class="right">@row.Credit.ToString("N2",tr)</td>
+                            <td>@row.Currency</td>
+                            <td>@row.Description</td>
+                            <td>@row.Reference</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+<!-- MC_CARI_FORM_UI_V2 -->
+<script>
+(function () {
+    "use strict";
+
+    const form = document.getElementById("mcCariRecordForm");
+    const movement = document.getElementById("mcMovementType");
+    const bank = document.getElementById("mcBankAccount");
+
+    if (!form || !movement || !bank) return;
+
+    const submit = form.querySelector('button[type="submit"]');
+
+    function refresh() {
+        const financial = movement.value === "Collection" ||
+                          movement.value === "Payment";
+
+        bank.required = financial;
+
+        if (!financial) {
+            bank.value = "";
+            bank.disabled = true;
+        } else {
+            bank.disabled = false;
+        }
+    }
+
+    movement.addEventListener("change", refresh);
+    refresh();
+
+    let submitted = false;
+
+    form.addEventListener("submit", function (event) {
+        if (submitted) {
+            event.preventDefault();
+            return;
+        }
+
+        if (!form.checkValidity()) return;
+
+        submitted = true;
+
+        if (submit) {
+            submit.disabled = true;
+            submit.textContent = "Kaydediliyor...";
+        }
+    });
+})();
+</script>
+<script>
+(function () {
+    "use strict";
+
+    const table = document.getElementById("mcCariMovementTable");
+    const search = document.getElementById("mcCariSearch");
+    const type = document.getElementById("mcCariTypeFilter");
+    const currency = document.getElementById("mcCariCurrencyFilter");
+    const counter = document.getElementById("mcCariVisibleCount");
+    const exportButton = document.getElementById("mcCariExport");
+
+    if (!table || !search || !type || !currency || !counter) return;
+
+    const rows = Array.from(table.querySelectorAll("tbody tr"));
+
+    const headers = Array.from(table.querySelectorAll("thead th"))
+        .map(x => x.innerText.trim());
+
+    function getVisibleRows() {
+        return rows.filter(row => !row.hidden);
+    }
+
+    // MC_CARI_EXACT_TOTALS_V2
+    // Amounts are calculated in integer cents using BigInt.
+    function parseMoney(text) {
+        const raw = String(text || "")
+            .trim()
+            .replace(/\u00a0/g, "")
+            .replace(/\s/g, "");
+
+        // Display format: 1.234,56 or 1234,56
+        const valid = /^-?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?$/;
+
+        if (!valid.test(raw)) {
+            return null;
+        }
+
+        const negative = raw.startsWith("-");
+        const clean = negative ? raw.slice(1) : raw;
+        const parts = clean.split(",");
+
+        const whole = parts[0].replace(/\./g, "");
+        const fraction = (parts[1] || "").padEnd(2, "0");
+
+        let cents = BigInt(whole) * 100n + BigInt(fraction);
+
+        return negative ? -cents : cents;
+    }
+
+    function formatCents(cents) {
+        const negative = cents < 0n;
+        const value = negative ? -cents : cents;
+
+        const whole = value / 100n;
+        const fraction = value % 100n;
+
+        const grouped = whole.toString()
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+        return (negative ? "-" : "") +
+            grouped + "," + fraction.toString().padStart(2, "0");
+    }
+
+    function updateTotals() {
+        const panel = document.getElementById("mcCariTotals");
+
+        if (!panel) return;
+
+        const totals = new Map();
+        let invalid = 0;
+
+        getVisibleRows().forEach(row => {
+            const cells = Array.from(row.querySelectorAll("td"));
+
+            if (cells.length < 9) {
+                invalid++;
+                return;
+            }
+
+            const currency = cells[6].innerText.trim().toUpperCase();
+
+            const debit = parseMoney(cells[4].innerText);
+            const credit = parseMoney(cells[5].innerText);
+
+            if (!currency || debit === null || credit === null) {
+                invalid++;
+                return;
+            }
+
+            if (!totals.has(currency)) {
+                totals.set(currency, {
+                    debit: 0n,
+                    credit: 0n
+                });
+            }
+
+            const item = totals.get(currency);
+
+            item.debit += debit;
+            item.credit += credit;
+        });
+
+        panel.replaceChildren();
+
+        Array.from(totals.keys()).sort().forEach(currency => {
+            const item = totals.get(currency);
+
+            const card = document.createElement("div");
+
+            card.style.cssText =
+                "background:#f1f5f9;border:1px solid #dbe5ef;" +
+                "border-radius:10px;padding:15px;min-width:230px";
+
+            const title = document.createElement("strong");
+            title.textContent = currency;
+
+            const debitLine = document.createElement("div");
+            debitLine.style.marginTop = "10px";
+            debitLine.textContent =
+                "Borç hareketleri: " + formatCents(item.debit);
+
+            const creditLine = document.createElement("div");
+            creditLine.style.marginTop = "5px";
+            creditLine.textContent =
+                "Alacak hareketleri: " + formatCents(item.credit);
+
+            const netLine = document.createElement("div");
+            netLine.style.marginTop = "8px";
+            netLine.style.fontWeight = "700";
+            netLine.textContent =
+                "Net hareket: " +
+                formatCents(item.debit - item.credit);
+
+            card.appendChild(title);
+            card.appendChild(debitLine);
+            card.appendChild(creditLine);
+            card.appendChild(netLine);
+
+            panel.appendChild(card);
+        });
+
+        if (invalid > 0) {
+            const warning = document.createElement("p");
+            warning.style.color = "#b45309";
+            warning.textContent =
+                invalid + " satır tutar biçimi nedeniyle " +
+                "hesaplamaya dahil edilmedi.";
+
+            panel.appendChild(warning);
+        }
+
+        if (totals.size === 0) {
+            const empty = document.createElement("p");
+            empty.textContent =
+                "Filtreye uygun hesaplanabilir hareket bulunmuyor.";
+
+            panel.appendChild(empty);
+        }
+    }
+    function applyFilters() {
+        const term = search.value.trim().toLocaleLowerCase("tr-TR");
+        const selectedType = type.value;
+        const selectedCurrency = currency.value;
+        const dateFrom = document.getElementById("mcCariDateFrom")?.value || "";
+        const dateTo = document.getElementById("mcCariDateTo")?.value || "";
+
+        rows.forEach(row => {
+            const cells = Array.from(row.querySelectorAll("td"));
+
+            if (cells.length < 9) return;
+
+            const searchable = [
+                cells[1].innerText,
+                cells[7].innerText,
+                cells[8].innerText
+            ].join(" ").toLocaleLowerCase("tr-TR");
+
+            const rowType = cells[2].innerText.trim();
+            const rowCurrency = cells[6].innerText.trim();
+
+            const rawDate = cells[0].innerText.trim();
+            let rowDate = "";
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+                rowDate = rawDate;
+            } else {
+                const match = rawDate.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+                if (match) {
+                    rowDate = match[3] + "-" + match[2] + "-" + match[1];
+                }
+            }
+
+            row.hidden =
+                (term && !searchable.includes(term)) ||
+                (selectedType && rowType !== selectedType) ||
+                (selectedCurrency && rowCurrency !== selectedCurrency) ||
+                ((dateFrom || dateTo) && !rowDate) ||
+                (dateFrom && rowDate < dateFrom) ||
+                (dateTo && rowDate > dateTo);
+        });
+
+        counter.textContent =
+            getVisibleRows().length + " / " +
+            rows.length + " hareket gösteriliyor";
+        updateTotals();
+    }
+
+    function csvCell(value) {
+        let text = String(value ?? "").replace(/\r?\n/g, " ").trim();
+
+        // Excel formül enjeksiyonuna karşı koruma.
+        const first = text.trimStart().charAt(0);
+
+        if (["=", "+", "-", String.fromCharCode(64)].includes(first)) {
+            text = "'" + text;
+        }
+
+        return '"' + text.replace(/"/g, '""') + '"';
+    }
+
+    function exportCsv() {
+        const selected = getVisibleRows();
+
+        if (!selected.length) {
+            alert("Aktarılacak hareket bulunmuyor.");
+            return;
+        }
+
+        const lines = [headers.map(csvCell).join(";")];
+
+        selected.forEach(row => {
+            const cells = Array.from(row.querySelectorAll("td"));
+
+            lines.push(
+                cells.map(cell => csvCell(cell.innerText)).join(";")
+            );
+        });
+
+        const blob = new Blob(
+            ["\uFEFF", lines.join("\r\n")],
+            { type: "text/csv;charset=utf-8" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download =
+            "MASTER_CHEF_CARI_HAREKETLER_" +
+            new Date().toISOString().slice(0, 10) + ".csv";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    search.addEventListener("input", applyFilters);
+
+    const dateFromInput = document.getElementById("mcCariDateFrom");
+    const dateToInput = document.getElementById("mcCariDateTo");
+    const clearButton = document.getElementById("mcCariClearFilters");
+
+    dateFromInput?.addEventListener("change", applyFilters);
+    dateToInput?.addEventListener("change", applyFilters);
+
+    clearButton?.addEventListener("click", function () {
+        search.value = "";
+        type.value = "";
+        currency.value = "";
+        dateFromInput.value = "";
+        dateToInput.value = "";
+        applyFilters();
+    });
+    type.addEventListener("change", applyFilters);
+    currency.addEventListener("change", applyFilters);
+    exportButton.addEventListener("click", exportCsv);
+
+    applyFilters();
+})();
+</script>
+<!-- MC_CARI_SERVER_EXPORT_V1_SCRIPT -->
+<script>
+(function () {
+    "use strict";
+
+    const button = document.getElementById("mcCariServerExport");
+
+    if (!button) return;
+
+    button.addEventListener("click", function () {
+        const getValue = id =>
+            document.getElementById(id)?.value?.trim() || "";
+
+        const params = new URLSearchParams();
+
+        const filters = {
+            search: getValue("mcCariSearch"),
+            movementType: getValue("mcCariTypeFilter"),
+            currency: getValue("mcCariCurrencyFilter"),
+            dateFrom: getValue("mcCariDateFrom"),
+            dateTo: getValue("mcCariDateTo")
+        };
+
+        for (const [key, value] of Object.entries(filters)) {
+            if (value) params.set(key, value);
+        }
+
+        const url = "/MCCariExport/Csv?" + params.toString();
+
+        // Server-side export: database records, not just visible table rows.
+        window.location.assign(url);
+    });
+})();
+</script>

@@ -700,3 +700,287 @@ main::-webkit-scrollbar,
     width: 0 !important;
     height: 0 !important;
 }
+
+
+/* MC_UI_REPAIR_CSS_2026 */
+
+/* Sidebar icons: consistent size and alignment */
+a.mc-repair-link {
+    display: flex !important;
+    align-items: center !important;
+    gap: 11px !important;
+    min-height: 42px;
+}
+
+a.mc-repair-link > .mc-repair-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 19px !important;
+    height: 19px !important;
+    min-width: 19px !important;
+    max-width: 19px !important;
+    flex: 0 0 19px !important;
+    overflow: hidden !important;
+    color: #cbd5e1 !important;
+}
+
+a.mc-repair-link > .mc-repair-icon svg {
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    max-width: 18px !important;
+    max-height: 18px !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 1.7 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+}
+
+a.mc-repair-link > .mc-repair-label {
+    display: inline-block;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.4;
+}
+
+/* Compact module selection cards */
+.mc-hub-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 280px)) !important;
+    gap: 12px !important;
+    align-items: start !important;
+    margin-top: 18px !important;
+}
+
+.mc-hub-card {
+    min-width: 0 !important;
+    min-height: 75px !important;
+    max-width: 280px !important;
+    height: auto !important;
+    padding: 12px 14px !important;
+    gap: 12px !important;
+    border-radius: 10px !important;
+    box-sizing: border-box !important;
+}
+
+.mc-hub-card-icon {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    flex: 0 0 38px !important;
+    border-radius: 9px !important;
+}
+
+.mc-hub-card-icon svg {
+    display: block !important;
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+}
+
+.mc-hub-card-title {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+}
+
+.mc-hub-card-arrow {
+    font-size: 18px !important;
+}
+
+@media (max-width: 650px) {
+    .mc-hub-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .mc-hub-card {
+        width: 100% !important;
+        max-width: none !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .mc-hub-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* MC_UI_REPAIR_CSS_END_2026 */
+
+
+/* MC_OPS_FINAL_CSS_2026 */
+
+/* Only dynamically identified Operations Overview cards */
+body.mc-ops-page .mc-ops-real-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+}
+
+body.mc-ops-page .mc-ops-real-card {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    min-height: 82px !important;
+    height: auto !important;
+    padding: 12px 14px !important;
+    margin: 0 !important;
+    border-radius: 9px !important;
+}
+
+body.mc-ops-page .mc-ops-real-card h1,
+body.mc-ops-page .mc-ops-real-card h2,
+body.mc-ops-page .mc-ops-real-card h3 {
+    margin-top: 5px !important;
+    margin-bottom: 3px !important;
+    line-height: 1.15 !important;
+}
+
+.mc-ops-menu-link {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.mc-ops-menu-link .mc-ops-menu-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    flex: 0 0 20px !important;
+    color: #cbd5e1 !important;
+}
+
+.mc-ops-menu-link .mc-ops-menu-icon svg {
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
+    max-width: 18px !important;
+    max-height: 18px !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 1.8 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+}
+
+@media (max-width: 1450px) {
+    body.mc-ops-page .mc-ops-real-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 1050px) {
+    body.mc-ops-page .mc-ops-real-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 720px) {
+    body.mc-ops-page .mc-ops-real-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 420px) {
+    body.mc-ops-page .mc-ops-real-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* MC_OPS_FINAL_CSS_END_2026 */
+
+
+
+/* MC_REPORTS_EQUAL_4_COLUMNS_2026 */
+
+/* Operasyon Raporlari: 4 + 4 + 4 esit kart */
+html body .mc-metrics-compact-grid,
+html body .mc-ops-real-grid,
+html body .mc-ops-grid-2026,
+html body .mc-operations-metric-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-template-rows: none !important;
+    grid-auto-rows: 136px !important;
+    gap: 14px !important;
+    align-items: stretch !important;
+    justify-items: stretch !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+html body .mc-metrics-compact-grid > *,
+html body .mc-ops-real-grid > *,
+html body .mc-ops-grid-2026 > *,
+html body .mc-operations-metric-grid > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+
+    height: 136px !important;
+    min-height: 136px !important;
+    max-height: 136px !important;
+
+    margin: 0 !important;
+    padding: 16px 18px !important;
+
+    box-sizing: border-box !important;
+    border-radius: 12px !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+
+    overflow: hidden !important;
+}
+
+html body .mc-metrics-compact-grid > * h1,
+html body .mc-metrics-compact-grid > * h2,
+html body .mc-metrics-compact-grid > * h3,
+html body .mc-ops-real-grid > * h1,
+html body .mc-ops-real-grid > * h2,
+html body .mc-ops-real-grid > * h3,
+html body .mc-ops-grid-2026 > * h1,
+html body .mc-ops-grid-2026 > * h2,
+html body .mc-ops-grid-2026 > * h3 {
+    margin-top: 12px !important;
+    margin-bottom: 4px !important;
+    line-height: 1.15 !important;
+}
+
+@media (max-width: 1100px) {
+    html body .mc-metrics-compact-grid,
+    html body .mc-ops-real-grid,
+    html body .mc-ops-grid-2026,
+    html body .mc-operations-metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 550px) {
+    html body .mc-metrics-compact-grid,
+    html body .mc-ops-real-grid,
+    html body .mc-ops-grid-2026,
+    html body .mc-operations-metric-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    html body .mc-metrics-compact-grid > *,
+    html body .mc-ops-real-grid > *,
+    html body .mc-ops-grid-2026 > *,
+    html body .mc-operations-metric-grid > * {
+        padding: 14px !important;
+    }
+}
+
+/* MC_REPORTS_EQUAL_4_COLUMNS_END_2026 */

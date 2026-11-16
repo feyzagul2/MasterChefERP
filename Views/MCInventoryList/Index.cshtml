@@ -1,0 +1,271 @@
+@model MasterChefTakip.Controllers.MCInventoryListPage
+
+@{
+    ViewData["Title"] = "Malzeme Stok Kartlar?";
+}
+
+<style>
+.mc-stock-list {
+    max-width: 1350px;
+    margin: 18px auto;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-family: inherit;
+}
+.mc-stock-list h2 {
+    color: #17406a;
+    margin-bottom: 16px;
+    font-family: inherit;
+}
+.mc-stock-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 18px 0;
+}
+.mc-stock-summary span {
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 10px 15px;
+}
+.mc-stock-search {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 16px 0;
+}
+.mc-stock-search input {
+    flex: 1 1 250px;
+    min-height: 42px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    padding: 10px;
+    font: inherit;
+}
+.mc-stock-search button {
+    padding: 10px 22px;
+    border: 0;
+    border-radius: 7px;
+    background: #17406a;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+.mc-stock-list table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: inherit;
+}
+.mc-stock-list th,
+.mc-stock-list td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+.mc-stock-list th {
+    background: #f1f5f9;
+    color: #17406a;
+}
+.mc-stock-list a {
+    color: #17406a;
+}
+.mc-stock-actions {
+    white-space: nowrap;
+}
+</style>
+
+<section class="mc-stock-list">
+
+    <h2>Malzeme Stok Kartlar?</h2>
+
+    <div class="mc-stock-summary">
+        <span><strong>Listelenen:</strong> @Model.Cards.Count</span>
+        <span><strong>Genel Malzeme:</strong> @Model.GeneralCount</span>
+        <span><strong>Hammadde:</strong> @Model.RawCount</span>
+    </div>
+
+    <form method="get"
+          action="/MCInventoryCards"
+          class="mc-stock-search">
+
+        <input type="search"
+               name="q"
+               value="@Model.Search"
+               placeholder="Malzeme kodu veya adı ile ara" />
+
+        
+        @* MC_CARD_FILTER_UI_V1 *@
+        <select name="durum"
+                aria-label="Ek bilgi durumu"
+                style="min-height:42px;padding:8px;
+                       border:1px solid #cbd5e1;
+                       border-radius:7px;font:inherit">
+
+            <option value="tumu"
+                    selected="@(Model.Filter == "tumu")">
+                T?m Kartlar
+            </option>
+
+            <option value="eksik"
+                    selected="@(Model.Filter == "eksik")">
+                Eksik Bilgili Kartlar
+            </option>
+
+            <option value="tam"
+                    selected="@(Model.Filter == "tam")">
+                9 Alan? Dolu Kartlar
+            </option>
+
+            <option value="kaydedilmedi"
+                    selected="@(Model.Filter == "kaydedilmedi")">
+                Ek Bilgi Kaydedilmeyenler
+            </option>
+        </select>
+
+        
+        @* MC_FIELD_FILTER_UI_SAFE_V2 *@
+        <select name="eksikAlan"
+                aria-label="Eksik bilgi alan?"
+                style="min-height:42px;padding:8px;
+                       border:1px solid #cbd5e1;
+                       border-radius:7px;font:inherit">
+
+            <option value=""
+                    selected="@(Model.MissingFieldFilter == "")">
+                T?m Bilgi Alanlar?
+            </option>
+
+            @foreach (var field in new[] {
+                "Barkod",
+                "Minimum Stok",
+                "Kritik Stok",
+                "Tedarikçi",
+                "Alış Fiyat?",
+                "Para Birimi",
+                "KDV Oran?",
+                "Raf Konumu",
+                "A??klama"
+            })
+            {
+                <option value="@field"
+                        selected="@(Model.MissingFieldFilter == field)">
+                    Eksik: @field
+                </option>
+            }
+        </select>
+<button type="submit">Ara</button>
+        @* MC_STOCK_CSV_BUTTON_V1 *@
+        <button type="submit"
+                formmethod="get"
+                formaction="/MCInventoryCards/Export"
+                style="background:#475569">
+            Excel CSV ?ndir
+        </button>
+
+
+        <a href="/MCInventoryCards" style="align-self:center">
+            Temizle
+        </a>
+    </form>
+
+    @if (Model.Cards.Count == 0)
+    {
+        <div class="alert alert-info">
+            Aramaya uygun stok kartı bulunamadı.
+        </div>
+    }
+    else
+    {
+        <div style="overflow-x:auto">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kod</th>
+                        <th>Malzeme Ad?</th>
+                        <th>T?r</th>
+                        <th>Birim</th>
+                        <th>Kart Grubu</th>
+                        <th>Ek Bilgi Durumu</th>
+                        <th>Eksik Bilgiler</th>
+                        <th>??lemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Cards)
+                    {
+                        <tr>
+                            <td>@item.Code</td>
+                            <td>@item.Name</td>
+                            <td>@item.Type</td>
+                            <td>@item.Unit</td>
+                            <td>@item.Source</td>
+                            @* MC_CARD_COMPLETENESS_UI_V2 *@
+                            <td>
+                                @if (!item.HasDetailsRecord)
+                                {
+                                    <span style="color:#b45309">
+                                        Hen?z ek bilgi kaydedilmedi
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>
+                                        @item.SavedDetailCount / 9 alan dolu
+                                    </span>
+                                }
+                            </td>
+                            
+                            @* MC_MISSING_NAMES_UI_FIXED_V2 *@
+                            <td style="min-width:220px">
+                                @if (!item.HasDetailsRecord)
+                                {
+                                    <span style="color:#b45309">
+                                        9 ek bilgi alan?n?n tamam? boş
+                                    </span>
+                                }
+                                else if (item.SavedDetailCount == 9)
+                                {
+                                    <span style="color:#15803d">
+                                        Ek bilgi alanlar? dolu
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span style="color:#b45309">
+                                        @item.MissingFieldNames
+                                    </span>
+                                }
+                            </td>
+<td class="mc-stock-actions">
+                                <a asp-controller="MCInventoryCards"
+                                   asp-action="Create"
+                                   asp-route-catalogId="@item.CatalogId">
+                                    Kart? G?r
+                                </a>
+                                |
+                                <a asp-controller="MCInventoryDetails"
+                                   asp-action="Edit"
+                                   asp-route-catalogId="@item.CatalogId">
+                                    Ek Bilgiler
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <div style="margin-top:22px">
+        <a href="/MaterialCatalog?mcEmbed=1">
+            Malzeme Kataloğuna Dön
+        </a>
+        |
+        <a href="/MCInventoryWarehouses">
+            Depo E?le?tirme
+        </a>
+    </div>
+</section>

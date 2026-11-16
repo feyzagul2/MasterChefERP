@@ -1,0 +1,167 @@
+
+@model List<MasterChefTakip.Controllers.CariRecordRow>
+@{
+    var cari = (MasterChefTakip.Models.CariAccount)ViewBag.Cari;
+    var currentSection = (string)ViewBag.Section;
+    var title = currentSection == "Bank" ? "Banka Hesaplar? / IBAN"
+        : currentSection == "Contact" ? "Firma Yetkilileri" : "Adres Yönetimi";
+    ViewData["Title"] = title;
+}
+
+<style>
+.cr-wrap{max-width:1200px;margin:auto}
+.cr-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;margin:18px 0}
+.cr-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.cr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.cr-field{display:flex;flex-direction:column;gap:6px}
+.cr-field label{font-size:13px;font-weight:650}
+.cr-field input,.cr-field select,.cr-field textarea{width:100%;border:1px solid #cbd5e1;border-radius:9px;padding:11px}
+.cr-btn{display:inline-block;padding:11px 16px;background:#fff;color:#17406a;border:1px solid #cbd5e1;border-radius:9px;text-decoration:none;cursor:pointer}
+.cr-primary{background:#17406a;color:#fff;border-color:#17406a}
+.cr-scroll{overflow-x:auto}
+.cr-table{width:100%;min-width:700px;border-collapse:collapse}
+.cr-table th{text-align:left;background:#f8fafc;padding:13px}
+.cr-table td{padding:13px;border-top:1px solid #edf2f7}
+@@media(max-width:650px){.cr-grid{grid-template-columns:1fr}}
+
+/* MC_CARI_LIST_POLISH_2026 */
+.cr-wrap {
+    max-width: 1150px;
+}
+
+.cr-card {
+    padding: 18px;
+    border-radius: 12px;
+}
+
+.cr-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.cr-table th {
+    padding: 12px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.cr-table td {
+    padding: 11px 14px;
+    vertical-align: middle;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.cr-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.cr-table td strong {
+    font-weight: 650;
+    color: #17365b;
+}
+
+.cr-table td:last-child {
+    white-space: nowrap;
+    min-width: 205px;
+}
+
+.cr-table td:last-child .cr-btn {
+    padding: 7px 11px;
+    min-height: 33px;
+    font-size: 12px;
+    line-height: 18px;
+    margin: 2px 3px 2px 0;
+}
+
+.mc-record-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 55px;
+}
+
+.mc-record-active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.mc-record-inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+@@media (max-width: 700px) {
+    .cr-card {
+        padding: 10px;
+    }
+
+    .cr-table td,
+    .cr-table th {
+        padding: 10px;
+    }
+}
+
+</style>
+
+<div class="cr-wrap">
+    <a class="cr-btn" asp-controller="CariAccounts" asp-action="Details"
+       asp-route-id="@cari.Id">Cari Kartına Dön</a>
+
+    <div class="cr-head" style="margin-top:18px">
+        <div>
+            <h1>@title</h1>
+            <div>@cari.CompanyName</div>
+        </div>
+        <a class="cr-btn cr-primary" asp-action="Form"
+           asp-route-cariId="@cari.Id" asp-route-section="@currentSection">
+           + Yeni Kayıt
+        </a>
+    </div>
+
+    <div class="cr-card cr-scroll">
+        <table class="cr-table">
+            <thead><tr><th>Bilgi</th><th>Detay</th><th>Durum</th><th>??lem</th></tr></thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td><strong>@item.Title</strong></td>
+                    <td>@item.Detail</td>
+                    <td><span class="mc-record-status @(item.IsActive ? "mc-record-active" : "mc-record-inactive")">
+                            @(item.IsActive ? "Aktif" : "Pasif")
+                        </span></td>
+                    <td>
+                        <a class="cr-btn" asp-action="Form"
+                           asp-route-cariId="@cari.Id"
+                           asp-route-section="@currentSection"
+                           asp-route-id="@item.Id">Düzenle</a>
+
+                        <form asp-action="ChangeStatus" method="post" style="display:inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="cariId" value="@cari.Id" />
+                            <input type="hidden" name="section" value="@currentSection" />
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="cr-btn">
+                                @(item.IsActive ? "Pasife Al" : "Aktifleştir")
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="4">Hen?z kay?t bulunmuyor.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

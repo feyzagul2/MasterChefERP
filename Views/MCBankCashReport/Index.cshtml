@@ -1,0 +1,397 @@
+@model MasterChefTakip.Controllers.MCBankCashReportPage
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Kasa ve Banka Hareket Raporu";
+    var tr = CultureInfo.GetCultureInfo("tr-TR");
+}
+
+<style>
+.mc-bank-report {
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 24px;
+    color: #193047;
+}
+.mc-bank-report * { box-sizing: border-box; }
+.mc-bank-report h1 { font-size: 28px; font-weight: 800; }
+.mc-bank-report .panel {
+    background: white;
+    border: 1px solid #e0e7ef;
+    border-radius: 15px;
+    padding: 22px;
+    margin: 20px 0;
+}
+.mc-bank-report .filters {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 12px;
+    align-items: end;
+}
+.mc-bank-report label {
+    font-size: 13px;
+    color: #50677d;
+    font-weight: 650;
+}
+.mc-bank-report input,
+.mc-bank-report select {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 7px;
+    border: 1px solid #d5e0eb;
+    border-radius: 9px;
+    min-height: 45px;
+}
+.mc-bank-report button {
+    background: #193752;
+    color: white;
+    border: 0;
+    border-radius: 9px;
+    padding: 12px 20px;
+    min-height: 45px;
+    cursor: pointer;
+}
+.mc-bank-report .cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+.mc-bank-report .card {
+    padding: 22px;
+    background: white;
+    border: 1px solid #e0e7ef;
+    border-radius: 15px;
+}
+.mc-bank-report .card strong {
+    display: block;
+    margin-top: 12px;
+    font-size: 25px;
+    overflow-wrap: anywhere;
+}
+.mc-bank-report .muted { color: #708398; font-size: 13px; }
+.mc-bank-report .green { color: #16865d; }
+.mc-bank-report .red { color: #bd4545; }
+.mc-bank-report .blue { color: #235f98; }
+.mc-bank-report .table-wrap { overflow-x: auto; }
+.mc-bank-report table { width: 100%; border-collapse: collapse; }
+.mc-bank-report th,
+.mc-bank-report td {
+    padding: 13px;
+    text-align: left;
+    border-bottom: 1px solid #e6edf3;
+    font-size: 13px;
+}
+.mc-bank-report th { background: #f7f9fc; color: #60758a; }
+.mc-bank-report .empty {
+    padding: 25px;
+    text-align: center;
+    background: #f8fafc;
+    border-radius: 10px;
+    color: #708398;
+}
+.mc-bank-report .back {
+    display: inline-block;
+    margin-bottom: 10px;
+    color: #235f98;
+    text-decoration: none;
+}
+@@media(max-width: 900px) {
+    .mc-bank-report .filters {
+        grid-template-columns: 1fr 1fr;
+    }
+    .mc-bank-report .cards {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+@@media(max-width: 600px) {
+    .mc-bank-report .filters,
+    .mc-bank-report .cards {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<div class="mc-bank-report">
+
+    <a href="/MCBankCash" class="back">
+        ← Kasa ve Banka Yönetimine Dön
+    </a>
+
+    <h1>Hesap Hareketleri Raporu</h1>
+<!-- MC_FINANCE_QUICK_ACCESS_V1 -->
+
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin:18px 0">
+
+    <a href="/MCBankCashAudit?start=@Model.Start&amp;end=@Model.End"
+       style="display:inline-block;padding:12px 18px;
+              background:#235f98;color:white;
+              border-radius:9px;text-decoration:none;
+              font-weight:750">
+        Virman Mutabakatı
+    </a>
+
+    <a href="/MCBankCashAudit?start=@Model.Start&amp;end=@Model.End&amp;status=issues"
+       style="display:inline-block;padding:12px 18px;
+              background:#bd4545;color:white;
+              border-radius:9px;text-decoration:none;
+              font-weight:750">
+        Sorunlu Virmanlar
+    </a>
+
+</div>
+
+    <!-- MC_VIRMAN_AUDIT_LINK -->
+    <div style="margin:14px 0">
+        <a href="/MCBankCashAudit"
+           style="display:inline-block;padding:12px 18px;
+                  background:#235f98;color:white;
+                  border-radius:9px;text-decoration:none">
+            Virman Mutabakat Kontrolü
+        </a>
+    </div>
+
+    <p class="muted">
+        Kasa ve banka hareketlerini hesap ve tarih aralığına göre inceleyin.
+    </p>
+
+    <div class="panel">
+        <form method="get"
+              action="/MCBankCashReport"
+              class="filters">
+
+            <label>
+                Hesap
+                <select name="accountId">
+                    <option value="">Tüm Hesaplar</option>
+
+                    @foreach (var account in Model.Accounts)
+                    {
+                        if (Model.AccountId == account.Id)
+                        {
+                            <option value="@account.Id" selected>
+                                @account.Name (@account.Code)
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@account.Id">
+                                @account.Name (@account.Code)
+                            </option>
+                        }
+                    }
+                </select>
+            </label>
+
+            <label>
+                Başlangıç Tarihi
+                <input type="date"
+                       name="start"
+                       value="@Model.Start"
+                       required />
+            </label>
+
+            <label>
+                Bitiş Tarihi
+                <input type="date"
+                       name="end"
+                       value="@Model.End"
+                       required />
+            </label>
+
+            <button type="submit">
+                Raporu Göster
+            </button>
+        </form>
+    </div>
+
+
+    <section class="panel">
+        <h2>Para Hareketleri ve Virman Ayrımı</h2>
+
+        <p class="muted">
+            Virmanlar hesap bakiyesine dahildir ancak dışarıdan
+            gelen tahsilat veya dışarıya yapılan ödeme sayılmaz.
+        </p>
+
+        <div class="cards">
+            <div class="card">
+                <div class="muted">Virman Hariç Para Girişi</div>
+                <strong class="green">@Model.ExternalIn.ToString("N2", tr) ₺</strong>
+            </div>
+
+            <div class="card">
+                <div class="muted">Virman Hariç Para Çıkışı</div>
+                <strong class="red">@Model.ExternalOut.ToString("N2", tr) ₺</strong>
+            </div>
+
+            <div class="card">
+                <div class="muted">Virman Girişi</div>
+                <strong class="blue">@Model.TransferIn.ToString("N2", tr) ₺</strong>
+            </div>
+
+            <div class="card">
+                <div class="muted">Virman Çıkışı</div>
+                <strong class="blue">@Model.TransferOut.ToString("N2", tr) ₺</strong>
+            </div>
+        </div>
+    </section>
+    <div class="cards">
+
+    <div class="card">
+        <div class="muted">Dönem Başı Bakiyesi</div>
+        <strong class="blue">
+            @Model.OpeningBalance.ToString("N2", tr) ₺
+        </strong>
+    </div>
+
+    <div class="card">
+        <div class="muted">Dönem Sonu Bakiyesi</div>
+        <strong class="blue">
+            @Model.ClosingBalance.ToString("N2", tr) ₺
+        </strong>
+    </div>
+
+
+        <div class="card">
+            <div class="muted">Toplam Para Girişi</div>
+            <strong class="green">@Model.TotalIn.ToString("N2", tr) ₺</strong>
+        </div>
+
+        <div class="card">
+            <div class="muted">Toplam Para Çıkışı</div>
+            <strong class="red">@Model.TotalOut.ToString("N2", tr) ₺</strong>
+        </div>
+
+        <div class="card">
+            <div class="muted">Net Hareket</div>
+            <strong class="blue">@Model.Net.ToString("N2", tr) ₺</strong>
+        </div>
+
+        <div class="card">
+            <div class="muted">İşlem Sayısı</div>
+            <strong>@Model.Rows.Count</strong>
+        </div>
+
+    </div>
+
+    <div class="panel">
+
+        <h2>Hesap Hareketleri</h2>
+<form method="get"
+      action="/MCBankCashExport"
+      style="margin:15px 0">
+
+    <input type="hidden"
+           id="mcExportAccount"
+           name="accountId"
+           value="@(Model.AccountId?.ToString() ?? "")" />
+
+    <input type="hidden"
+           id="mcExportStart"
+           name="start"
+           value="@Model.Start" />
+
+    <input type="hidden"
+           id="mcExportEnd"
+           name="end"
+           value="@Model.End" />
+
+    <button type="submit"
+            style="background:#16865d;color:white;
+                   padding:12px 20px;border:0;
+                   border-radius:9px;cursor:pointer">
+        Excel'e Aktar (CSV)
+    </button>
+</form>
+
+<script>
+(function () {
+    const exportForm = document.querySelector(
+        'form[action="/MCBankCashExport"]'
+    );
+
+    if (!exportForm) return;
+
+    exportForm.addEventListener("submit", function () {
+        const filterForm = document.querySelector(
+            'form[action="/MCBankCashReport"]'
+        );
+
+        if (!filterForm) return;
+
+        document.getElementById("mcExportAccount").value =
+            filterForm.querySelector('[name="accountId"]').value;
+
+        document.getElementById("mcExportStart").value =
+            filterForm.querySelector('[name="start"]').value;
+
+        document.getElementById("mcExportEnd").value =
+            filterForm.querySelector('[name="end"]').value;
+    });
+})();
+</script>
+
+        @if (Model.Rows.Count == 0)
+        {
+            <div class="empty">
+                Seçilen tarih aralığında hesap hareketi bulunmuyor.
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Hesap</th>
+                            <th>İşlem</th>
+                            <th>Açıklama</th>
+                            <th>Belge</th>
+                            <th>Tutar</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var row in Model.Rows)
+                        {
+                            var incoming = row.Direction == "In";
+
+                            <tr>
+                                <td>@row.Date</td>
+
+                                <td>
+                                    @row.AccountName
+                                    <div class="muted">@row.AccountCode</div>
+                                </td>
+
+                                <td>
+                                    @(row.IsTransfer ? (incoming ? "Virman Girişi" : "Virman Çıkışı") : (incoming ? "Para Girişi" : "Para Çıkışı"))
+                                </td>
+
+                                <td>@row.Description</td>
+
+                                <td>@row.Reference</td>
+
+                                <td class="@(incoming ? "green" : "red")">
+                                    <strong>
+                                        @(incoming ? "+" : "-")@row.Amount.ToString("N2", tr) ₺
+                                    </strong>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <p class="muted">
+        Bu rapor seçilen dönemin hareket toplamlarını gösterir.
+        Net hareket, hesapların dönem sonu bakiyesi değildir.
+        Virmanlar da para girişi ve çıkışı olarak listelenir;
+        şirket geliri veya gideri sayılmaz.
+    </p>
+</div>
+<style>/* MC_FINANCE_BACK_STANDARD_V1 */.mc-bank-report .back,.mc-audit .back{display:inline-flex!important;align-items:center;padding:9px 13px;border:1px solid #d5e0ec;border-radius:8px;background:#fff!important;color:#18365f!important;text-decoration:none!important;font-weight:700}.mc-bank-report .back:hover,.mc-bank-report .back:focus,.mc-audit .back:hover,.mc-audit .back:focus{background:#18365f!important;color:#fff!important;border-color:#18365f!important}</style>

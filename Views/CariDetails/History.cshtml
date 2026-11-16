@@ -1,0 +1,58 @@
+
+@model List<MasterChefTakip.Models.CariAuditEvent>
+@{
+    var cari = (MasterChefTakip.Models.CariAccount)ViewBag.Cari;
+    ViewData["Title"] = "Cari ??lem Geçmişi";
+}
+
+<style>
+.cr-wrap{max-width:1200px;margin:auto}
+.cr-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;margin:18px 0}
+.cr-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.cr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.cr-field{display:flex;flex-direction:column;gap:6px}
+.cr-field label{font-size:13px;font-weight:650}
+.cr-field input,.cr-field select,.cr-field textarea{width:100%;border:1px solid #cbd5e1;border-radius:9px;padding:11px}
+.cr-btn{display:inline-block;padding:11px 16px;background:#fff;color:#17406a;border:1px solid #cbd5e1;border-radius:9px;text-decoration:none;cursor:pointer}
+.cr-primary{background:#17406a;color:#fff;border-color:#17406a}
+.cr-scroll{overflow-x:auto}
+.cr-table{width:100%;min-width:700px;border-collapse:collapse}
+.cr-table th{text-align:left;background:#f8fafc;padding:13px}
+.cr-table td{padding:13px;border-top:1px solid #edf2f7}
+@@media(max-width:650px){.cr-grid{grid-template-columns:1fr}}
+</style>
+
+<div class="cr-wrap">
+    <a class="cr-btn" asp-controller="CariAccounts" asp-action="Details"
+       asp-route-id="@cari.Id">Cari Kartına Dön</a>
+    <h1 style="margin-top:20px">??lem Geçmişi</h1>
+    <div>@cari.CompanyName</div>
+
+    <div class="cr-card cr-scroll">
+        <table class="cr-table">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>??lem</th>
+                    <th>Açıklama</th>
+                    <th>Kullan?c?</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@item.Action</td>
+                    <td>@item.Description</td>
+                    <td>@item.ActorName</td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="4">Hen?z işlem kaydı yok.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

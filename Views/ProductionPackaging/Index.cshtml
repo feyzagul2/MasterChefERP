@@ -1,0 +1,668 @@
+@model MasterChefTakip.Controllers.ProductionPackagingPage
+@{
+    ViewData["Title"] = "Uretim Paketleme Baglantisi";
+}
+
+<!-- MC_PRODUCTION_PACKAGING_LINK_2026 -->
+
+<style>
+.mc-ppl{max-width:1150px;margin:auto;color:#17365b}
+.mc-ppl h1{font-size:24px;margin:0 0 8px}
+.mc-ppl h2{font-size:17px;margin:0 0 18px}
+.mc-ppl-card{background:#fff;border:1px solid #dbe4ef;border-radius:12px;padding:20px;margin:16px 0}
+.mc-ppl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.mc-ppl-field{display:flex;flex-direction:column;gap:6px}
+.mc-ppl-field label{font-size:12px;font-weight:600;color:#475569}
+.mc-ppl-field select{min-height:45px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;width:100%;box-sizing:border-box}
+.mc-ppl-btn{background:#17406a;color:#fff;border:0;border-radius:8px;padding:12px 18px;cursor:pointer}
+.mc-ppl-info{background:#eff6ff;color:#1e40af;padding:12px;border-radius:8px;font-size:13px}
+.mc-ppl-success{background:#dcfce7;color:#166534;padding:12px;border-radius:8px}
+.mc-ppl-scroll{overflow-x:auto}
+.mc-ppl-table{width:100%;min-width:800px;border-collapse:collapse}
+.mc-ppl-table th{text-align:left;background:#f8fafc;font-size:12px;padding:12px}
+.mc-ppl-table td{padding:12px;border-bottom:1px solid #e2e8f0;font-size:13px}
+@@media(max-width:700px){.mc-ppl-grid{grid-template-columns:1fr}}
+</style>
+
+<div class="mc-ppl">
+    <div class="mc-section-nav"><a href="/Production">Reçeteler</a><a href="/Production/Orders">Üretim Emirleri</a><a href="/ProductionPackaging">Ambalajlama</a><a href="/mc-production-pallet-transfer-screen">Palet</a></div><h1>&#220;retim / Paketleme / Lot Ba&#287;lant&#305;s&#305;</h1>
+
+    <div class="mc-ppl-info">
+        Tamamlanm&#305;&#351; &#252;retim emirleri,
+        kaydedilmi&#351; paketleme i&#351;lemleri ve
+        kalite onayl&#305; lotlar birbiriyle e&#351;le&#351;tirilir.
+        &#220;r&#252;n kodlar&#305; e&#351;it olmal&#305;d&#305;r.
+        Bu ekranda mevcut stok miktar&#305; de&#287;i&#351;tirilmez.
+    </div>
+
+    @if (TempData["PackagingLinkSuccess"] is string message)
+    {
+        <div class="mc-ppl-success" style="margin-top:15px">
+            @message
+        </div>
+    }
+
+    <div class="mc-ppl-card">
+        <h2>Yeni Ba&#287;lant&#305; Olu&#351;tur</h2>
+
+        <form asp-action="Connect" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="mc-ppl-grid">
+                <div class="mc-ppl-field">
+                    <label>Tamamlanan &#220;retim Emri</label>
+
+                    <select name="productionOrderId" required>
+                        <option value="">&#220;retim Emri Se&#231;iniz</option>
+
+                        @foreach (var o in Model.Orders)
+                        {
+                            <option value="@o.Id">
+                                @o.OrderNumber - @o.Recipe.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-ppl-field">
+                    <label>Paketleme Kayd&#305;</label>
+
+                    <select name="packagingBatchId" required>
+                        <option value="">Paketleme Se&#231;iniz</option>
+
+                        @foreach (var b in Model.Batches)
+                        {
+                            <option value="@b.Id">
+                                @b.Date.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                - &#220;r&#252;n ID: @b.ProductId
+                                - @b.Id.Substring(0, 8)
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-ppl-field">
+                    <label>Kalite Onayl&#305; Lot</label>
+
+                    <select name="productLotId" required>
+                        <option value="">Lot Se&#231;iniz</option>
+
+                        @foreach (var l in Model.Lots)
+                        {
+                            <option value="@l.Id">
+                                @l.LotNumber - @l.Product.Name
+                                - SKT @l.ExpiryDate.ToString("dd.MM.yyyy")
+                            </option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <br />
+
+            <button class="mc-ppl-btn" type="submit"
+                    onclick="return confirm('Uretim, paketleme ve lot kayitlari birbirine baglansin mi?')">
+                Ba&#287;lant&#305;y&#305; Kaydet
+            </button>
+        </form>
+    </div>
+
+    <div class="mc-ppl-card mc-ppl-scroll">
+        <h2>Kay&#305;tl&#305; Ba&#287;lant&#305;lar</h2>
+
+        <table class="mc-ppl-table">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>&#220;retim Emri</th>
+                    <th>Lot</th>
+                    <th>&#220;r&#252;n</th>
+                    <th>Paketleme</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            @foreach (var x in Model.Links)
+            {
+                <tr>
+                    <td>
+                        @x.CreatedAtUtc.ToLocalTime()
+                            .ToString("dd.MM.yyyy HH:mm")
+                    </td>
+
+                    <td>@x.ProductionOrder.OrderNumber</td>
+
+                    <td>@x.ProductLot.LotNumber</td>
+
+                    <td>@x.ProductLot.Product.Name</td>
+
+                    <td>
+                        @x.PackagingBatchId.Substring(0, 8)
+                    </td>
+                </tr>
+            }
+
+            @if (!Model.Links.Any())
+            {
+                <tr>
+                    <td colspan="5">
+                        Hen&#252;z ba&#287;lant&#305; bulunmuyor.
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- MC_PRODUCTION_PACKAGING_PREVIEW_V1 -->
+<section id="mcProductionPackagingPreview"
+         style="margin:24px 0;padding:22px;border:1px solid #d9e2ec;border-radius:12px;background:#fff;">
+
+    <h3 style="margin-top:0;">
+        Üretimden Koli ve Palet Hesaplama
+    </h3>
+
+    <p style="color:#64748b;">
+        Bu alan hesaplama amaçlıdır. Stok ve sevkiyat kayıtlarını değiştirmez.
+    </p>
+
+    <form id="mcProductionPackagingForm">
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;">
+
+            <label>
+                Üretilen Miktar (kg)
+                <input id="mcProducedKg"
+                       type="number"
+                       min="0"
+                       step="any"
+                       required
+                       style="width:100%;padding:9px;margin-top:5px;"
+                       placeholder="Örn. 98" />
+            </label>
+
+            <label>
+                Ürün Gramajı (g)
+                <input id="mcUnitGrams"
+                       type="number"
+                       min="0.001"
+                       step="any"
+                       required
+                       style="width:100%;padding:9px;margin-top:5px;"
+                       placeholder="Örn. 730" />
+            </label>
+
+            <label>
+                Koli İçi Adet
+                <input id="mcUnitsPerBox"
+                       type="number"
+                       min="1"
+                       step="1"
+                       required
+                       style="width:100%;padding:9px;margin-top:5px;"
+                       placeholder="Örn. 12" />
+            </label>
+
+            <label>
+                Palet Koli Kapasitesi
+                <input id="mcBoxesPerPallet"
+                       type="number"
+                       min="1"
+                       step="1"
+                       value="84"
+                       required
+                       style="width:100%;padding:9px;margin-top:5px;" />
+            </label>
+
+        </div>
+
+        <button type="submit"
+                style="margin-top:18px;padding:11px 24px;background:#17365d;color:white;border:0;border-radius:8px;cursor:pointer;">
+            Hesapla
+        </button>
+
+    </form>
+
+    <div id="mcPackagingResult"
+         aria-live="polite"
+         style="margin-top:20px;display:none;">
+
+        <h4>Hesaplama Sonucu</h4>
+
+        <div id="mcPackagingResultLines"
+             style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;">
+        </div>
+
+        <p style="margin-top:15px;color:#64748b;">
+            Sonuçlar yalnızca bilgilendirme amaçlıdır.
+            Stok hareketi veya palet kaydı oluşturulmamıştır.
+        </p>
+
+    </div>
+
+    <p id="mcPackagingError"
+       role="alert"
+       style="margin-top:12px;color:#b91c1c;display:none;">
+    </p>
+
+</section>
+
+<script>
+(function () {
+    "use strict";
+
+    const form = document.getElementById("mcProductionPackagingForm");
+    const resultBox = document.getElementById("mcPackagingResult");
+    const lines = document.getElementById("mcPackagingResultLines");
+    const errorBox = document.getElementById("mcPackagingError");
+
+    if (!form || !resultBox || !lines || !errorBox) {
+        return;
+    }
+
+    function value(id) {
+        return document.getElementById(id).value;
+    }
+
+    function numericText(value) {
+        return Number(value).toLocaleString("tr-TR", {
+            maximumFractionDigits: 3
+        });
+    }
+
+    function addResult(label, value) {
+        const box = document.createElement("div");
+
+        box.style.padding = "12px";
+        box.style.background = "#f1f5f9";
+        box.style.borderRadius = "8px";
+
+        const caption = document.createElement("div");
+        caption.style.fontSize = "13px";
+        caption.style.color = "#475569";
+        caption.textContent = label;
+
+        const number = document.createElement("strong");
+        number.style.fontSize = "20px";
+        number.textContent = numericText(value);
+
+        box.appendChild(caption);
+        box.appendChild(number);
+
+        lines.appendChild(box);
+    }
+
+    form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        errorBox.style.display = "none";
+        resultBox.style.display = "none";
+        lines.replaceChildren();
+
+        const parameters = new URLSearchParams({
+            producedKg: value("mcProducedKg"),
+            unitGrams: value("mcUnitGrams"),
+            unitsPerBox: value("mcUnitsPerBox"),
+            boxesPerPallet: value("mcBoxesPerPallet")
+        });
+
+        try {
+            const response = await fetch(
+                "/mc-production-packaging-preview/calculate?" +
+                parameters.toString(),
+                {
+                    method: "GET",
+                    credentials: "same-origin",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    data.title ||
+                    "Hesaplama yapılamadı."
+                );
+            }
+
+            function field(name) {
+                const pascal = name.charAt(0).toUpperCase() +
+                               name.slice(1);
+
+                return data[name] ?? data[pascal] ?? 0;
+            }
+
+            addResult("Toplam Ürün Adedi", field("totalUnits"));
+            addResult("Tam Koli", field("fullBoxes"));
+            addResult("Koli Dışı Adet", field("looseUnits"));
+            addResult("Tam Palet", field("fullPallets"));
+            addResult("Kalan Tam Koli", field("remainingBoxes"));
+            addResult("Paketlenen Miktar (kg)", field("packagedKg"));
+            addResult("Paketlenmeyen Miktar (g)", field("remainingGrams"));
+
+            resultBox.style.display = "block";
+        }
+        catch (error) {
+            errorBox.textContent =
+                error.message || "Hesaplama sırasında hata oluştu.";
+
+            errorBox.style.display = "block";
+        }
+    });
+})();
+</script>
+
+<!-- MC_RECEIPT_PACKAGING_INTEGRATION_V2 -->
+
+<section id="mcReceiptPackagingV2"
+         style="margin:24px 0;padding:22px;background:#fff;border:1px solid #cbd5e1;border-radius:12px;">
+
+    <h3 style="margin-top:0;">
+        Mamul Girişinden Otomatik Palet Hesaplama
+    </h3>
+
+    <p style="color:#64748b;">
+        Tamamlanan üretimin mamul giriş numarasını yazın.
+        Ürün kartı, gramaj ve koli bilgileri doğrulanarak
+        palet miktarı hesaplanır.
+    </p>
+
+    <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:end;">
+
+        <label>
+            Mamul Giriş Numarası
+            <input id="mcReceiptNumberV2"
+                   type="number"
+                   min="1"
+                   step="1"
+                   style="display:block;padding:10px;margin-top:5px;"
+                   placeholder="Mamul giriş ID" />
+        </label>
+
+        <label>
+            Palet Koli Kapasitesi
+            <input id="mcPalletCapacityV2"
+                   type="number"
+                   min="1"
+                   step="1"
+                   value="84"
+                   style="display:block;padding:10px;margin-top:5px;" />
+        </label>
+
+        <button id="mcReceiptCalculateV2"
+                type="button"
+                style="padding:11px 20px;background:#17365d;color:white;border:0;border-radius:8px;cursor:pointer;">
+            Ürünü Getir ve Hesapla
+        </button>
+
+    </div>
+
+    <p id="mcReceiptMessageV2"
+       role="status"
+       aria-live="polite"
+       style="margin-top:15px;">
+    </p>
+
+    <div id="mcReceiptResultsV2"
+         style="display:none;margin-top:20px;">
+
+        <h4>Üretim ve Ambalajlama Sonucu</h4>
+
+        <div id="mcReceiptCardsV2"
+             style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+        </div>
+
+        <p style="margin-top:16px;color:#64748b;">
+            Bu hesaplama stok, palet veya sevkiyat kaydı oluşturmaz.
+        </p>
+
+    </div>
+
+</section>
+
+<script>
+(function () {
+    "use strict";
+
+    const button = document.getElementById(
+        "mcReceiptCalculateV2"
+    );
+
+    const receiptInput = document.getElementById(
+        "mcReceiptNumberV2"
+    );
+
+    const capacityInput = document.getElementById(
+        "mcPalletCapacityV2"
+    );
+
+    const message = document.getElementById(
+        "mcReceiptMessageV2"
+    );
+
+    const results = document.getElementById(
+        "mcReceiptResultsV2"
+    );
+
+    const cards = document.getElementById(
+        "mcReceiptCardsV2"
+    );
+
+    if (!button || !receiptInput || !capacityInput ||
+        !message || !results || !cards) {
+        return;
+    }
+
+    function getValue(data, name) {
+        const alternate =
+            name.charAt(0).toUpperCase() + name.slice(1);
+
+        return data[name] ?? data[alternate];
+    }
+
+    function formatNumber(value) {
+        return Number(value).toLocaleString("tr-TR", {
+            maximumFractionDigits: 3
+        });
+    }
+
+    function addCard(label, value) {
+        const card = document.createElement("div");
+
+        card.style.background = "#f1f5f9";
+        card.style.borderRadius = "8px";
+        card.style.padding = "14px";
+
+        const title = document.createElement("div");
+        title.textContent = label;
+        title.style.fontSize = "13px";
+        title.style.color = "#475569";
+
+        const amount = document.createElement("strong");
+        amount.textContent = String(value);
+        amount.style.fontSize = "19px";
+
+        card.appendChild(title);
+        card.appendChild(amount);
+
+        cards.appendChild(card);
+    }
+
+    async function readJson(url) {
+        const response = await fetch(url, {
+            method: "GET",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json"
+            }
+        });
+
+        const type = response.headers.get("content-type") || "";
+
+        if (!type.includes("application/json")) {
+            throw new Error(
+                "API JSON yaniti vermedi. Oturum veya yetki kontrol edilmeli."
+            );
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                getValue(data, "message") ||
+                getValue(data, "error") ||
+                "API hatasi: HTTP " + response.status
+            );
+        }
+
+        return data;
+    }
+
+    button.addEventListener("click", async function () {
+        results.style.display = "none";
+        cards.replaceChildren();
+
+        message.textContent = "";
+        message.style.color = "#334155";
+
+        const receiptId = Number(receiptInput.value);
+        const palletCapacity = Number(capacityInput.value);
+
+        if (!Number.isSafeInteger(receiptId) || receiptId <= 0) {
+            message.textContent = "Gecerli mamul giris numarasi yazin.";
+            message.style.color = "#b91c1c";
+            return;
+        }
+
+        if (!Number.isSafeInteger(palletCapacity) ||
+            palletCapacity <= 0) {
+            message.textContent = "Gecerli palet kapasitesi yazin.";
+            message.style.color = "#b91c1c";
+            return;
+        }
+
+        button.disabled = true;
+
+        try {
+            message.textContent = "Urun bilgileri dogrulaniyor...";
+
+            const receipt = await readJson(
+                "/mc-production-card-match/receipt/" +
+                encodeURIComponent(receiptId)
+            );
+
+            if (
+                getValue(receipt, "verified") !== true ||
+                getValue(receipt, "packagingReady") !== true
+            ) {
+                throw new Error(
+                    getValue(receipt, "message") ||
+                    "Urun karti veya ambalaj bilgileri eksik."
+                );
+            }
+
+            const kg = Number(getValue(receipt, "actualKg"));
+            const grams = Number(getValue(receipt, "unitGrams"));
+            const unitsPerBox = Number(
+                getValue(receipt, "unitsPerBox")
+            );
+
+            if (
+                !Number.isFinite(kg) || kg <= 0 ||
+                !Number.isFinite(grams) || grams <= 0 ||
+                !Number.isSafeInteger(unitsPerBox) ||
+                unitsPerBox <= 0
+            ) {
+                throw new Error(
+                    "Urun kartinda gecerli ambalaj bilgileri bulunamadi."
+                );
+            }
+
+            message.textContent = "Koli ve palet hesaplanıyor...";
+
+            const params = new URLSearchParams({
+                producedKg: String(kg),
+                unitGrams: String(grams),
+                unitsPerBox: String(unitsPerBox),
+                boxesPerPallet: String(palletCapacity)
+            });
+
+            const calculated = await readJson(
+                "/mc-production-packaging-preview/calculate?" +
+                params.toString()
+            );
+
+            const label = getValue(receipt, "cardLabel") || "";
+            const productId = getValue(receipt, "productId");
+
+            addCard("Ürün", label || "Kart " + productId);
+            addCard("Ürün Kartı", productId);
+            addCard("Üretilen Miktar (kg)", formatNumber(kg));
+            addCard("Ürün Gramajı (g)", formatNumber(grams));
+            addCard("Koli İçi Adet", formatNumber(unitsPerBox));
+
+            addCard(
+                "Toplam Ürün Adedi",
+                formatNumber(getValue(calculated, "totalUnits"))
+            );
+
+            addCard(
+                "Tam Koli",
+                formatNumber(getValue(calculated, "fullBoxes"))
+            );
+
+            addCard(
+                "Koli Dışı Adet",
+                formatNumber(getValue(calculated, "looseUnits"))
+            );
+
+            addCard(
+                "Tam Palet",
+                formatNumber(getValue(calculated, "fullPallets"))
+            );
+
+            addCard(
+                "Kalan Tam Koli",
+                formatNumber(getValue(calculated, "remainingBoxes"))
+            );
+
+            addCard(
+                "Paketlenen Miktar (kg)",
+                formatNumber(getValue(calculated, "packagedKg"))
+            );
+
+            addCard(
+                "Paketlenmeyen Miktar (g)",
+                formatNumber(getValue(calculated, "remainingGrams"))
+            );
+
+            results.style.display = "block";
+
+            message.textContent =
+                "Ürün doğrulandı. Koli ve palet hesabı tamamlandı.";
+
+            message.style.color = "#166534";
+        }
+        catch (error) {
+            message.textContent =
+                error.message || "Hesaplama tamamlanamadi.";
+
+            message.style.color = "#b91c1c";
+        }
+        finally {
+            button.disabled = false;
+        }
+    });
+})();
+</script>
+
+<!-- /MC_RECEIPT_PACKAGING_INTEGRATION_V2 -->
+<!-- /MC_PRODUCTION_PACKAGING_PREVIEW_V1 -->
+
+

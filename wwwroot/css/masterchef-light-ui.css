@@ -1,0 +1,641 @@
+/*
+   MASTER CHEF TAKIP
+   MERKEZI ACIK GRI / MAVI ARAYUZ
+
+   Ana zemin     : #E3EAF2
+   Hafif hover   : #E4EBF3
+   Ana yazi      : #24486D
+   Koyu yazi     : #173B60
+   Cerceve       : #D0DBE7
+*/
+
+/* ==========================================================
+   TABLO BASLIKLARI
+   Koyu mavi zemin TAMAMEN kaldirildi.
+   ========================================================== */
+
+html body table thead,
+html body table thead tr,
+html body table thead th,
+html body table thead td,
+html body .table thead,
+html body .table thead tr,
+html body .table thead th,
+html body .table thead td {
+    background: #E3EAF2 !important;
+    background-color: #E3EAF2 !important;
+    color: #24486D !important;
+    border-color: #D0DBE7 !important;
+}
+
+html body table thead th,
+html body .table thead th {
+    color: #24486D !important;
+    font-weight: 700 !important;
+}
+
+/* ==========================================================
+   ANA ISLEM BUTONLARI
+   ========================================================== */
+
+html body .btn-primary,`r`nhtml body button.btn-primary,`r`nhtml body a.btn-primary,`r`nhtml body input.btn-primary,`r`nhtml body .btn-dark,`r`nhtml body button.btn-dark,`r`nhtml body a.btn-dark {`r`n    background: #18365F !important;`r`n    background-color: #18365F !important;`r`n    border: 1px solid #18365F !important;`r`n    color: #FFFFFF !important;`r`n    box-shadow: none !important;`r`n}`r`n`r`nhtml body .btn-primary:hover,`r`nhtml body button.btn-primary:hover,`r`nhtml body a.btn-primary:hover,`r`nhtml body .btn-dark:hover,`r`nhtml body button.btn-dark:hover,`r`nhtml body a.btn-dark:hover {`r`n    background: #24486D !important;`r`n    background-color: #24486D !important;`r`n    border-color: #24486D !important;`r`n    color: #FFFFFF !important;`r`n}`r`n`r`nhtml body .btn-primary:disabled,`r`nhtml body .btn-dark:disabled,`r`nhtml body button.btn-primary:disabled,`r`nhtml body button.btn-dark:disabled,`r`nhtml body input.btn-primary:disabled,`r`nhtml body input.btn-dark:disabled,`r`nhtml body .btn-primary.disabled,`r`nhtml body .btn-dark.disabled {`r`n    opacity: 1 !important;`r`n    background: #E6EDF5 !important;`r`n    background-color: #E6EDF5 !important;`r`n    border-color: #C4D1DF !important;`r`n    color: #304B68 !important;`r`n}
+
+/* ==========================================================
+   SECILI SEKME / FILTRELER
+   ========================================================== */
+
+html body .nav-pills .nav-link.active,
+html body .nav-tabs .nav-link.active,
+html body .nav-link.active:not(.menu-item),
+html body [role="tab"][aria-selected="true"],
+html body .tab.active,
+html body .tabs .active,
+html body .filter-tab.active {
+    background: #E3EAF2 !important;
+    background-color: #E3EAF2 !important;
+    border-color: #D0DBE7 !important;
+    color: #24486D !important;
+    box-shadow: none !important;
+}
+
+/* ==========================================================
+   PRIMARY ARKA PLAN KULLANAN ICERIK ALANLARI
+   Sol menunun menu-item yapisina dokunmaz.
+   ========================================================== */
+
+html body .bg-primary:not(.sidebar):not(.menu-item),
+html body .text-bg-primary:not(.sidebar):not(.menu-item) {
+    background: #E3EAF2 !important;
+    background-color: #E3EAF2 !important;
+    color: #24486D !important;
+}
+
+/* ==========================================================
+   LINKLER
+   ========================================================== */
+
+html body main a:not(.btn):not(.menu-item),
+html body .content a:not(.btn):not(.menu-item),
+html body .page-content a:not(.btn):not(.menu-item) {
+    color: #285FA0;
+}
+
+/* ==========================================================
+   SOL MENUYU KORU
+   ========================================================== */
+
+html body .sidebar,
+html body .sidebar *,
+html body aside,
+html body aside * {
+    --mc-central-theme-ignore: 1;
+}
+
+/* MC_TABLE_STRUCTURE_V2_START */
+
+/* TABLOLAR TAM GENISLIK */
+html body main table,
+html body .main-content table,
+html body .content table,
+html body .page-content table,
+html body .table {
+    width: 100% !important;
+    max-width: none !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    background: #FFFFFF !important;
+    border: 1px solid #C5D1DE !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+}
+
+/* TABLO BULUNAN BLOKLAR YARIM KALMASIN */
+html body main div:has(> table),
+html body main section:has(> table),
+html body main .card:has(table),
+html body .main-content div:has(> table),
+html body .main-content section:has(> table) {
+    width: 100% !important;
+    max-width: none !important;
+    grid-column: 1 / -1 !important;
+}
+
+/* BASLIK SATIRI */
+html body table thead th,
+html body .table thead th {
+    background: #E3EAF2 !important;
+    color: #24486D !important;
+    border-bottom: 2px solid #BFCBD8 !important;
+    padding: 13px 14px !important;
+    font-weight: 700 !important;
+}
+
+/* GOVDE SATIRLARI */
+html body table tbody td,
+html body .table tbody td {
+    padding: 13px 14px !important;
+    border-bottom: 1px solid #D4DDE7 !important;
+    color: #172B40 !important;
+}
+
+/* ALTERNATIF SATIR TONU */
+html body table tbody tr:nth-child(even) td,
+html body .table tbody tr:nth-child(even) td {
+    background: #F7F9FC !important;
+}
+
+html body table tbody tr:nth-child(odd) td,
+html body .table tbody tr:nth-child(odd) td {
+    background: #FFFFFF !important;
+}
+
+/* SON SATIR */
+html body table tbody tr:last-child td,
+html body .table tbody tr:last-child td {
+    border-bottom: 0 !important;
+}
+
+/* SATIR UZERINE GELINCE */
+html body table tbody tr:hover td,
+html body .table tbody tr:hover td {
+    background: #EEF3F8 !important;
+}
+
+/* ISLEM OZETI VE BENZER KARTLAR */
+html body main .card,
+html body .main-content .card,
+html body .content .card {
+    border-color: #D0DAE5;
+}
+
+/* MC_TABLE_STRUCTURE_V2_END */
+
+/* MC_FILTER_TABS_V1_START */
+
+/* Kontrol ekranlarindaki filtre linkleri */
+html body a.mc-filter-link {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    min-height: 38px !important;
+    padding: 8px 15px !important;
+    margin: 0 7px 10px 0 !important;
+
+    background: #E3EAF2 !important;
+    border: 1px solid #D0DBE7 !important;
+    border-radius: 8px !important;
+
+    color: #24486D !important;
+    font-weight: 600 !important;
+
+    text-decoration: none !important;
+    box-shadow: none !important;
+
+    transition:
+        background-color .15s ease,
+        border-color .15s ease,
+        color .15s ease !important;
+}
+
+html body a.mc-filter-link:hover {
+    background: #D8E2EC !important;
+    border-color: #BFCEDC !important;
+    color: #173B60 !important;
+    text-decoration: none !important;
+}
+
+/* Aktif filtre */
+html body a.mc-filter-link.is-active {
+    background: #D2DDE9 !important;
+    border-color: #AEBFD0 !important;
+    color: #173B60 !important;
+    font-weight: 700 !important;
+
+    box-shadow:
+        inset 0 -3px 0 #6D8EAF !important;
+}
+
+/* Kontrol merkezine geri don */
+html body a.mc-filter-back {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    min-height: 38px !important;
+    padding: 8px 15px !important;
+    margin: 0 7px 10px 0 !important;
+
+    background: #F5F7FA !important;
+    border: 1px solid #CBD6E1 !important;
+    border-radius: 8px !important;
+
+    color: #24486D !important;
+    font-weight: 600 !important;
+
+    text-decoration: none !important;
+}
+
+html body a.mc-filter-back:hover {
+    background: #E8EEF4 !important;
+    border-color: #B9C8D7 !important;
+    color: #173B60 !important;
+    text-decoration: none !important;
+}
+
+/* MC_FILTER_TABS_V1_END */
+
+
+
+/* MC_FILTER_TABS_V2_START */
+
+/* Tum ust filtre ve geri donus butonlari AYNI gorunum */
+html body a.mc-filter-link,
+html body a.mc-filter-back {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    height: 48px !important;
+    min-height: 48px !important;
+
+    padding: 0 20px !important;
+    margin: 0 10px 10px 0 !important;
+
+    background: #E3EAF2 !important;
+    background-color: #E3EAF2 !important;
+
+    border: 1px solid #C5D2DF !important;
+    border-radius: 9px !important;
+
+    color: #24486D !important;
+
+    font-size: 16px !important;
+    font-weight: 600 !important;
+
+    text-decoration: none !important;
+    box-shadow: none !important;
+}
+
+/* Hepsinde ayni hover */
+html body a.mc-filter-link:hover,
+html body a.mc-filter-back:hover {
+    background: #D9E2EC !important;
+    border-color: #B5C5D5 !important;
+    color: #173B60 !important;
+    text-decoration: none !important;
+}
+
+/* Aktif sekmenin sadece yazisi biraz daha belirgin */
+html body a.mc-filter-link.is-active {
+    background: #E3EAF2 !important;
+    border: 1px solid #C5D2DF !important;
+    color: #173B60 !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+
+/* Geri donus oku kalsin ama buton tasarimi ayni */
+html body a.mc-filter-back::before {
+    content: "←";
+    margin-right: 8px;
+    font-weight: 700;
+}
+
+/* MC_FILTER_TABS_V2_END */
+
+/* MC_MAL_KABUL_UX_V1_START */
+
+.mc-audit-summary {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 12px;
+    margin: 18px 0 20px 0;
+}
+
+.mc-audit-summary-card {
+    background: #E3EAF2;
+    border: 1px solid #CBD7E3;
+    border-radius: 9px;
+    padding: 14px 16px;
+}
+
+.mc-audit-summary-label {
+    display: block;
+    color: #56708A;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.mc-audit-summary-value {
+    display: block;
+    color: #173B60;
+    font-size: 22px;
+    line-height: 1.1;
+    font-weight: 700;
+}
+
+.mc-audit-empty {
+    padding: 24px !important;
+    text-align: center !important;
+    color: #60758A !important;
+    background: #F7F9FB !important;
+}
+
+.mc-filter-link.mc-runtime-active {
+    background: #D0DCE8 !important;
+    border-color: #A9BBCD !important;
+    color: #173B60 !important;
+    font-weight: 700 !important;
+}
+
+@media (max-width: 900px) {
+    .mc-audit-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* MC_MAL_KABUL_UX_V1_END */
+
+/* MC_COMPACT_FILTERS_V1_START */
+
+html body a.mc-filter-link,
+html body a.mc-filter-back {
+    height: 38px !important;
+    min-height: 38px !important;
+    width: auto !important;
+    min-width: 0 !important;
+
+    padding: 0 14px !important;
+    margin: 0 8px 8px 0 !important;
+
+    border-radius: 7px !important;
+
+    font-size: 14px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+}
+
+/* Aktif filtreyi buyutma */
+html body a.mc-filter-link.is-active,
+html body a.mc-filter-link.mc-runtime-active {
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 14px !important;
+    box-shadow: none !important;
+}
+
+/* Geri donus da digerleriyle ayni boyutta */
+html body a.mc-filter-back {
+    background: #E3EAF2 !important;
+    border-color: #C5D2DF !important;
+    color: #24486D !important;
+}
+
+/* MC_COMPACT_FILTERS_V1_END */
+
+
+/* MC_VISIBILITY_REPAIR_V1 */
+
+/* =========================================================
+   SIDEBAR IKONLARI
+   ========================================================= */
+
+.sidebar .menu-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    width: 19px !important;
+    height: 19px !important;
+    min-width: 19px !important;
+    flex: 0 0 19px !important;
+
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    color: #cbd5e1 !important;
+}
+
+.sidebar .menu-icon .ui-icon,
+.sidebar .menu-icon svg {
+    display: block !important;
+
+    width: 18px !important;
+    height: 18px !important;
+
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    color: inherit !important;
+}
+
+/* SVG sprite referansi gorunur kalsin */
+.sidebar .menu-icon svg use {
+    display: block !important;
+    opacity: 1 !important;
+}
+
+/* Aktif menude ikon beyaz */
+.sidebar .menu-item.is-active .menu-icon,
+.sidebar .menu-item:hover .menu-icon {
+    color: #ffffff !important;
+}
+
+/* Menu yazilari da soluklasmasin */
+.sidebar .menu-item {
+    opacity: 1 !important;
+}
+
+.sidebar .menu-item > span:not(.menu-icon) {
+    opacity: 1 !important;
+}
+
+/* =========================================================
+   PRODUCTION BUTONLARI
+   ========================================================= */
+
+.mc-prod-btn {
+    opacity: 1 !important;
+    text-decoration: none !important;
+}
+
+.mc-prod-btn.mc-prod-primary,
+.mc-prod-btn.mc-prod-primary:link,
+.mc-prod-btn.mc-prod-primary:visited,
+.mc-prod-btn.mc-prod-primary:hover,
+.mc-prod-btn.mc-prod-primary:focus,
+.mc-prod-btn.mc-prod-primary:active {
+    background: #17406a !important;
+    border-color: #17406a !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    text-decoration: none !important;
+}
+
+/* Beyaz Production butonlari */
+.mc-prod-btn:not(.mc-prod-primary),
+.mc-prod-btn:not(.mc-prod-primary):link,
+.mc-prod-btn:not(.mc-prod-primary):visited {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #17406a !important;
+    opacity: 1 !important;
+}
+
+/* =========================================================
+   CARI BUTONU
+   ========================================================= */
+
+.ca-btn.ca-primary,
+.ca-btn.ca-primary:link,
+.ca-btn.ca-primary:visited,
+.ca-btn.ca-primary:hover,
+.ca-btn.ca-primary:focus,
+.ca-btn.ca-primary:active {
+    background: #17406a !important;
+    border-color: #17406a !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    text-decoration: none !important;
+}
+
+/* MC_VISIBILITY_REPAIR_V1_END */
+
+
+/* MC_OPERATIONS_VISIBILITY_FIX_V2 */
+
+/* =====================================================
+   SOL OPERASYON MENUSU IKONLARI
+   ===================================================== */
+
+.mc-ops-menu-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    width: 20px !important;
+    min-width: 20px !important;
+    height: 20px !important;
+
+    margin-right: 10px !important;
+
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    color: #cbd5e1 !important;
+}
+
+.mc-ops-menu-icon svg {
+    display: block !important;
+
+    width: 18px !important;
+    height: 18px !important;
+
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    color: inherit !important;
+
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 1.8 !important;
+}
+
+/* Normal menu ikonlari da garanti */
+.sidebar .menu-icon,
+.sidebar .menu-icon svg,
+.sidebar .ui-icon {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* =====================================================
+   OPERASYON LINKLERI
+   ===================================================== */
+
+.mc-ops-menu-link {
+    opacity: 1 !important;
+}
+
+.mc-ops-menu-link .mc-ops-menu-icon {
+    opacity: 1 !important;
+}
+
+/* Aktif operasyon linki */
+.mc-ops-menu-link.active,
+.mc-ops-menu-link.is-active,
+.mc-ops-menu-link[aria-current="page"] {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.mc-ops-menu-link.active *,
+.mc-ops-menu-link.is-active *,
+.mc-ops-menu-link[aria-current="page"] * {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* =====================================================
+   URETIM UST SEKME
+   ===================================================== */
+
+/* Koyu aktif sekmede mavi yazi kalmasin */
+a.active,
+a.is-active,
+button.active,
+button.is-active {
+    opacity: 1 !important;
+}
+
+/* Production aktif ana sekmesi */
+a[href="/Production"].active,
+a[href="/Production"].is-active,
+a[href="/Production"][aria-current="page"] {
+    color: #ffffff !important;
+}
+
+a[href="/Production"].active *,
+a[href="/Production"].is-active *,
+a[href="/Production"][aria-current="page"] * {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* Uretim navigasyonunda koyu secili kutu */
+.mc-prod-primary,
+.mc-prod-primary:link,
+.mc-prod-primary:visited,
+.mc-prod-primary:hover,
+.mc-prod-primary:active,
+.mc-prod-primary:focus {
+    background: #17406a !important;
+    border-color: #17406a !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.mc-prod-primary * {
+    color: #ffffff !important;
+}
+
+/* =====================================================
+   PRIMARY BUTONLARDA SOLUK YAZIYI ENGELLE
+   ===================================================== */
+
+.btn-primary,
+a.btn-primary,
+button.btn-primary,
+[class*="primary"][role="button"] {
+    opacity: 1 !important;
+}
+
+.btn-primary *,
+a.btn-primary *,
+button.btn-primary * {
+    opacity: 1 !important;
+}
+
+/* MC_OPERATIONS_VISIBILITY_FIX_V2_END */

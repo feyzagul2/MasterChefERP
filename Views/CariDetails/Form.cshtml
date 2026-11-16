@@ -1,0 +1,197 @@
+
+@model MasterChefTakip.Controllers.CariRecordInput
+@{
+    var cari = (MasterChefTakip.Models.CariAccount)ViewBag.Cari;
+    ViewData["Title"] = "Cari Bilgisi";
+    var fields = Model.Section switch
+    {
+        "Bank" => new[] {
+            ("BankName","Banka Ad?"),
+            ("BranchName","?ube"),
+            ("AccountHolder","Hesap Sahibi"),
+            ("Iban","IBAN"),
+            ("Currency","Para Birimi (TRY, USD, EUR, GBP)"),
+            ("Notes","Açıklamalar")
+        },
+        "Contact" => new[] {
+            ("FullName","Ad Soyad"),
+            ("JobTitle","G?revi"),
+            ("Phone","Telefon"),
+            ("Email","E-posta"),
+            ("Notes","Açıklamalar")
+        },
+        _ => new[] {
+            ("AddressType","Adres T?r? (Merkez, Fatura, Teslimat, Diger)"),
+            ("Title","Adres Baölçü?"),
+            ("AddressLine","A??k Adres"),
+            ("City","?l"),
+            ("District","?l?e"),
+            ("PostalCode","Posta Kodu"),
+            ("Country","İlke"),
+            ("ContactPerson","Yetkili Ki?i"),
+            ("Phone","Telefon"),
+            ("Notes","Açıklamalar")
+        }
+    };
+}
+
+<style>
+.cr-wrap{max-width:1200px;margin:auto}
+.cr-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;margin:18px 0}
+.cr-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.cr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.cr-field{display:flex;flex-direction:column;gap:6px}
+.cr-field label{font-size:13px;font-weight:650}
+.cr-field input,.cr-field select,.cr-field textarea{width:100%;border:1px solid #cbd5e1;border-radius:9px;padding:11px}
+.cr-btn{display:inline-block;padding:11px 16px;background:#fff;color:#17406a;border:1px solid #cbd5e1;border-radius:9px;text-decoration:none;cursor:pointer}
+.cr-primary{background:#17406a;color:#fff;border-color:#17406a}
+.cr-scroll{overflow-x:auto}
+.cr-table{width:100%;min-width:700px;border-collapse:collapse}
+.cr-table th{text-align:left;background:#f8fafc;padding:13px}
+.cr-table td{padding:13px;border-top:1px solid #edf2f7}
+@@media(max-width:650px){.cr-grid{grid-template-columns:1fr}}
+
+/* MC_CARI_DEFAULT_SELECT_CSS_2026 */
+.cr-default-select {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    margin-top: 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+</style>
+
+<div class="cr-wrap">
+    <h1>@(Model.Id == 0 ? "Yeni Kayıt" : "Kayıt Düzenle")</h1>
+    <div>@cari.CompanyName</div>
+
+    @if (TempData["CariError"] != null)
+    {
+        <div class="cr-card" style="color:#b91c1c">@TempData["CariError"]</div>
+    }
+
+    <div class="cr-card">
+        <form asp-action="Save" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CariAccountId" />
+            <input type="hidden" asp-for="Section" />
+            <input type="hidden" asp-for="Stamp" />
+
+            <div class="cr-grid">
+                @foreach (var field in fields)
+                {
+                    Model.Values.TryGetValue(field.Item1, out var value);
+
+                    <div class="cr-field">
+                        <label for="@field.Item1">@field.Item2</label>
+                                                @* MC_CARI_SMART_FIELDS_2026 *@
+
+                        @if (field.Item1 == "Currency")
+                        {
+                            <select id="@field.Item1"
+                                    name="Values[@field.Item1]"
+                                    required>
+                                <option value="TRY"
+                                    selected="@(string.IsNullOrWhiteSpace(value) || value == "TRY")">TRY</option>
+                                <option value="USD"
+                                    selected="@(value == "USD")">USD</option>
+                                <option value="EUR"
+                                    selected="@(value == "EUR")">EUR</option>
+                                <option value="GBP"
+                                    selected="@(value == "GBP")">GBP</option>
+                            </select>
+                        }
+                        else if (field.Item1 == "AddressType")
+                        {
+                            <select id="@field.Item1"
+                                    name="Values[@field.Item1]"
+                                    required>
+                                <option value="Merkez"
+                                    selected="@(value == "Merkez")">Merkez</option>
+                                <option value="Fatura"
+                                    selected="@(value == "Fatura")">Fatura</option>
+                                <option value="Teslimat"
+                                    selected="@(string.IsNullOrWhiteSpace(value) || value == "Teslimat")">Teslimat</option>
+                                <option value="Diger"
+                                    selected="@(value == "Diger")">Di&#287;er</option>
+                            </select>
+                        }
+                        else if (field.Item1 == "Notes" ||
+                                 field.Item1 == "AddressLine")
+                        {
+                            <textarea id="@field.Item1"
+                                      name="Values[@field.Item1]"
+                                      rows="2"
+                                      maxlength="1000">@value</textarea>
+                        }
+                        else if (field.Item1 == "Email")
+                        {
+                            <input id="@field.Item1"
+                                   name="Values[@field.Item1]"
+                                   type="email"
+                                   value="@value"
+                                   maxlength="200" />
+                        }
+                        else if (field.Item1 == "Phone")
+                        {
+                            <input id="@field.Item1"
+                                   name="Values[@field.Item1]"
+                                   type="tel"
+                                   value="@value"
+                                   maxlength="30" />
+                        }
+                        else if (field.Item1 == "Iban")
+                        {
+                            <input id="@field.Item1"
+                                   name="Values[@field.Item1]"
+                                   value="@value"
+                                   maxlength="34"
+                                   autocomplete="off"
+                                   spellcheck="false"
+                                   style="text-transform:uppercase"
+                                   required />
+                        }
+                        else
+                        {
+                            <input id="@field.Item1"
+                                   name="Values[@field.Item1]"
+                                   value="@value"
+                                   maxlength="250" />
+                        }
+                    </div>
+                }
+            </div>
+
+            
+            <!-- MC_CARI_DEFAULTS_FIXED_2026 -->
+            <div class="cr-default-select">
+                <input asp-for="MakePrimary"
+                       type="checkbox"
+                       id="MakePrimary"
+                       style="width:17px;height:17px;margin:0;
+                              accent-color:#17406a" />
+
+                <label for="MakePrimary"
+                       style="margin:0;font-size:13px;font-weight:600">
+                    @(Model.Section == "Bank"
+                        ? "Varsayılan banka hesabı"
+                        : Model.Section == "Contact"
+                            ? "Birincil firma yetkilisi"
+                            : "Bu tür için varsayılan adres")
+                </label>
+            </div>
+
+<div style="display:flex;gap:10px;margin-top:22px">
+                <button type="submit" class="cr-btn cr-primary">Kaydet</button>
+                <a class="cr-btn" asp-action="Index"
+                   asp-route-cariId="@Model.CariAccountId"
+                   asp-route-section="@Model.Section">?ptal</a>
+            </div>
+        </form>
+    </div>
+</div>

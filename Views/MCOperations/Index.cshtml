@@ -1,0 +1,597 @@
+<!-- MC_OPERATIONS_ROUTING_V2 -->
+@{
+    ViewData["Title"] = "MASTER CHEF Operasyon Merkezi";
+}
+
+<!-- MC_OPERATIONS_HUB_V1 -->
+
+<style>
+.mc-ops {
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 22px;
+    color: #243247;
+}
+
+.mc-ops-header {
+    background: linear-gradient(110deg, #163c58, #245d76);
+    padding: 30px;
+    border-radius: 16px;
+    color: white;
+    margin-bottom: 22px;
+}
+
+.mc-ops-header h1 {
+    margin: 0 0 9px;
+    font-weight: 800;
+    font-size: 29px;
+}
+
+.mc-ops-header p {
+    margin: 0;
+    opacity: .92;
+}
+
+.mc-ops-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.mc-ops-card {
+    background: white;
+    padding: 22px;
+    border: 1px solid #e0e6ee;
+    border-radius: 14px;
+    box-shadow: 0 5px 18px rgba(0,0,0,.04);
+    min-height: 170px;
+}
+
+.mc-ops-card h3 {
+    font-size: 19px;
+    font-weight: 800;
+    margin: 0 0 17px;
+    color: #173e60;
+}
+
+.mc-ops-links {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.mc-ops-links a {
+    display: block;
+    text-decoration: none;
+    padding: 11px 13px;
+    border-radius: 8px;
+    background: #edf4f9;
+    color: #204969;
+    font-weight: 700;
+}
+
+.mc-ops-links a:hover {
+    background: #dbeaf5;
+    color: #123f61;
+}
+
+.mc-ops-empty {
+    font-size: 13px;
+    color: #9a6723;
+    line-height: 1.6;
+}
+
+.mc-ops-note {
+    margin-top: 22px;
+    padding: 17px;
+    background: #fff8e9;
+    border: 1px solid #eed9aa;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+@@media(max-width:1050px) {
+    .mc-ops-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@@media(max-width:650px) {
+    .mc-ops-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mc-ops {
+        padding: 12px;
+    }
+}
+
+/* MASTER CHEF OPERASYON MERKEZI - DUZENLI TASARIM */
+
+.mc-ops {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 14px 18px;
+}
+
+.mc-ops-header {
+    padding: 19px 24px;
+    margin-bottom: 18px;
+    border-radius: 12px;
+    min-height: 0;
+}
+
+.mc-ops-header h1 {
+    font-size: 24px;
+    line-height: 1.3;
+    margin: 0 0 5px;
+}
+
+.mc-ops-header p {
+    font-size: 13px;
+}
+
+.mc-ops-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
+}
+
+.mc-ops-card {
+    background: #fff;
+    border: 1px solid #dce5ed;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(20,50,80,.045);
+    padding: 18px;
+    min-height: 0;
+    min-width: 0;
+}
+
+.mc-ops-card h3 {
+    font-size: 17px;
+    margin: 0 0 13px;
+    color: #173e60;
+}
+
+.mc-ops-card p {
+    color: #617184;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 0 0 13px;
+}
+
+.mc-ops-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mc-ops-links a {
+    display: flex;
+    align-items: center;
+    min-height: 39px;
+    padding: 9px 12px;
+    background: #f0f5f9;
+    color: #194563;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.mc-ops-links a:hover {
+    background: #dcebf5;
+}
+
+.mc-ops-finance {
+    border-top: 3px solid #286b8b;
+}
+
+.mc-ops-note {
+    margin-top: 17px;
+    padding: 12px 15px;
+}
+
+aside a[href="/MCOperations"]:empty,
+.sidebar a[href="/MCOperations"]:empty,
+#sidebar a[href="/MCOperations"]:empty {
+    display: none !important;
+}
+
+@@media (max-width: 1100px) {
+    .mc-ops-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@@media (max-width: 680px) {
+    .mc-ops-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mc-ops {
+        padding: 12px;
+    }
+}
+</style>
+
+<div class="mc-ops">
+
+    <header class="mc-ops-header">
+        <h1>MASTER CHEF® — Operasyon Merkezi</h1>
+        <p>Üretim, stok, sipariş, sevkiyat, cari hesap ve finans yönetimi</p>
+    </header>
+
+    <div class="mc-ops-grid">
+@if (User.IsInRole(MasterChefTakip.Models.AppRoles.Admin))
+{
+    <section class="mc-ops-card mc-ops-finance">
+        <h3>Finans Kontrol Merkezi</h3>
+        <p>Müşteriler, tedarikçiler, kasa ve banka hesapları.</p>
+        <div class="mc-ops-links">
+            <a href="@Url.Action("Index", "MCFinanceOverview")">Finans Kontrol Merkezi →</a>
+        </div>
+    </section>
+}
+        <!-- MC_OPERATIONS_ALL_ROUTES_V3 -->
+<section class="mc-ops-card">
+<h3>&#220;retim</h3>
+<div class="mc-ops-links">
+@{ var mcRoute1 = Url.Action("Index", "Packaging"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute1)) {
+<a href="@mcRoute1">Paketleme →</a>
+}
+@{ var mcRoute2 = Url.Action("Index", "Production"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute2)) {
+<a href="@mcRoute2">Üretim Yönetimi →</a>
+}
+@{ var mcRoute3 = Url.Action("Index", "ProductionPackaging"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute3)) {
+<a href="@mcRoute3">Üretim ve Paketleme →</a>
+}
+</div>
+</section>
+<section class="mc-ops-card">
+<h3>Stok ve Depo</h3>
+<div class="mc-ops-links">
+@{ var mcRoute4 = Url.Action("Index", "MaterialStockMapping"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute4)) {
+<a href="@mcRoute4">Malzeme - Stok Eşleştirme →</a>
+}
+@{ var mcRoute5 = Url.Action("Index", "MCCatalogStockCards"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute5)) {
+<a href="@mcRoute5">Katalog Stok Kartları →</a>
+}
+@{ var mcRoute6 = Url.Action("Index", "MCRawWarehouses"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute6)) {
+<a href="@mcRoute6">Hammadde Depoları →</a>
+}
+@{ var mcRoute7 = Url.Action("Index", "Pallets"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute7)) {
+<a href="@mcRoute7">Palet Yönetimi →</a>
+}
+@{ var mcRoute8 = Url.Action("Index", "PalletTransfers"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute8)) {
+<a href="@mcRoute8">Palet Transferleri →</a>
+}
+@{ var mcRoute9 = Url.Action("Index", "Products"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute9)) {
+<a href="@mcRoute9">Ürün Yönetimi →</a>
+}
+@{ var mcRoute10 = Url.Action("Index", "RawStockCounts"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute10)) {
+<a href="@mcRoute10">Hammadde Stok Sayımları →</a>
+}
+@{ var mcRoute11 = Url.Action("Index", "RawWarehouseTransfers"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute11)) {
+<a href="@mcRoute11">Hammadde Depo Transferleri →</a>
+}
+</div>
+</section>
+<section class="mc-ops-card">
+<h3>Sipariş</h3>
+<div class="mc-ops-links">
+@{ var mcRoute12 = Url.Action("Index", "Orders"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute12)) {
+<a href="@mcRoute12">Sipariş Yönetimi →</a>
+}
+</div>
+</section>
+<section class="mc-ops-card">
+<h3>Sevkiyat</h3>
+<div class="mc-ops-links">
+@{ var mcRoute13 = Url.Action("Index", "PurchaseDispatch"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute13)) {
+<a href="@mcRoute13">Satın Alma Sevk İrsaliyeleri →</a>
+}
+@{ var mcRoute14 = Url.Action("Index", "Shipments"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute14)) {
+<a href="@mcRoute14">Sevkiyat Yönetimi →</a>
+}
+</div>
+</section>
+<section class="mc-ops-card">
+<h3>Cari ve Tahsilat</h3>
+<div class="mc-ops-links">
+@{ var mcRoute15 = Url.Action("Index", "CariAccounts"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute15)) {
+<a href="@mcRoute15">Cari Hesaplar →</a>
+}
+@{ var mcRoute16 = Url.Action("Index", "CariDetails"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute16)) {
+<a href="@mcRoute16">Cari Hesap Detayları →</a>
+}
+</div>
+</section>
+<section class="mc-ops-card">
+<h3>Kasa ve Banka</h3>
+<div class="mc-ops-links">
+@{ var mcRoute17 = Url.Action("Index", "MCBankCash"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute17)) {
+<a href="@mcRoute17">Kasa ve Banka Hesapları →</a>
+}
+@{ var mcRoute18 = Url.Action("Index", "MCBankCashReport"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute18)) {
+<a href="@mcRoute18">Kasa ve Banka Raporları →</a>
+}
+@{ var mcRoute19 = Url.Action("Index", "MCBankCashTransfer"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute19)) {
+<a href="@mcRoute19">Kasa ve Banka Virmanları →</a>
+}
+@{ var mcRoute20 = Url.Action("Index", "MCFinance"); }
+@if (!string.IsNullOrWhiteSpace(mcRoute20)) {
+<a href="@mcRoute20">Finans Yönetimi →</a>
+}
+</div>
+</section>
+<!-- MC_PURCHASE_CENTER_START -->
+<section class="mc-ops-card">
+    <h3>Satın Alma ve Faturalar</h3>
+    <div class="mc-ops-links">
+        <a href="@Url.Action("Index", "MCPurchaseInvoiceEntry")">Satın Alma Faturaları →</a>
+        <a href="@Url.Action("Index", "MCPurchaseSupplierCariLinks")">Tedarikçi Cari Eşleştirme →</a>
+        <a href="@Url.Action("Index", "MCPurchaseInvoiceCariCheck")">Fatura Cari Kontrolü →</a>
+        <a href="@Url.Action("Index", "MCPurchaseInvoiceCariPosting")">Fatura Cari Aktarımı →</a>
+    </div>
+</section>
+<!-- MC_PURCHASE_CENTER_END -->
+    </div>
+
+    <div class="mc-ops-note">
+        Bu merkez mevcut ekranlara erişim sağlar.
+        Gerçek zamanlı üretim, bakiye ve stok rakamları henüz
+        bu sayfada hesaplanmamaktadır.
+        Listeye alınan ekranların işlevleri ayrıca doğrulanmalıdır.
+    </div>
+
+</div>
+
+<!-- MC_SIMPLE_OPERATIONS_START -->
+<style>
+.mc-ops { max-width:1200px; margin:auto; padding:16px; }
+.mc-ops-header { padding:18px 22px; margin-bottom:18px; }
+.mc-ops-header h1 { font-size:23px; }
+.mc-ops-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.mc-ops-card { padding:17px; min-height:0; border-radius:12px; }
+.mc-ops-card h3 { font-size:17px; margin-bottom:12px; }
+.mc-ops-links { gap:6px; }
+.mc-ops-links a { padding:10px 12px; font-size:13px; }
+.mc-ops-note { margin-top:14px; }
+@@media(max-width:950px) {
+.mc-ops-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@@media(max-width:600px) {
+.mc-ops-grid { grid-template-columns:1fr; }
+}
+</style>
+<!-- MC_SIMPLE_OPERATIONS_END -->
+<!-- MC_COMPACT_CARDS_START -->
+<style>
+/* MASTER CHEF - KOMPAKT OPERASYON KARTLARI */
+
+.mc-ops {
+    max-width: 1400px !important;
+    padding: 12px 16px !important;
+}
+
+.mc-ops-header {
+    padding: 15px 22px !important;
+    margin-bottom: 14px !important;
+}
+
+.mc-ops-header h1 {
+    font-size: 22px !important;
+}
+
+.mc-ops-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    align-items: start !important;
+}
+
+.mc-ops-card {
+    height: auto !important;
+    min-height: 0 !important;
+    align-self: start !important;
+    padding: 15px !important;
+    border-radius: 11px !important;
+}
+
+.mc-ops-card h3 {
+    font-size: 16px !important;
+    margin-bottom: 10px !important;
+}
+
+.mc-ops-card p {
+    margin-bottom: 9px !important;
+}
+
+.mc-ops-links {
+    gap: 6px !important;
+}
+
+.mc-ops-links a {
+    min-height: 0 !important;
+    padding: 9px 11px !important;
+    font-size: 13px !important;
+}
+
+@@media (max-width: 1050px) {
+    .mc-ops-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@@media (max-width: 650px) {
+    .mc-ops-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+<!-- MC_COMPACT_CARDS_END -->
+<!-- MC_AUTO_BALANCE_START -->
+<style>
+.mc-ops-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+    gap: 14px !important;
+    align-items: start !important;
+    column-count: auto !important;
+}
+
+.mc-ops-column {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.mc-ops-column > .mc-ops-card {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+}
+
+@@media(max-width:1000px) {
+    .mc-ops-grid {
+        grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+    }
+}
+
+@@media(max-width:650px) {
+    .mc-ops-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+
+<script>
+(function () {
+    function arrange() {
+        const grid = document.querySelector(".mc-ops-grid");
+        if (!grid) return;
+
+        const cards = Array.from(grid.querySelectorAll(".mc-ops-card"));
+        if (!cards.length) return;
+
+        const count = window.innerWidth <= 650 ? 1 :
+                      window.innerWidth <= 1000 ? 2 : 3;
+
+        const columns = Array.from({length: count}, () => {
+            const element = document.createElement("div");
+            element.className = "mc-ops-column";
+            return element;
+        });
+
+        grid.replaceChildren(...columns);
+
+        const measure = document.createElement("div");
+        measure.style.cssText =
+            "position:absolute;visibility:hidden;pointer-events:none;" +
+            "display:grid;grid-template-columns:repeat(" + count +
+            ",minmax(0,1fr));gap:14px;width:" +
+            grid.clientWidth + "px;";
+
+        grid.appendChild(measure);
+
+        const holders = columns.map(() => {
+            const holder = document.createElement("div");
+            holder.style.minWidth = "0";
+            measure.appendChild(holder);
+            return holder;
+        });
+
+        const heights = cards.map(card => {
+            holders[0].appendChild(card);
+            return card.getBoundingClientRect().height;
+        });
+
+        measure.remove();
+
+        const order = cards.map((card, index) => ({
+            card, height: heights[index], index
+        })).sort((a,b) => b.height - a.height);
+
+        const totals = Array(count).fill(0);
+
+        order.forEach(item => {
+            const smallest = totals.indexOf(Math.min(...totals));
+            columns[smallest].appendChild(item.card);
+            totals[smallest] += item.height + 14;
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", arrange);
+    } else {
+        arrange();
+    }
+})();
+</script>
+<!-- MC_AUTO_BALANCE_END -->
+<!-- MC_FINANCE_BORDER_FIX_START -->
+<style>
+.mc-ops-finance,
+.mc-ops-grid .mc-ops-card {
+    border: 1px solid #dce5ed !important;
+    border-top: 1px solid #dce5ed !important;
+    border-radius: 12px !important;
+    box-shadow: 0 3px 12px rgba(20,50,80,.045) !important;
+}
+</style>
+<!-- MC_FINANCE_BORDER_FIX_END -->
+<!-- MC_HEADER_REDESIGN_START -->
+<style>
+.mc-ops-header {
+    background: #ffffff !important;
+    color: #173e60 !important;
+    padding: 15px 20px !important;
+    margin-bottom: 14px !important;
+    border: 1px solid #dce5ed !important;
+    border-left: 4px solid #245d76 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 8px rgba(20,50,80,.035) !important;
+    min-height: 0 !important;
+}
+
+.mc-ops-header h1 {
+    color: #173e60 !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    margin: 0 0 4px !important;
+}
+
+.mc-ops-header p {
+    color: #617184 !important;
+    font-size: 12px !important;
+    margin: 0 !important;
+}
+</style>
+<!-- MC_HEADER_REDESIGN_END -->

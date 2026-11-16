@@ -1,0 +1,71 @@
+
+@model List<MasterChefTakip.Models.PurchaseDispatchNote>
+@{
+    ViewData["Title"] = "Al&#305;&#351; &#304;rsaliyeleri";
+}
+
+<style>
+.mc-pd{max-width:1120px;margin:auto}
+.mc-pd-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin:16px 0}
+.mc-pd-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.mc-pd-btn{display:inline-block;padding:9px 14px;background:#fff;border:1px solid #cbd5e1;border-radius:7px;color:#17406a;text-decoration:none;font-size:13px;cursor:pointer}
+.mc-pd-primary{background:#17406a;border-color:#17406a;color:white}
+.mc-pd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.mc-pd-field{display:flex;flex-direction:column;gap:5px}
+.mc-pd-field label{font-size:12px;font-weight:650}
+.mc-pd-field input,.mc-pd-field select,.mc-pd-field textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:7px;padding:9px;font-size:13px}
+.mc-pd-scroll{overflow-x:auto}
+.mc-pd-table{width:100%;min-width:760px;border-collapse:collapse}
+.mc-pd-table th{text-align:left;background:#f8fafc;padding:11px;font-size:12px}
+.mc-pd-table td{padding:11px;border-bottom:1px solid #edf2f7;font-size:13px}
+.mc-pd-note{font-size:12px;color:#64748b}
+@@media(max-width:700px){.mc-pd-grid{grid-template-columns:1fr}.mc-pd-card{padding:13px}}
+.mc-purchase-flow-nav{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}.mc-purchase-flow-nav a{display:inline-flex;align-items:center;padding:9px 12px;border:1px solid #d5e0ec;border-radius:8px;background:#fff;color:#18365f!important;text-decoration:none!important;font-size:13px;font-weight:700}.mc-purchase-flow-nav a:hover,.mc-purchase-flow-nav a:focus{background:#18365f;color:#fff!important;border-color:#18365f}/* MC_PURCHASE_FLOW_NAV_V1 */</style>
+
+<div class="mc-pd">
+    <div class="mc-pd-head">
+        <div><h1>Al&#305;&#351; &#304;rsaliyeleri</h1><div class="mc-purchase-flow-nav"><a href="/Purchasing">1. Satın Alma</a><a href="/PurchaseDispatch">2. Alış İrsaliyeleri</a><a href="/PurchaseGoodsReceipt">3. Mal Kabul</a><a href="/MCPurchaseInvoiceEntry">4. Fatura Girişi</a><a href="/MCPurchaseInvoiceStatus">5. Fatura Kontrolü</a><a href="/MCPurchaseInvoiceCariPosting">6. Cari Aktarım</a><a href="/MCPurchaseInvoiceCariCheck">7. Cari Kontrol</a><a href="/MCPurchaseCariAudit">8. Mutabakat</a></div></div>
+        <a class="mc-pd-btn mc-pd-primary"
+           asp-action="Create">+ Yeni Al&#305;&#351; &#304;rsaliyesi</a>
+    </div>
+
+    <div class="mc-pd-card mc-pd-scroll">
+        <table class="mc-pd-table">
+            <thead>
+                <tr>
+                    <th>&#304;rsaliye No</th>
+                    <th>Tedarik&#231;i</th>
+                    <th>Sipari&#351;</th>
+                    <th>Tarih</th>
+                    <th>Durum</th>
+                    <th>&#304;&#351;lem</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.DocumentNumber</td>
+                    <td>@item.Supplier.CompanyName</td>
+                    <td>@(item.PurchaseOrder?.OrderNumber ?? "Siparişsiz")</td>
+                    <td>@item.DocumentDate.ToString("dd.MM.yyyy")</td>
+                    <td>@(item.Status == "Draft" ? "Taslak" : item.Status)</td>
+                    <td>
+                        <a class="mc-pd-btn"
+                           asp-action="Details"
+                           asp-route-id="@item.Id">
+                            G&#246;r&#252;nt&#252;le
+                        </a>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="6">Hen&#252;z al&#305;&#351; irsaliyesi bulunmuyor.</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

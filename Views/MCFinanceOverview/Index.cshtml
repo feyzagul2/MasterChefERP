@@ -1,0 +1,49 @@
+@{
+    ViewData["Title"] = "Finans Kontrol Merkezi";
+}
+
+<style>
+.mc-fin-home{padding:22px 26px;max-width:1250px;margin:auto}
+.mc-fin-home h1{font-size:28px;color:#183b59;margin:0 0 7px}
+.mc-fin-desc{color:#64778b;margin:0 0 22px}
+.mc-fin-menu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.mc-fin-menu a{display:flex;align-items:center;gap:13px;padding:18px;background:#fff;border:1px solid #dce6ef;border-radius:12px;text-decoration:none!important;color:#183b59!important;min-height:85px;transition:.15s}
+.mc-fin-menu a:hover{background:#edf7f6;border-color:#0c8073;transform:translateY(-1px)}
+.mc-fin-no{background:#e8f0f7;color:#193e5d;border-radius:9px;padding:11px;font-weight:750}
+.mc-fin-menu strong{display:block;font-size:16px}
+.mc-fin-menu small{display:block;color:#6a7c8e;margin-top:5px;font-size:12px}
+@@media(max-width:850px){.mc-fin-menu{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@@media(max-width:550px){.mc-fin-menu{grid-template-columns:1fr}.mc-fin-home{padding:14px}}
+</style>
+
+<div class="mc-fin-home">
+    <h1>Finans Kontrol Merkezi</h1>
+    <p class="mc-fin-desc">İşlem yapmak istediğiniz bölümü seçin.</p>
+
+    <div class="mc-fin-menu">
+        <a href="/MCFinancePages/AlacaklarBorclar">
+            <span class="mc-fin-no">01</span>
+            <span><strong>Alacaklar ve Borçlar</strong><small>Müşteri ve tedarikçi hesapları</small></span>
+        </a>
+        <a href="/MCFinancePages/VadeTakibi">
+            <span class="mc-fin-no">02</span>
+            <span><strong>Vade Takibi</strong><small>Yaklaşan ve geciken vadeler</small></span>
+        </a>
+        <a href="/MCFinancePages/FinansDenetimi">
+            <span class="mc-fin-no">03</span>
+            <span><strong>Finans Denetimi</strong><small>Kontroller ve uyuşmazlıklar</small></span>
+        </a>
+        <a href="/MCFinancePages/BankaKasa">
+            <span class="mc-fin-no">04</span>
+            <span><strong>Banka ve Kasa</strong><small>Hesaplar ve banka bağlantıları</small></span>
+        </a>
+        <a href="/MCFinancePages/CariHareketler">
+            <span class="mc-fin-no">05</span>
+            <span><strong>Cari Hareketler</strong><small>Müşteri ve tedarikçi işlemleri</small></span>
+        </a>
+        <a href="/MCFinancePages/VadeRaporlari">
+            <span class="mc-fin-no">06</span>
+            <span><strong>Vade Raporları</strong><small>CSV raporları ve değişiklik geçmişi</small></span>
+        </a>
+    </div>
+</div>

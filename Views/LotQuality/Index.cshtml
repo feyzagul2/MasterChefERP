@@ -1,0 +1,101 @@
+
+@model List<MasterChefTakip.Models.ProductLot>
+@{
+    ViewData["Title"] = "Lot ve Kalite Kontrol";
+}
+
+<style>
+.mc-lot{max-width:1170px;margin:auto}
+.mc-lot h1{font-size:24px;color:#17365b}
+.mc-lot h2{font-size:17px;color:#17365b}
+.mc-lot-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.mc-lot-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:15px 0}
+.mc-lot-btn{display:inline-block;padding:9px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;color:#17406a;text-decoration:none;font-size:13px;cursor:pointer}
+.mc-lot-primary{background:#17406a;border-color:#17406a;color:#fff}
+.mc-lot-scroll{overflow-x:auto}
+.mc-lot-table{width:100%;min-width:760px;border-collapse:collapse}
+.mc-lot-table th{text-align:left;padding:11px;font-size:12px;background:#f8fafc;color:#475569}
+.mc-lot-table td{padding:11px;font-size:13px;border-bottom:1px solid #edf2f7}
+.mc-lot-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.mc-lot-field{display:flex;flex-direction:column;gap:6px}
+.mc-lot-field label{font-size:12px;font-weight:650;color:#475569}
+.mc-lot-field input,.mc-lot-field select,.mc-lot-field textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px}
+.mc-lot-muted{font-size:12px;color:#64748b}
+.mc-lot-alert{background:#fef2f2;color:#991b1b;padding:12px;border-radius:8px}
+.mc-lot-success{background:#dcfce7;color:#166534;padding:12px;border-radius:8px}
+@@media(max-width:700px){.mc-lot-grid{grid-template-columns:1fr}.mc-lot-card{padding:12px}}
+</style>
+
+<div class="mc-lot">
+    <div class="mc-lot-head"><div><div class="mc-section-nav"><a href="/Pallets">Paletler</a><a href="/PalletTransfers">Palet Transferi</a><a href="/LotQuality">Lot / SKT</a><a href="/Shipments">Sevkiyat</a></div>
+        <h1>Lot / SKT / Kalite Kontrol</h1></div>
+        <a class="mc-lot-btn mc-lot-primary" asp-action="Create">
+            + Yeni Lot
+        </a>
+    </div>
+
+    <div class="mc-lot-card mc-lot-scroll">
+        <table class="mc-lot-table">
+            <thead>
+                <tr>
+                    <th>Lot Numaras&#305;</th>
+                    <th>&#220;r&#252;n</th>
+                    <th>&#220;retim Tarihi</th>
+                    <th>SKT</th>
+                    <th>Kalite Durumu</th>
+                    <th>&#304;&#351;lem</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var x in Model)
+            {
+                <tr>
+                    <td><strong>@x.LotNumber</strong></td>
+                    <td>@x.Product.Name</td>
+                    <td>@x.ProductionDate.ToString("dd.MM.yyyy")</td>
+                    <td>@x.ExpiryDate.ToString("dd.MM.yyyy")</td>
+                    <td>
+                        @if (x.ExpiryDate.Date < DateTime.Today)
+                        {
+                            <span style="color:#b91c1c">
+                                SKT Ge&#231;mi&#351;
+                            </span>
+                        }
+                        else if (x.Status == "Approved")
+                        {
+                            <span style="color:#166534">
+                                Onayland&#305;
+                            </span>
+                        }
+                        else if (x.Status == "Rejected")
+                        {
+                            <span style="color:#b91c1c">
+                                Reddedildi
+                            </span>
+                        }
+                        else
+                        {
+                            <span style="color:#b45309">
+                                Kontrol Bekliyor
+                            </span>
+                        }
+                    </td>
+                    <td>
+                        <a class="mc-lot-btn" asp-action="Details"
+                           asp-route-id="@x.Id">
+                            Detay
+                        </a>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="6">Hen&#252;z lot bulunmuyor.</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- MC_LOT_PREMIUM_V1 --><style>body.mc-app .mc-lot{max-width:1400px;margin:0 auto;padding:4px 0 28px}body.mc-app .mc-lot-head{background:#fff;color:#17365b;border:1px solid #dbe4ef;border-radius:14px;padding:18px 20px;margin-bottom:16px;box-shadow:0 4px 18px rgba(15,23,42,.045)}body.mc-app .mc-lot-head h1{margin:5px 0 0;font-size:26px;font-weight:800;letter-spacing:-.3px;color:#17365b}body.mc-app .mc-lot-head a{color:#17406a!important;text-decoration:none}body.mc-app .mc-lot-card{background:#fff;border:1px solid #e1e7ef;border-radius:16px;box-shadow:0 4px 18px rgba(15,23,42,.045);overflow:hidden}body.mc-app .mc-lot-btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 13px;border-radius:9px!important;font-weight:700!important;text-decoration:none!important}body.mc-app .mc-lot-primary{background:#18365f!important;color:#fff!important;border:1px solid #18365f!important}body.mc-app .mc-lot-table{width:100%;border-collapse:separate;border-spacing:0}body.mc-app .mc-lot-table th{background:#f6f8fb;color:#52667d;font-size:11px;text-transform:uppercase;letter-spacing:.035em;font-weight:800;padding:10px 12px;border-bottom:1px solid #e2e8f0}body.mc-app .mc-lot-table td{padding:11px 12px;border-bottom:1px solid #edf1f5;font-size:13px;color:#334e68}body.mc-app .mc-lot-table tbody tr:hover td{background:#fafbfd}</style><!-- /MC_LOT_PREMIUM_V1 -->

@@ -1,0 +1,1162 @@
+<!-- MC_PURCHASE_RAZOR_CLEAN_V6 -->
+<style>
+
+/* ANA BASLIK */
+h1 {
+    font-size: 26px !important;
+    line-height: 1.15 !important;
+    font-weight: 700 !important;
+    margin-top: 4px !important;
+    margin-bottom: 10px !important;
+    letter-spacing: -0.01em !important;
+}
+
+/* BUYUK SARI BANDI IPTAL ET */
+.alert-warning {
+    background: #f6f7f8 !important;
+    color: #4b5563 !important;
+
+    border: 1px solid #d9dee5 !important;
+    border-left: 3px solid #8796a5 !important;
+
+    padding: 7px 11px !important;
+    margin: 7px 0 12px 0 !important;
+
+    min-height: 0 !important;
+    height: auto !important;
+
+    border-radius: 5px !important;
+    box-shadow: none !important;
+
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.3 !important;
+}
+
+/* ALERT ICINDEKI HER SEY KUCUK */
+.alert-warning * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+}
+
+/* TABLO BASLIGI */
+table thead th {
+    background: #f1f4f7 !important;
+    color: #25425c !important;
+
+    height: 38px !important;
+    padding: 7px 12px !important;
+
+    font-size: 12px !important;
+    font-weight: 700 !important;
+
+    border-color: #d5dde5 !important;
+}
+
+/* TABLO SATIRLARI */
+table tbody td {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+}
+
+/* FATURALAR GERI LINKI */
+a {
+    text-decoration-thickness: 1px;
+}
+
+/* ALT BOLUMDE GEREKSIZ BOSLUKLARI AZALT */
+.alert-warning + table {
+    margin-top: 8px !important;
+}
+
+</style>
+<!-- MC_PURCHASE_RAZOR_CLEAN_V6_END -->
+
+<link rel="stylesheet" href="/css/mc-purchase-clean-ui.css?v=20261107-clean4" />
+@{ Layout = "_Layout"; }
+@model MasterChefTakip.Models.MCPurchaseEmbeddedPageModel
+
+@{
+    ViewData["Title"] = "Satın Alma Faturaları";
+
+    var source = Model.Html ?? "";
+
+    var styleMatches = System.Text.RegularExpressions.Regex.Matches(
+        source,
+        @"(?is)<style[^>]*>.*?</style>"
+    );
+
+    var styles = new System.Text.StringBuilder();
+
+    foreach (System.Text.RegularExpressions.Match match in styleMatches)
+    {
+        styles.AppendLine(match.Value);
+    }
+
+    var body = System.Text.RegularExpressions.Regex.Match(
+        source,
+        @"(?is)<body[^>]*>(.*?)</body>"
+    );
+
+    var inner = body.Success
+        ? body.Groups[1].Value
+        : source;
+
+    inner = System.Text.RegularExpressions.Regex.Replace(
+        inner,
+        @"(?is)<!doctype[^>]*>|<html[^>]*>|</html>|<head[^>]*>.*?</head>|</?body[^>]*>",
+        ""
+    );
+}
+
+@Html.Raw(styles)
+
+<style>
+.mc-purchase-shell {
+    width:100%;
+    max-width:1450px;
+    margin:auto;
+    padding:14px 18px;
+    min-width:0;
+}
+
+.mc-purchase-shell table {
+    max-width:100%;
+}
+
+@@media(max-width:700px) {
+    .mc-purchase-shell {
+        padding:10px;
+    }
+}
+</style>
+
+<!-- MC_PURCHASE_UNIFIED_NAV_START -->
+<style>
+.mc-purchase-unified-nav {
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:10px;
+    margin:8px 0 16px;
+    background:#edf3f8;
+    border:1px solid #dce5ed;
+    border-radius:11px;
+}
+.mc-purchase-unified-nav a {
+    display:inline-flex;
+    align-items:center;
+    padding:10px 13px;
+    border-radius:8px;
+    background:white;
+    border:1px solid #d5e0eb;
+    color:#193d5b !important;
+    font-size:13px;
+    font-weight:650;
+    text-decoration:none !important;
+}
+.mc-purchase-unified-nav a:hover,
+.mc-purchase-unified-nav a.mc-current {
+    background:#193e5d;
+    border-color:#193e5d;
+    color:white !important;
+}
+.mc-purchase-shell {
+    width:100%;
+    max-width:1450px;
+    min-width:0;
+    margin:auto;
+    padding:12px 16px;
+    box-sizing:border-box;
+}
+.mc-purchase-shell table {
+    max-width:100%;
+}
+@@media(max-width:700px) {
+    .mc-purchase-unified-nav {
+        gap:6px;
+        padding:7px;
+    }
+    .mc-purchase-unified-nav a {
+        padding:8px;
+        font-size:12px;
+    }
+}
+</style>
+
+<nav class="mc-purchase-unified-nav" aria-label="Satın alma işlemleri"><a href="/PurchaseGoodsReceipt">1. Mal Kabul</a><a href="/MCPurchaseInvoiceEntry">2. Fatura Girişi</a><a href="/MCPurchaseInvoiceStatus">3. Fatura Kontrolü</a><a href="/MCPurchaseInvoiceCariPosting">4. Cari Aktarım</a><a href="/MCPurchaseInvoiceCariCheck">5. Cari Kontrol</a><a href="/MCPurchaseCariAudit">6. Mutabakat</a><a href="/MCPurchaseCariExport">Raporlar / Excel</a><a href="/MCPurchaseSupplierCariLinks">Tedarikçi-Cari Bağlantıları</a><a href="/MCFinanceOverview">Finans Merkezi</a></nav>
+
+<script>
+(function(){
+    function markCurrent(){
+        const current=location.pathname.toLowerCase();
+        document.querySelectorAll(".mc-purchase-unified-nav a")
+            .forEach(function(link){
+                const target=new URL(link.href,location.origin)
+                    .pathname.toLowerCase();
+                if(current===target || current.startsWith(target+"/")){
+                    link.classList.add("mc-current");
+                }
+            });
+    }
+    if(document.readyState==="loading")
+        document.addEventListener("DOMContentLoaded",markCurrent);
+    else markCurrent();
+})();
+</script>
+<!-- MC_PURCHASE_UNIFIED_NAV_END -->
+<div class="mc-purchase-shell">
+    @Html.Raw(inner)
+</div>
+<!-- MC_PURCHASE_COMPACT_V2_START -->
+<style>
+.mc-purchase-shell {
+    max-width:1500px !important;
+    padding:8px 14px !important;
+}
+
+.mc-purchase-unified-nav {
+    margin:0 0 12px !important;
+    padding:7px !important;
+    gap:6px !important;
+}
+
+.mc-purchase-unified-nav a {
+    padding:9px 12px !important;
+    font-size:13px !important;
+}
+
+.mc-purchase-shell > div,
+.mc-purchase-content {
+    min-width:0;
+}
+
+.mc-purchase-content {
+    overflow-x:auto;
+}
+
+.mc-purchase-content h1 {
+    font-size:26px !important;
+    line-height:1.25 !important;
+    margin:4px 0 10px !important;
+    color:#173b59 !important;
+}
+
+.mc-purchase-content h2 {
+    font-size:19px !important;
+    margin:14px 0 10px !important;
+    color:#173b59 !important;
+}
+
+.mc-purchase-content p {
+    margin:6px 0 12px !important;
+    line-height:1.5;
+}
+
+.mc-purchase-content table {
+    width:100% !important;
+    border-collapse:collapse;
+    font-size:13px;
+}
+
+.mc-purchase-content th {
+    padding:11px 12px !important;
+    background:#edf3f8 !important;
+    color:#183b59 !important;
+    font-weight:700;
+    white-space:nowrap;
+}
+
+.mc-purchase-content td {
+    padding:10px 12px !important;
+    border-bottom:1px solid #e5edf4;
+}
+
+.mc-purchase-content .mc-compact-empty {
+    text-align:center;
+    padding:20px !important;
+    color:#64748b;
+    background:#fafcfe;
+}
+
+.mc-purchase-content .mc-compact-section {
+    background:white;
+    border:1px solid #dce6ef;
+    border-radius:10px;
+    padding:14px;
+    margin:12px 0;
+    min-width:0;
+}
+
+.mc-purchase-content .mc-compact-section h2 {
+    margin-top:0 !important;
+}
+
+.mc-purchase-content .mc-compact-sections {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+    align-items:start;
+}
+
+.mc-purchase-content .mc-compact-sections .mc-compact-section {
+    margin:0;
+    overflow-x:auto;
+}
+
+@@media(max-width:1000px) {
+    .mc-purchase-content .mc-compact-sections {
+        grid-template-columns:1fr;
+    }
+}
+
+@@media(max-width:700px) {
+    .mc-purchase-shell {
+        padding:6px !important;
+    }
+
+    .mc-purchase-content h1 {
+        font-size:22px !important;
+    }
+}
+</style>
+
+<script>
+(function(){
+    function init(){
+        if(location.pathname.toLowerCase() !==
+           "/mcpurchaseinvoiceentry") return;
+
+        const root=document.querySelector(".mc-purchase-content");
+        if(!root)return;
+
+        const headings=Array.from(
+            root.querySelectorAll("h2")
+        );
+
+        const receipt= headings.find(h=>
+            h.textContent.trim()==="Mal Kabul İrsaliyeleri"
+        );
+
+        const invoices= headings.find(h=>
+            h.textContent.trim()==="Kaydedilmiş Faturalar"
+        );
+
+        if(!receipt || !invoices)return;
+
+        function makeSection(heading){
+            const table=heading.nextElementSibling;
+            if(!table || table.tagName!=="TABLE")return null;
+
+            const section=document.createElement("section");
+            section.className="mc-compact-section";
+
+            heading.parentNode.insertBefore(section,heading);
+            section.appendChild(heading);
+            section.appendChild(table);
+
+            const tbody=table.querySelector("tbody");
+
+            if(tbody && !tbody.querySelector("tr")){
+                const tr=document.createElement("tr");
+                const td=document.createElement("td");
+
+                td.colSpan=table.querySelectorAll("thead th").length || 5;
+                td.className="mc-compact-empty";
+                td.textContent="Henüz kayıt bulunmuyor.";
+
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            }
+
+            return section;
+        }
+
+        const receiptSection=makeSection(receipt);
+        const invoiceSection=makeSection(invoices);
+
+        if(!receiptSection || !invoiceSection)return;
+
+        const grid=document.createElement("div");
+        grid.className="mc-compact-sections";
+
+        receiptSection.parentNode.insertBefore(
+            grid,receiptSection
+        );
+
+        grid.appendChild(receiptSection);
+        grid.appendChild(invoiceSection);
+
+        const mainTitle=Array.from(root.querySelectorAll("h1"))
+            .find(h=>h.textContent.includes("Satın Alma Faturaları"));
+
+        if(mainTitle){
+            const previous=mainTitle.previousElementSibling;
+
+            if(previous && previous.tagName==="A" &&
+                previous.textContent.includes("Fatura Listesi")){
+                previous.style.display="none";
+            }
+        }
+    }
+
+    if(document.readyState==="loading")
+        document.addEventListener("DOMContentLoaded",init);
+    else init();
+})();
+</script>
+<!-- MC_PURCHASE_COMPACT_V2_END -->
+
+<!-- MC_PURCHASE_FINAL_SPACING_START -->
+<style>
+.mc-purchase-shell,
+.mc-purchase-page {
+    padding-top: 4px !important;
+}
+
+.mc-purchase-unified-nav {
+    margin-bottom: 8px !important;
+}
+
+.mc-purchase-content {
+    padding-top: 0 !important;
+}
+
+.mc-purchase-content > div,
+.mc-purchase-content > main {
+    margin-top: 0 !important;
+    padding-top: 8px !important;
+}
+
+.mc-purchase-content h1 {
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+}
+
+.mc-purchase-content .mc-compact-sections {
+    margin-top: 12px;
+}
+
+.mc-purchase-content .mc-compact-section {
+    min-height: 180px;
+}
+
+.mc-purchase-content table {
+    margin-bottom: 0 !important;
+}
+
+@@media(max-width:1000px) {
+    .mc-purchase-content .mc-compact-section {
+        min-height: 0;
+    }
+}
+</style>
+<!-- MC_PURCHASE_FINAL_SPACING_END -->
+<!-- MC_PURCHASE_DOUBLE_SUBMIT_GUARD_V1 -->
+<script>
+(function () {
+    "use strict";
+
+    const root = document.querySelector(".mc-purchase-shell");
+
+    if (!root) return;
+
+    root.addEventListener("submit", function (event) {
+        const form = event.target;
+
+        if (!(form instanceof HTMLFormElement)) return;
+        if (form.method.toLowerCase() !== "post") return;
+
+        if (form.dataset.mcSubmitting === "1") {
+            event.preventDefault();
+            return;
+        }
+
+        if (event.defaultPrevented) return;
+
+        form.dataset.mcSubmitting = "1";
+
+        const button = event.submitter;
+
+        if (button && button.tagName === "BUTTON") {
+            window.setTimeout(function () {
+                button.disabled = true;
+                button.setAttribute("aria-busy", "true");
+            }, 0);
+        }
+
+        window.setTimeout(function () {
+            form.dataset.mcSubmitting = "0";
+
+            if (button) {
+                button.disabled = false;
+                button.removeAttribute("aria-busy");
+            }
+        }, 15000);
+    });
+})();
+</script>
+<!-- MC_PURCHASE_FEEDBACK_V1 -->
+<style>
+.mc-purchase-shell .alert,
+.mc-purchase-shell [role="alert"] {
+    border-radius:10px;
+    padding:12px 16px;
+    margin:12px 0;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.mc-purchase-shell .alert-success {
+    background:#ecfdf5;
+    color:#065f46;
+    border:1px solid #86efac;
+}
+
+.mc-purchase-shell .alert-danger,
+.mc-purchase-shell .alert-error {
+    background:#fef2f2;
+    color:#991b1b;
+    border:1px solid #fca5a5;
+}
+
+.mc-purchase-shell .alert-warning {
+    background:#fffbeb;
+    color:#92400e;
+    border:1px solid #fcd34d;
+}
+</style>
+<!-- MC_PURCHASE_FORM_VALIDATION_V1 -->
+<script>
+(function () {
+    "use strict";
+
+    function validate(form) {
+        let valid = true;
+        let firstInvalid = null;
+
+        form.querySelectorAll("input,select,textarea").forEach(function (field) {
+            if (field.disabled || field.type === "hidden") return;
+
+            field.classList.remove("mc-field-invalid");
+
+            let error = false;
+
+            if (field.required && !field.value.trim()) {
+                error = true;
+            }
+
+            if (
+                field.type === "number" &&
+                field.value !== "" &&
+                !field.validity.valid
+            ) {
+                error = true;
+            }
+
+            if (
+                field.type === "number" &&
+                field.value !== "" &&
+                Number(field.value) < 0 &&
+                field.min !== "" &&
+                Number(field.min) >= 0
+            ) {
+                error = true;
+            }
+
+            if (error) {
+                valid = false;
+                field.classList.add("mc-field-invalid");
+
+                if (!firstInvalid) firstInvalid = field;
+            }
+        });
+
+        if (!valid && firstInvalid) {
+            firstInvalid.focus();
+            firstInvalid.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        }
+
+        return valid;
+    }
+
+    document.addEventListener("submit", function (event) {
+        const form = event.target;
+
+        if (!(form instanceof HTMLFormElement)) return;
+        if (!form.closest(".mc-purchase-shell")) return;
+        if (form.method.toLowerCase() !== "post") return;
+
+        if (!validate(form)) {
+            event.preventDefault();
+        }
+    }, true);
+})();
+</script>
+
+<style>
+.mc-purchase-shell .mc-field-invalid {
+    border-color:#dc2626 !important;
+    box-shadow:0 0 0 2px rgba(220,38,38,.12) !important;
+}
+</style>
+<!-- MC_INVOICE_NUMBER_DATE_VALIDATION_V1 -->
+<script>
+(function () {
+    "use strict";
+
+    const root = document.querySelector(".mc-purchase-shell");
+    if (!root) return;
+
+    root.addEventListener("submit", function (event) {
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement)) return;
+        if (form.method.toLowerCase() !== "post") return;
+
+        const invoiceFields = Array.from(
+            form.querySelectorAll("input[name]")
+        ).filter(function (input) {
+            return /invoice(number|no)|fatura(no|numara)/i.test(
+                input.name.replace(/[_\s.-]/g, "")
+            );
+        });
+
+        invoiceFields.forEach(function (input) {
+            input.value = input.value.trim().replace(/\s+/g, " ");
+        });
+
+        const dateFields = Array.from(
+            form.querySelectorAll('input[type="date"]')
+        ).filter(function (input) {
+            return /invoice|fatura/i.test(input.name);
+        });
+
+        dateFields.forEach(function (input) {
+            if (!input.value) return;
+
+            const parts = input.value.split("-");
+            if (parts.length !== 3) {
+                event.preventDefault();
+                input.focus();
+                return;
+            }
+
+            const year = Number(parts[0]);
+            const month = Number(parts[1]);
+            const day = Number(parts[2]);
+
+            const date = new Date(Date.UTC(year, month - 1, day));
+
+            if (
+                date.getUTCFullYear() !== year ||
+                date.getUTCMonth() !== month - 1 ||
+                date.getUTCDate() !== day
+            ) {
+                event.preventDefault();
+                input.focus();
+            }
+        });
+    }, true);
+})();
+</script>
+<!-- MC_INVOICE_SUMMARY_PANEL_V1 -->
+<style>
+.mc-invoice-summary {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;
+    margin:12px 0 18px;
+}
+.mc-invoice-summary-card {
+    background:#fff;
+    border:1px solid #dbe4ee;
+    border-radius:12px;
+    padding:16px;
+}
+.mc-invoice-summary-card strong {
+    display:block;
+    font-size:24px;
+    color:#173b59;
+    margin-top:6px;
+}
+.mc-invoice-summary-card span {
+    color:#64748b;
+    font-size:13px;
+}
+@@media(max-width:900px) {
+    .mc-invoice-summary {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+@@media(max-width:500px) {
+    .mc-invoice-summary {
+        grid-template-columns:1fr;
+    }
+}
+</style>
+
+<script>
+(function(){
+    if(location.pathname.toLowerCase()!=="/mcpurchaseinvoiceentry")return;
+
+    function init(){
+        const root=document.querySelector(".mc-purchase-shell");
+        if(!root || root.querySelector(".mc-invoice-summary"))return;
+
+        const panel=document.createElement("div");
+        panel.className="mc-invoice-summary";
+
+        const items=[
+            ["Toplam Fatura","\u2014","total"],
+            ["Taslak Fatura","\u2014","draft"],
+            ["Kesinleşmiş Fatura","\u2014","final"],
+            ["Toplam Tutar","\u2014","amount"]
+        ];
+
+        items.forEach(function(item){
+            const card=document.createElement("div");
+            card.className="mc-invoice-summary-card mc-invoice-summary-"+item[2];
+
+            const label=document.createElement("span");
+            label.textContent=item[0];
+
+            const value=document.createElement("strong");
+            value.textContent=item[1];
+
+            card.appendChild(label);
+            card.appendChild(value);
+            panel.appendChild(card);
+        });
+
+        const heading=root.querySelector("h1");
+        if(!heading)return;
+
+        heading.insertAdjacentElement("afterend",panel);
+
+        const next=document.createElement("div");
+        next.className="mc-purchase-next-step";
+        next.innerHTML='<div><strong>Sonraki adım</strong><span>Fatura kaydı tamamlandıktan sonra Fatura Kontrolü ekranından durumunu doğrulayın.</span></div><a href="/MCPurchaseInvoiceStatus">Fatura Kontrolüne Git →</a>';
+        panel.insertAdjacentElement("afterend",next);
+    }
+
+    if(document.readyState==="loading")
+        document.addEventListener("DOMContentLoaded",init);
+    else init();
+})();
+</script>
+<style>/* MC_PURCHASE_NEXT_STEP_V1 */.mc-invoice-summary-card{transition:.15s ease}.mc-invoice-summary-draft{border-color:#fde68a!important;background:#fffbeb!important}.mc-invoice-summary-final{border-color:#bbf7d0!important;background:#f0fdf4!important}.mc-invoice-summary-amount{border-color:#bfdbfe!important;background:#eff6ff!important}.mc-purchase-next-step{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:10px 0 14px;padding:12px 14px;border:1px solid #dbe4ee;border-radius:10px;background:#f8fafc}.mc-purchase-next-step strong,.mc-purchase-next-step span{display:block}.mc-purchase-next-step span{margin-top:3px;font-size:12px;color:#64748b}.mc-purchase-next-step a{white-space:nowrap;text-decoration:none;font-weight:700;color:#17406a}@@media(max-width:700px){.mc-purchase-next-step{align-items:flex-start;flex-direction:column}}</style>
+<!-- MC_INVOICE_LIVE_SUMMARY_V1 -->
+<script>
+(function () {
+    "use strict";
+
+    if (location.pathname.toLowerCase() !== "/mcpurchaseinvoiceentry")
+        return;
+
+    async function loadInvoiceSummary() {
+        const panel = document.querySelector(".mc-invoice-summary");
+        if (!panel) return;
+
+        const cards = Array.from(
+            panel.querySelectorAll(".mc-invoice-summary-card")
+        );
+
+        if (cards.length < 4) return;
+
+        const values = cards.map(card => card.querySelector("strong"));
+
+        try {
+            const response = await fetch("/MCPurchaseInvoiceSummary", {
+                credentials: "same-origin",
+                cache: "no-store",
+                headers: { "Accept": "application/json" }
+            });
+
+            if (!response.ok)
+                throw new Error("HTTP " + response.status);
+
+            const data = await response.json();
+
+            const number = new Intl.NumberFormat("tr-TR");
+
+            values[0].textContent = number.format(data.total || 0);
+            values[1].textContent = number.format(data.draft || 0);
+            values[2].textContent = number.format(data.finalized || 0);
+
+            const totals = Object.entries(data.totals || {});
+
+            values[3].textContent = totals.length
+                ? totals.map(function(entry) {
+                    return new Intl.NumberFormat("tr-TR", {
+                        maximumFractionDigits: 2,
+                        minimumFractionDigits: 2
+                    }).format(entry[1]) + " " + entry[0];
+                }).join(" / ")
+                : "0,00";
+
+            values[3].style.fontSize = "17px";
+
+            if (data.other > 0) {
+                values[2].title =
+                    number.format(data.other) +
+                    " fatura farkli bir durum koduyla kayitli.";
+            }
+
+        } catch (error) {
+            values.forEach(function(value) {
+                if (value) value.textContent = "—";
+            });
+
+            console.error("Fatura ozeti yuklenemedi:", error);
+        }
+    }
+
+    if (document.readyState === "loading")
+        document.addEventListener("DOMContentLoaded", loadInvoiceSummary);
+    else
+        loadInvoiceSummary();
+})();
+</script>
+<!-- MC_CARI_EXPORT_FILTER_UI_V1 -->
+<style>
+.mc-cari-export-filter {
+    display:inline-flex;
+    width:fit-content;
+    max-width:100%;
+    align-items:end;
+    flex-wrap:wrap;
+    gap:10px;
+    padding:12px;
+    margin:10px 0;
+    background:#f3f7fb;
+    border:1px solid #dce5ee;
+    border-radius:10px;
+}
+.mc-cari-export-filter label {
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    font-size:12px;
+    font-weight:600;
+    color:#28445f;
+}
+.mc-cari-export-filter input {
+    height:36px;
+    padding:6px;
+    border:1px solid #cbd5e1;
+    border-radius:6px;
+}
+.mc-cari-export-filter button {
+    height:36px;
+    padding:0 14px;
+    background:#193e5d;
+    color:white;
+    border:0;
+    border-radius:6px;
+    font-weight:600;
+}
+</style>
+
+<script>
+(function () {
+    function init() {
+        if (location.pathname.toLowerCase() !==
+            "/mcpurchaseinvoicecariposting") return;
+
+        const link = document.querySelector(
+            '.mc-purchase-unified-nav a[href="/MCPurchaseCariExport"]'
+        );
+
+        if (!link || document.getElementById("mcCariExportFilter"))
+            return;
+
+        const form = document.createElement("form");
+        form.id = "mcCariExportFilter";
+        form.className = "mc-cari-export-filter";
+        form.method = "get";
+        form.action = "/MCPurchaseCariExport";
+
+        const startLabel = document.createElement("label");
+        startLabel.textContent = "Başlangıç Tarihi";
+
+        const start = document.createElement("input");
+        start.type = "date";
+        start.name = "startDate";
+        startLabel.appendChild(start);
+
+        const endLabel = document.createElement("label");
+        endLabel.textContent = "Bitiş Tarihi";
+
+        const end = document.createElement("input");
+        end.type = "date";
+        end.name = "endDate";
+        endLabel.appendChild(end);
+
+        const button = document.createElement("button");
+        button.type = "submit";
+        button.textContent = "Excel Raporu Al";
+
+        form.append(startLabel, endLabel, button);
+
+        form.addEventListener("submit", function(event) {
+            if (start.value && end.value && start.value > end.value) {
+                event.preventDefault();
+                end.setCustomValidity(
+                    "Bitiş tarihi başlangıç tarihinden önce olamaz."
+                );
+                end.reportValidity();
+            } else {
+                end.setCustomValidity("");
+            }
+        });
+
+        end.addEventListener("input", function() {
+            end.setCustomValidity("");
+        });
+
+        link.closest("nav").insertAdjacentElement("afterend", form);
+    }
+
+    if (document.readyState === "loading")
+        document.addEventListener("DOMContentLoaded", init);
+    else
+        init();
+})();
+</script>
+<!-- MC_CARI_EXPORT_QUICK_DATES_V1 -->
+<style>
+.mc-cari-quick-dates {
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:7px;
+}
+.mc-cari-quick-dates button {
+    height:34px;
+    padding:0 12px;
+    background:#fff;
+    border:1px solid #cbd5e1;
+    border-radius:7px;
+    color:#244567;
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+}
+.mc-cari-quick-dates button:hover {
+    background:#e1eaf4;
+}
+</style>
+
+<script>
+(function () {
+    "use strict";
+
+    function init() {
+        if (location.pathname.toLowerCase() !==
+            "/mcpurchaseinvoicecariposting") return;
+
+        const form = document.getElementById("mcCariExportFilter");
+
+        if (!form || form.querySelector(".mc-cari-quick-dates"))
+            return;
+
+        const start = form.querySelector('[name="startDate"]');
+        const end = form.querySelector('[name="endDate"]');
+
+        if (!start || !end) return;
+
+        const group = document.createElement("div");
+        group.className = "mc-cari-quick-dates";
+
+        function format(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return year + "-" + month + "-" + day;
+        }
+
+        function addButton(title, action) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = title;
+            button.addEventListener("click", action);
+            group.appendChild(button);
+        }
+
+        addButton("Bu Ay", function () {
+            const today = new Date();
+            start.value = format(new Date(
+                today.getFullYear(), today.getMonth(), 1
+            ));
+            end.value = format(new Date(
+                today.getFullYear(), today.getMonth() + 1, 0
+            ));
+            end.setCustomValidity("");
+        });
+
+        addButton("Geçen Ay", function () {
+            const today = new Date();
+            start.value = format(new Date(
+                today.getFullYear(), today.getMonth() - 1, 1
+            ));
+            end.value = format(new Date(
+                today.getFullYear(), today.getMonth(), 0
+            ));
+            end.setCustomValidity("");
+        });
+
+        addButton("Tüm Kayıtlar", function () {
+            start.value = "";
+            end.value = "";
+            end.setCustomValidity("");
+        });
+
+        // MC_CARI_RECENT_DATES_V1
+        function recentDays(days) {
+            const today = new Date();
+            const first = new Date(
+                today.getFullYear(),
+                today.getMonth(),
+                today.getDate() - days + 1
+            );
+
+            start.value = format(first);
+            end.value = format(today);
+            end.setCustomValidity("");
+        }
+
+        addButton("Son 7 Gün", function () {
+            recentDays(7);
+        });
+
+        addButton("Son 30 Gün", function () {
+            recentDays(30);
+        });
+
+        addButton("Son 90 Gün", function () {
+            recentDays(90);
+        });
+
+        form.appendChild(group);
+    }
+
+    if (document.readyState === "loading")
+        document.addEventListener("DOMContentLoaded", init);
+    else
+        init();
+})();
+</script>
+<!-- MC_CARI_DATE_PERSIST_V1 -->
+<script>
+(function () {
+    "use strict";
+
+    if (location.pathname.toLowerCase() !==
+        "/mcpurchaseinvoicecariposting") return;
+
+    function init() {
+        const form = document.getElementById("mcCariExportFilter");
+        if (!form || form.dataset.mcDatePersist === "1") return;
+
+        const start = form.querySelector('[name="startDate"]');
+        const end = form.querySelector('[name="endDate"]');
+        if (!start || !end) return;
+
+        form.dataset.mcDatePersist = "1";
+
+        const key = "mcCariExportDateRangeV1";
+
+        try {
+            const saved = JSON.parse(sessionStorage.getItem(key) || "{}");
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(saved.start || ""))
+                start.value = saved.start;
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(saved.end || ""))
+                end.value = saved.end;
+        } catch (_) {}
+
+        function save() {
+            try {
+                sessionStorage.setItem(key, JSON.stringify({
+                    start: start.value,
+                    end: end.value
+                }));
+            } catch (_) {}
+        }
+
+        start.addEventListener("change", save);
+        end.addEventListener("change", save);
+
+        form.addEventListener("submit", save);
+
+        form.querySelectorAll(".mc-cari-quick-dates button")
+            .forEach(function(button) {
+                button.addEventListener("click", save);
+            });
+    }
+
+    if (document.readyState === "loading")
+        document.addEventListener("DOMContentLoaded", init);
+    else
+        init();
+})();
+</script>
+<!-- MC_CARI_EXPORT_VERIFY_V1 -->
+<script>
+(function () {
+    "use strict";
+
+    function init() {
+        if (location.pathname.toLowerCase() !==
+            "/mcpurchaseinvoicecariposting") return;
+
+        const form = document.getElementById("mcCariExportFilter");
+
+        if (!form || document.getElementById("mcCariVerifyButton"))
+            return;
+
+        const button = document.createElement("button");
+        button.id = "mcCariVerifyButton";
+        button.type = "button";
+        button.textContent = "Raporu Kontrol Et";
+
+        button.addEventListener("click", function () {
+            const start = form.querySelector('[name="startDate"]');
+            const end = form.querySelector('[name="endDate"]');
+
+            const params = new URLSearchParams();
+
+            if (start && start.value)
+                params.set("startDate", start.value);
+
+            if (end && end.value)
+                params.set("endDate", end.value);
+
+            const url = "/MCPurchaseCariExport" +
+                (params.toString() ? "?" + params.toString() : "");
+
+            window.location.href = url;
+        });
+
+        form.appendChild(button);
+    }
+
+    if (document.readyState === "loading")
+        document.addEventListener("DOMContentLoaded", init);
+    else
+        init();
+})();
+</script>
+
+<script src="/js/mc-purchase-period-dropdown.js?v=20261107-direct5"></script>

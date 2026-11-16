@@ -56,7 +56,19 @@ public partial class ShipmentsController
                     "Bu sevkiyat zaten iptal edilmiş. Stok tekrar eklenmedi.");
             }
 
-            if (!string.Equals(
+                        // MC_SHIPMENT_CANCELLATION_DUPLICATE_GUARD_V1
+            // Daha once iade hareketi olusturulmus bir sevkiyata
+            // ikinci kez stok eklenmesini engeller.
+            if (await db.StockMovements.AnyAsync(m =>
+                m.RelatedShipmentId == shipment.Id &&
+                m.Type == StockMovementType.ShipmentCancellation))
+            {
+                return Failure(
+                    id,
+                    "Bu sevkiyata ait stok iade hareketi zaten var. "
+                    + "Ikinci kez stok iadesi engellendi.");
+            }
+if (!string.Equals(
                 shipment.ConcurrencyStamp,
                 concurrencyStamp,
                 StringComparison.Ordinal))
@@ -85,10 +97,7 @@ public partial class ShipmentsController
             var exactRestores = 0;
             var additiveRestores = 0;
 
-                if (shipment.Status is not (
-                ShipmentStatus.Confirmed or
-                ShipmentStatus.Shipped or
-                ShipmentStatus.Delivered))
+                if (shipment.Status == ShipmentStatus.Confirmed)
             {
                 var ids = shipment.Items
                     .Select(i => i.PalletItemId)

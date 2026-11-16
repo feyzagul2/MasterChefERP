@@ -1,0 +1,149 @@
+@model MasterChefTakip.Controllers.PurchaseDispatchInput
+@{
+    ViewData["Title"] = "Yeni Alış İrsaliyesi";
+    var orders = (List<MasterChefTakip.Models.PurchaseOrder>)ViewBag.Orders;
+}
+<style>
+.mc-pd{max-width:1120px;margin:auto}
+.mc-pd-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:14px 0}
+.mc-pd-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.mc-pd-btn{display:inline-block;padding:9px 14px;background:#fff;border:1px solid #cbd5e1;border-radius:7px;color:#17406a;text-decoration:none;font-size:13px;cursor:pointer}
+.mc-pd-primary{background:#17406a;border-color:#17406a;color:white}
+.mc-pd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.mc-pd-field{display:flex;flex-direction:column;gap:5px}
+.mc-pd-field label{font-size:12px;font-weight:650}
+.mc-pd-field input,.mc-pd-field select,.mc-pd-field textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:7px;padding:9px;font-size:13px}
+.mc-pd-scroll{overflow-x:auto}
+.mc-pd-table{width:100%;min-width:760px;border-collapse:collapse}
+.mc-pd-table th{text-align:left;background:#f8fafc;padding:11px;font-size:12px}
+.mc-pd-table td{padding:10px;border-bottom:1px solid #edf2f7;font-size:13px}
+.mc-pd-table input{width:125px;padding:8px;border:1px solid #cbd5e1;border-radius:7px}
+.mc-pd-note{font-size:12px;color:#64748b}
+@@media(max-width:700px){.mc-pd-grid{grid-template-columns:1fr}.mc-pd-card{padding:12px}}
+</style>
+
+<div class="mc-pd">
+    <div class="mc-pd-head">
+        <h1>Yeni Al&#305;&#351; &#304;rsaliyesi</h1>
+        <a class="mc-pd-btn" asp-action="Index">Listeye D&#246;n</a>
+    </div>
+
+
+    <!-- MC_DIRECT_DISPATCH_LINK_2026 -->
+    <div class="mc-pd-card">
+        <a class="mc-pd-btn mc-pd-primary"
+           asp-action="Direct">
+            Satın Alma Siparişi Olmadan İrsaliye Olu?tur
+        </a>
+    </div>
+
+    <div class="mc-pd-card">
+        <form asp-action="Create" method="get">
+            <div class="mc-pd-grid">
+                <div class="mc-pd-field">
+                    <label for="purchaseOrderId">
+                        Sat&#305;n Alma Sipari&#351;i
+                    </label>
+                    <select id="purchaseOrderId"
+                            name="purchaseOrderId" required>
+                        <option value="">Sipari&#351; Se&#231;iniz</option>
+                        @foreach (var order in orders)
+                        {
+                            <option value="@order.Id"
+                                    selected="@(Model.PurchaseOrderId == order.Id)">
+                                @order.OrderNumber - @order.Supplier.CompanyName
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div style="display:flex;align-items:end">
+                    <button class="mc-pd-btn mc-pd-primary"
+                            type="submit">Sipari&#351; Kalemlerini Getir</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @if (Model.PurchaseOrderId > 0)
+    {
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <input asp-for="PurchaseOrderId" type="hidden" />
+
+            <div asp-validation-summary="All"
+                 style="color:#b91c1c;font-size:13px"></div>
+
+            <div class="mc-pd-card">
+                <div class="mc-pd-grid">
+                    <div class="mc-pd-field">
+                        <label asp-for="DocumentDate">
+                            &#304;rsaliye Tarihi
+                        </label>
+                        <input asp-for="DocumentDate" type="date" required />
+                    </div>
+                    <div class="mc-pd-field">
+                        <label asp-for="SupplierDocumentNumber">
+                            Tedarik&#231;i &#304;rsaliye No
+                        </label>
+                        <input asp-for="SupplierDocumentNumber" maxlength="60" />
+                    </div>
+                    <div class="mc-pd-field">
+                        <label asp-for="Notes">A&#231;&#305;klama</label>
+                        <textarea asp-for="Notes" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mc-pd-card mc-pd-scroll">
+                <h2 style="font-size:16px;margin:0 0 12px">
+                    K&#305;smi Teslimat Miktarlar&#305;
+                </h2>
+                <table class="mc-pd-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>&#220;r&#252;n / Malzeme</th>
+                            <th>Birim</th>
+                            <th>Sipari&#351;</th>
+                            <th>Kalan</th>
+                            <th>Gelen Miktar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @for (var i = 0; i < Model.Lines.Count; i++)
+                    {
+                        <tr>
+                            <td>@(i + 1)</td>
+                            <td>
+                                @Model.Lines[i].ProductDescription
+                                <input asp-for="Lines[i].PurchaseOrderLineId"
+                                       type="hidden" />
+                            </td>
+                            <td>@Model.Lines[i].Unit</td>
+                            <td>@Model.Lines[i].OrderedQuantity.ToString("N4")</td>
+                            <td>@Model.Lines[i].RemainingQuantity.ToString("N4")</td>
+                            <td>
+                                <input asp-for="Lines[i].Quantity"
+                                       type="number"
+                                       min="0"
+                                       max="@Model.Lines[i].RemainingQuantity.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                       step="0.0001" />
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mc-pd-card">
+                <p class="mc-pd-note">
+                    Gelen miktar&#305; yaz&#305;n. Teslim edilmeyen &#252;r&#252;nler i&#231;in 0 girin.
+                    Kaydedilen irsaliye hen&#252;z stok hareketi olu&#351;turmaz.
+                </p>
+                <button class="mc-pd-btn mc-pd-primary" type="submit">
+                    Taslak &#304;rsaliyeyi Kaydet
+                </button>
+            </div>
+        </form>
+    }
+</div>

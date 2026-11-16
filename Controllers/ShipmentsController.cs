@@ -494,7 +494,156 @@ if (orderError is not null)
                 });
             }
 
-            shipment.Status = ShipmentStatus.Confirmed;
+            
+            // MC_SHIPMENT_LOT_QUALITY_GUARD_2026
+            // Existing shipment lines are grandfathered by their exact IDs.
+            // New shipment lines must have an approved and valid product lot.
+            var legacyShipmentLines = new HashSet<string>(
+                StringComparer.Ordinal)
+            {
+                    "17:19:14",
+                    "17:20:18",
+                    "17:21:43"
+            };
+
+            var shipmentLineIds = shipment.Items
+                .Select(x => x.PalletItemId)
+                .Distinct()
+                .ToList();
+
+            var receiptMovements = await db.Set<StockMovement>()
+                .AsNoTracking()
+                .Where(x =>
+                    shipmentLineIds.Contains(x.PalletItemId) &&
+                    x.Type == StockMovementType.Receipt &&
+                    x.PackagingBatchId != null)
+                .Select(x => new
+                {
+                    x.PalletItemId,
+                    x.PackagingBatchId
+                })
+                .ToListAsync();
+
+            var packagingIds = receiptMovements
+                .Select(x => x.PackagingBatchId)
+                .Where(x => x != null)
+                .Select(x => x!)
+                .Distinct()
+                .ToList();
+
+            var packagingLinks = await db
+                .Set<ProductionPackagingLink>()
+                .AsNoTracking()
+                .Include(x => x.ProductLot)
+                .Where(x => packagingIds.Contains(x.PackagingBatchId))
+                .ToListAsync();
+
+            var stockProducts = await db.PalletItems
+                .AsNoTracking()
+                .Where(x => shipmentLineIds.Contains(x.Id))
+                .Select(x => new
+                {
+                    x.Id,
+                    x.ProductId
+                })
+                .ToListAsync();
+
+            var todayForLotValidation = DateTime.Today;
+
+            foreach (var shipmentLine in shipment.Items)
+            {
+                var legacyKey =
+                    shipment.Id.ToString() + ":" +
+                    shipmentLine.Id.ToString() + ":" +
+                    shipmentLine.PalletItemId.ToString();
+
+                // MC_LEGACY_SHIPMENT_EXEMPTION_REMOVED_2026
+                // Every shipment line requires lot validation.
+
+                var stockProduct = stockProducts
+                    .FirstOrDefault(x =>
+                        x.Id == shipmentLine.PalletItemId);
+
+                if (stockProduct == null)
+                {
+                    return Failure(
+                        id,
+                        "Sevkiyat kaleminin palet stogu bulunamadi.");
+                }
+
+                var relatedPackagingIds = receiptMovements
+                    .Where(x =>
+                        x.PalletItemId == shipmentLine.PalletItemId)
+                    .Select(x => x.PackagingBatchId)
+                    .Where(x => x != null)
+                    .Select(x => x!)
+                    .Distinct()
+                    .ToHashSet();
+
+                if (relatedPackagingIds.Count == 0)
+                {
+                    return Failure(
+                        id,
+                        "Sevkiyat engellendi: Urunun paketleme ve lot kaydi bulunamadi.");
+                }
+
+                var relatedLinks = packagingLinks
+                    .Where(x =>
+                        relatedPackagingIds.Contains(x.PackagingBatchId))
+                    .ToList();
+
+                if (relatedLinks.Count != relatedPackagingIds.Count)
+                {
+                    return Failure(
+                        id,
+                        "Sevkiyat engellendi: Paketleme kayitlarinin tamami lot ile eslesmemis.");
+                }
+
+                var relatedLots = relatedLinks
+                    .Select(x => x.ProductLot)
+                    .GroupBy(x => x.Id)
+                    .Select(x => x.First())
+                    .ToList();
+
+                if (relatedLots.Count != 1)
+                {
+                    return Failure(
+                        id,
+                        "Sevkiyat engellendi: Palet kaleminin lot bilgisi belirsiz.");
+                }
+
+                var productLot = relatedLots[0];
+
+                if (productLot.ProductId != stockProduct.ProductId)
+                {
+                    return Failure(
+                        id,
+                        "Sevkiyat engellendi: Lot urunu ile palet urunu eslesmiyor.");
+                }
+
+                if (productLot.Status != "Approved")
+                {
+                    return Failure(
+                        id,
+                        "Sevkiyat engellendi: Lot kalite onayi bulunmuyor.");
+                }
+
+                if (productLot.ExpiryDate.Date < todayForLotValidation)
+                {
+                    return Failure(
+                        id,
+                        "Sevkiyat engellendi: Lotun son kullanma tarihi gecmis.");
+                }
+
+                if (productLot.ProductionDate.Date > todayForLotValidation)
+                {
+                    return Failure(
+                        id,
+                        "Sevkiyat engellendi: Lotun uretim tarihi gelecekte.");
+                }
+            }
+
+shipment.Status = ShipmentStatus.Confirmed;
             shipment.ConfirmedByUserId = userId;
             shipment.ConfirmedAtUtc = now;
             shipment.ConcurrencyStamp =

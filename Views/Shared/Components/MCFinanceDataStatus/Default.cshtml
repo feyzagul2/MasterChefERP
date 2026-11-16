@@ -1,0 +1,205 @@
+﻿@model MasterChefTakip.ViewComponents.MCFinanceDataStatusModel
+
+<!-- MC_FINANCE_DATA_STATUS_V1 -->
+<!-- MC_FINANCE_INTEGRITY_V2 -->
+
+<section style="background:white;border:1px solid #dbe5ef;
+                border-radius:14px;padding:20px;margin:20px 0">
+
+    <h2 style="color:#183b59;margin-top:0">
+        Finans Veri Durumu
+    </h2>
+
+    @if (!Model.DatabaseAvailable)
+    {
+        <div role="alert"
+             style="background:#fef2f2;color:#991b1b;
+                    padding:14px;border-radius:9px">
+            @Model.Warning
+        </div>
+    }
+    else
+    {
+        <div style="display:grid;
+                    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+                    gap:10px">
+
+            <div style="background:#f8fafc;padding:14px;border-radius:9px">
+                <div>Cari Hesap</div>
+                <strong style="font-size:24px">
+                    @(Model.CariAccounts?.ToString() ?? "—")
+                </strong>
+            </div>
+
+            <div style="background:#f8fafc;padding:14px;border-radius:9px">
+                <div>Cari Hareket</div>
+                <strong style="font-size:24px">
+                    @(Model.CariMovements?.ToString() ?? "—")
+                </strong>
+            </div>
+
+            <div style="background:#f8fafc;padding:14px;border-radius:9px">
+                <div>Banka / Kasa Hesabı</div>
+                <strong style="font-size:24px">
+                    @(Model.BankAccounts?.ToString() ?? "—")
+                </strong>
+            </div>
+
+            <div style="background:#f8fafc;padding:14px;border-radius:9px">
+                <div>Banka / Kasa Hareketi</div>
+                <strong style="font-size:24px">
+                    @(Model.BankMovements?.ToString() ?? "—")
+                </strong>
+            </div>
+
+            <div style="background:#f8fafc;padding:14px;border-radius:9px">
+                <div>Vade Denetim Kaydı</div>
+                <strong style="font-size:24px">
+                    @(Model.DueAudit?.ToString() ?? "—")
+                </strong>
+            </div>
+        </div>
+
+        <h3 style="color:#183b59;margin:24px 0 12px">
+            Finans Tutarlılık Kontrolleri
+        </h3>
+
+        <div style="display:grid;
+                    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+                    gap:10px">
+
+            @{
+                var checks = new[]
+                {
+                    new {
+                        Name = "Cari hesabı eksik hareket",
+                        Value = Model.OrphanCariMovements,
+                        IsAttention = true
+                    },
+                    new {
+                        Name = "Vadesi eksik satış / alış",
+                        Value = Model.MissingDueDates,
+                        IsAttention = true
+                    },
+                    new {
+                        Name = "Tekrarlanan işlem anahtarı",
+                        Value = Model.DuplicateTokens,
+                        IsAttention = true
+                    },
+                    new {
+                        Name = "Banka bağlantısı olmayan tahsilat / ödeme",
+                        Value = Model.MissingBankLinks,
+                        IsAttention = true
+                    },
+                    new {
+                        Name = "Bulunamayan banka hareketi bağlantısı",
+                        Value = Model.BrokenBankLinks,
+                        IsAttention = true
+                    },
+                    new {
+                        Name = "Birden fazla cariye bağlanan banka hareketi",
+                        Value = Model.MultipleBankLinks,
+                        IsAttention = true
+                    },
+                                        // MC_FINANCE_CURRENCY_CHECK_V3
+                                        // MC_FINANCE_CARI_CURRENCY_V4
+                    new {
+                        Name = "Cari hesap / hareket para birimi uyuşmazlığı",
+                        Value = Model.CariCurrencyMismatch,
+                        IsAttention = true
+                    },
+new {
+                        Name = "Cari / banka para birimi uyuşmazlığı",
+                        Value = Model.CurrencyMismatch,
+                        IsAttention = true
+                    },
+new {
+                        Name = "Hareketi bulunamayan vade denetimi",
+                        Value = Model.OrphanAudit,
+                        IsAttention = true
+                    },
+                    new {
+                        Name = "Mevcut vade ile denetim uyuşmazlığı",
+                        Value = Model.AuditDateMismatch,
+                        IsAttention = true
+                    }
+                };
+            }
+
+            @foreach (var check in checks)
+            {
+                var missing = !check.Value.HasValue;
+                var attention =
+                    check.IsAttention && check.Value.GetValueOrDefault() > 0;
+
+                var background = missing
+                    ? "#f1f5f9"
+                    : attention
+                        ? "#fff7ed"
+                        : "#ecfdf5";
+
+                var color = missing
+                    ? "#475569"
+                    : attention
+                        ? "#9a3412"
+                        : "#166534";
+
+                <div style="background:@background;
+                            border-radius:9px;padding:14px">
+
+                    <div style="font-size:13px;color:#475569">
+                        @check.Name
+                    </div>
+
+                    <strong style="font-size:24px;color:@color">
+                        @(missing ? "—" : check.Value.ToString())
+                    </strong>
+
+                    <div style="font-size:12px;color:@color">
+                        @(missing
+                            ? "Kontrol yapılamadı / tablo henüz yok"
+                            : attention
+                                ? "İncelenmeli"
+                                : "Bu kontrolde sorun bulunmadı")
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (Model.CariAccounts == 0 &&
+             Model.CariMovements == 0 &&
+             Model.BankAccounts == 0 &&
+             Model.BankMovements == 0)
+        {
+            <div role="status"
+                 style="background:#fff7ed;color:#9a3412;
+                        padding:14px;border-radius:9px;
+                        margin-top:15px">
+                Finans tablolarında henüz gerçek kayıt bulunmuyor.
+                Sıfır tutarsızlık, işlemlerin test edildiği veya
+                işletme bakiyelerinin doğrulandığı anlamına gelmez.
+            </div>
+        }
+
+        @if (Model.CariAccounts is null ||
+             Model.CariMovements is null ||
+             Model.BankAccounts is null ||
+             Model.BankMovements is null)
+        {
+            <div role="alert"
+                 style="background:#fef2f2;color:#991b1b;
+                        padding:14px;border-radius:9px;
+                        margin-top:15px">
+                Temel finans tablolarından en az biri bulunamadı.
+                İlgili modülün veritabanı yapısı kontrol edilmeli.
+            </div>
+        }
+
+        <p style="font-size:13px;color:#64748b;margin-top:15px">
+            Kontroller mevcut veritabanındaki kayıtlar üzerinden
+            yalnızca okuma yapar. Sıfır sonuç muhasebe mutabakatı
+            veya gerçek banka bakiyesi doğrulaması değildir.
+            Vade denetim tablosu ilk kayıt sırasında oluşturulabilir.
+        </p>
+    }
+</section>

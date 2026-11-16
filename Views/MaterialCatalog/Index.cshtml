@@ -1,0 +1,275 @@
+@model MasterChefTakip.Controllers.MaterialCatalogPage
+
+@{
+    ViewData["Title"] = "Malzeme Kataloğu";
+    var first = Math.Max(1, Model.Page - 2);
+    var last = Math.Min(Model.TotalPages, Model.Page + 2);
+}
+
+<style>
+.mc-cat{max-width:1450px;margin:0 auto;padding:8px 0}
+.mc-cat h1{font-size:25px;font-weight:750;margin:0}
+.mc-cat-muted{color:#64748b;font-size:13px}
+.mc-cat-top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.mc-cat-total{font-size:25px;font-weight:750;color:#17406a}
+.mc-cat-card{background:#fff;border:1px solid #e2e8f0;border-radius:13px;padding:18px;margin-bottom:14px}
+.mc-cat-filters{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;gap:12px}
+.mc-cat input,.mc-cat select{width:100%;min-width:0;border:1px solid #cbd5e1;border-radius:8px;padding:10px;box-sizing:border-box}
+.mc-cat button,.mc-cat-link{background:#17406a;color:#fff;border:0;border-radius:8px;padding:10px 16px;text-decoration:none;cursor:pointer;display:inline-block}
+.mc-cat-scroll{overflow-x:auto}
+.mc-cat-table{width:100%;border-collapse:collapse}
+.mc-cat-table th{background:#f1f5f9;text-align:left;font-size:12px;color:#475569;padding:12px}
+.mc-cat-table td{border-top:1px solid #e2e8f0;padding:12px;font-size:13px;vertical-align:top}
+.mc-cat-table tr:hover{background:#f8fafc}
+.mc-cat-code{font-weight:750;color:#17406a;white-space:nowrap}
+.mc-cat-badge{background:#e2e8f0;border-radius:5px;padding:5px 8px;font-weight:650;font-size:12px}
+.mc-cat-details summary{cursor:pointer;color:#17406a;font-weight:600}
+.mc-cat-details ol{padding-left:22px}
+.mc-cat-details li{margin:5px 0;overflow-wrap:anywhere}
+.mc-cat-types{display:flex;flex-wrap:wrap;gap:8px}
+.mc-cat-type{display:inline-block;border:1px solid #cbd5e1;padding:7px 11px;border-radius:7px;text-decoration:none;color:#334155;font-size:12px}
+.mc-cat-type strong{margin-left:5px}
+.mc-cat-type.active{background:#17406a;color:#fff;border-color:#17406a}
+.mc-cat-pages{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;padding:10px}
+.mc-cat-page{border:1px solid #cbd5e1;border-radius:7px;padding:7px 11px;text-decoration:none;color:#17406a}
+.mc-cat-page.active{background:#17406a;color:#fff}
+@@media(max-width:700px){
+.mc-cat-filters{grid-template-columns:1fr}
+.mc-cat-card{padding:12px}
+.mc-cat h1{font-size:21px}
+.mc-cat-table{min-width:650px}
+}
+
+/* MC_STOCK_RIGHT_STYLE_V1 */
+.mc-stock-right-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 35px;
+    padding: 7px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #f8fafc;
+    color: #17406a;
+    font-size: 12px;
+    font-weight: 650;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.mc-stock-right-button:hover {
+    background: #eaf0f7;
+    color: #12365a;
+}
+
+</style>
+
+<div class="mc-cat">
+
+    <div class="mc-cat-top">
+        <div>
+            <h1>Malzeme Kataloğu</h1>
+            <div class="mc-cat-muted">
+                Gerçek Excel malzeme kayıtları
+            </div>
+        </div>
+
+        <div>
+            <div class="mc-cat-total">
+                @Model.Total.ToString("N0")
+            </div>
+            <div class="mc-cat-muted">
+                Bulunan malzeme
+            </div>
+        </div>
+    </div>
+
+    <div class="mc-cat-card">
+
+        <form method="get" asp-action="Index"
+              class="mc-cat-filters">
+
+            <input name="q"
+                   value="@Model.Search"
+                   placeholder="Malzeme kodu veya adı ara..." />
+
+            <select name="type">
+                <option value="">Bütün malzeme türleri</option>
+
+                @foreach (var item in Model.Types)
+                {
+                    <option value="@item.Code"
+                            selected="@(Model.Type == item.Code)">
+                        @item.Code (@item.Count)
+                    </option>
+                }
+            </select>
+
+            <button type="submit">Ara / Filtrele</button>
+        </form>
+
+        <div class="mc-cat-types" style="margin-top:14px">
+            <a class="mc-cat-type @(Model.Type == "" ? "active" : "")"
+               asp-action="Index"
+               asp-route-q="@Model.Search">
+                Tümü
+            </a>
+
+            @foreach (var item in Model.Types)
+            {
+                <a class="mc-cat-type @(Model.Type == item.Code ? "active" : "")"
+                   asp-action="Index"
+                   asp-route-q="@Model.Search"
+                   asp-route-type="@item.Code">
+                    @item.Code
+                    <strong>@item.Count</strong>
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="mc-cat-card">
+
+        <div class="mc-cat-scroll">
+            <table class="mc-cat-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Malzeme Kodu</th>
+                        <th>Malzeme Adı</th>
+                        <th>Türü</th>
+                        <th>Excel Bilgileri</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in Model.Rows)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td class="mc-cat-code">@item.Code</td>
+                            <td>@item.Name</td>
+                            <td>
+                                <span class="mc-cat-badge">
+                                    @item.Type
+                                </span>
+                            </td>
+                            <td>
+                                <details class="mc-cat-details">
+                                    <summary>
+                                        Tüm bilgileri göster
+                                    </summary>
+
+                                    <p class="mc-cat-muted">
+                                        @item.Sheet /
+                                        Excel satırı @item.ExcelRow
+                                    </p>
+
+                                    <ol>
+                                        @for (var i = 0; i < item.OriginalValues.Count; i++)
+                                        {
+                                            <li>
+                                                <strong>Sütun @(i + 1):</strong>
+                                                @item.OriginalValues[i]
+                                            </li>
+                                        }
+                                    </ol>
+                                </details>
+                            
+                                    <!-- MC_STOCK_BUTTON_RIGHT_V1 -->
+                                    @if (!string.IsNullOrWhiteSpace(item.Code))
+                                    {
+                                        <div style="margin-top:10px">
+                                            <a asp-controller="MCInventoryCards"
+                                               asp-action="Create"
+                                               asp-route-catalogId="@item.Id"
+                                               class="mc-stock-right-button">
+                                                Stok Kart&#305; Olu&#351;tur
+                                            </a>
+                                        </div>
+                                    }
+</td>
+                        </tr>
+                    }
+
+                    @if (Model.Rows.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5">
+                                Aramanıza uygun malzeme bulunamadı.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mc-cat-pages">
+
+        @if (Model.Page > 1)
+        {
+            <a class="mc-cat-page"
+               asp-action="Index"
+               asp-route-q="@Model.Search"
+               asp-route-type="@Model.Type"
+               asp-route-page="@(Model.Page - 1)">
+                Önceki
+            </a>
+        }
+
+        @for (var i = first; i <= last; i++)
+        {
+            <a class="mc-cat-page @(Model.Page == i ? "active" : "")"
+               asp-action="Index"
+               asp-route-q="@Model.Search"
+               asp-route-type="@Model.Type"
+               asp-route-page="@i">
+                @i
+            </a>
+        }
+
+        @if (Model.Page < Model.TotalPages)
+        {
+            <a class="mc-cat-page"
+               asp-action="Index"
+               asp-route-q="@Model.Search"
+               asp-route-type="@Model.Type"
+               asp-route-page="@(Model.Page + 1)">
+                Sonraki
+            </a>
+        }
+    </div>
+
+    <div class="mc-cat-muted" style="text-align:center">
+        Sayfa @Model.Page / @Model.TotalPages ·
+        Sayfa başına @Model.PageSize kayıt
+    </div>
+
+</div>
+
+<!-- MC_CATALOG_HIDE_BACK_2026 -->
+<script>
+(function () {
+    function hideBack() {
+        document.querySelectorAll("a").forEach(function (a) {
+            const text = (a.textContent || "")
+                .trim()
+                .toLocaleLowerCase("tr-TR");
+
+            if (
+                text.includes("Önceki sayfaya d?n") ||
+                text.includes("genel bak??'a d?n")
+            ) {
+                a.style.display = "none";
+            }
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", hideBack);
+    } else {
+        hideBack();
+    }
+})();
+</script>

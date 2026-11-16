@@ -1,0 +1,182 @@
+
+@model MasterChefTakip.Controllers.GoodsReceiptStockTransferForm
+
+@{
+    ViewData["Title"] = "Mal Kabul Stok Aktarimi";
+}
+
+<!-- MC_GOODS_STOCK_TRANSFER_2026 -->
+
+<style>
+.mc-gst{max-width:1160px;margin:auto}
+.mc-gst-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:15px 0}
+.mc-gst-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.mc-gst-btn{display:inline-block;padding:10px 15px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#17406a;text-decoration:none;font-size:13px;cursor:pointer}
+.mc-gst-primary{background:#17406a;border-color:#17406a;color:#fff}
+.mc-gst-table-wrap{overflow-x:auto}
+.mc-gst-table{width:100%;min-width:850px;border-collapse:collapse}
+.mc-gst-table th{text-align:left;padding:12px;background:#f8fafc;color:#475569;font-size:12px}
+.mc-gst-table td{padding:11px;border-bottom:1px solid #edf2f7;font-size:13px}
+.mc-gst-table select{width:100%;min-width:190px;padding:9px;border:1px solid #cbd5e1;border-radius:7px;background:#fff}
+.mc-gst-info{padding:13px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:9px;font-size:13px;line-height:1.6;color:#1e40af}
+.mc-gst-muted{color:#64748b;font-size:12px}
+</style>
+
+<div class="mc-gst">
+
+    <div class="mc-gst-head">
+        <div>
+            <h1>Mal Kabul / Stok Aktar&#305;m&#305;</h1>
+            <div class="mc-gst-muted">
+                @Model.ReceiptNumber - @Model.SupplierName
+            </div>
+        </div>
+
+        <a class="mc-gst-btn"
+           asp-controller="PurchaseGoodsReceipt"
+           asp-action="Details"
+           asp-route-id="@Model.ReceiptId">
+            Mal Kabul Detay&#305;
+        </a>
+    </div>
+
+    <div class="mc-gst-info" style="margin-top:15px">
+        <strong>Stok hesaplama:</strong><br />
+        Adet: Gelen miktar do&#287;rudan tekil adet olarak kaydedilir.<br />
+        Koli: Gelen koli x &#252;r&#252;n&#252;n koli i&#231;i adedi.<br />
+        Kg: Bu ekrandan stok aktar&#305;m&#305; yap&#305;lamaz.
+        Hammadde stok mod&#252;l&#252;nde takip edilecektir.
+    </div>
+
+    <div class="mc-gst-info" style="margin-top:15px">
+        <strong>Adet</strong> ve <strong>Koli</strong>
+        birimli tam say&#305; miktarlar aktar&#305;labilir.
+        Koli aktar&#305;m&#305;nda &#252;r&#252;n kart&#305;ndaki
+        koli i&#231;i adet kullan&#305;l&#305;r.
+        Her sat&#305;r i&#231;in &#252;r&#252;n ve palet se&#231;iniz.
+        Bir mal kabul kalemi ikinci kez sto&#287;a aktar&#305;lamaz.
+    </div>
+
+    @if (Model.Excluded.Any())
+    {
+        <div class="mc-gst-card">
+            <strong>Kontrol Gerektiren / Aktar&#305;lm&#305;&#351; Kalemler</strong>
+
+            @foreach (var item in Model.Excluded)
+            {
+                <div class="mc-gst-muted" style="margin-top:8px">
+                    @item
+                </div>
+            }
+        </div>
+    }
+
+    @if (!Model.CanTransfer)
+    {
+        <div class="mc-gst-card">
+            Bu mal kabul kayd&#305; stok aktar&#305;m&#305;na uygun de&#287;il.
+        </div>
+    }
+    else if (!Model.Lines.Any())
+    {
+        <div class="mc-gst-card">
+            Aktar&#305;labilecek yeni kalem bulunmuyor.
+        </div>
+    }
+    else if (!Model.Products.Any() || !Model.Pallets.Any())
+    {
+        <div class="mc-gst-card">
+            Aktif &#252;r&#252;n veya aktif palet bulunmuyor.
+            &#214;nce &#252;r&#252;n ve palet kay&#305;tlar&#305;n&#305; kontrol edin.
+        </div>
+    }
+    else
+    {
+        <form asp-action="Transfer" method="post">
+            @Html.AntiForgeryToken()
+
+            <input asp-for="ReceiptId" type="hidden" />
+
+            <div asp-validation-summary="All"
+                 style="color:#b91c1c;font-size:13px"></div>
+
+            <div class="mc-gst-card mc-gst-table-wrap">
+
+                <table class="mc-gst-table">
+                    <thead>
+                        <tr>
+                            <th>Mal Kabul &#220;r&#252;n&#252;</th>
+                            <th>Kabul Miktar&#305;</th>
+                            <th>Stok &#220;r&#252;n&#252;</th>
+                            <th>Palet</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    @for (var i = 0; i < Model.Lines.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                @Model.Lines[i].Description
+
+                                <input asp-for="Lines[i].ReceiptLineId"
+                                       type="hidden" />
+                            </td>
+
+                            <td>
+                                @Model.Lines[i].Quantity
+                                @Model.Lines[i].Unit
+                            </td>
+
+                            <td>
+                                <select asp-for="Lines[i].ProductId"
+                                        required>
+                                    <option value="0">
+                                        &#220;r&#252;n Se&#231;iniz
+                                    </option>
+
+                                    @foreach (var product in Model.Products)
+                                    {
+                                        <option value="@product.Id">
+                                            @product.Label
+                                        </option>
+                                    }
+                                </select>
+                            </td>
+
+                            <td>
+                                <select asp-for="Lines[i].PalletId"
+                                        required>
+                                    <option value="0">
+                                        Palet Se&#231;iniz
+                                    </option>
+
+                                    @foreach (var pallet in Model.Pallets)
+                                    {
+                                        <option value="@pallet.Id">
+                                            @pallet.Label
+                                        </option>
+                                    }
+                                </select>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mc-gst-card">
+                <button type="submit"
+                        class="mc-gst-btn mc-gst-primary"
+                        onclick="return confirm('Se&#231;ilen &#252;r&#252;nleri palet stoklar&#305;na aktarmak istiyor musunuz?')">
+                    Stok Aktar&#305;m&#305;n&#305; Onayla
+                </button>
+
+                <p class="mc-gst-muted">
+                    Onay sonras&#305;nda ilgili paletlere
+                    stok giri&#351; hareketi kaydedilecektir.
+                </p>
+            </div>
+        </form>
+    }
+</div>

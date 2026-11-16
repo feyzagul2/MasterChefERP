@@ -1,0 +1,177 @@
+@model MasterChefTakip.Controllers.MCInventoryDetailsInput
+
+@{
+    ViewData["Title"] = "Stok Kart? Ek Bilgileri";
+}
+
+<style>
+.mc-detail {
+    max-width: 1100px;
+    margin: 18px auto;
+    padding: 24px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-family: inherit;
+}
+.mc-detail h2 {
+    color: #17406a;
+    margin-bottom: 20px;
+    font-family: inherit;
+}
+.mc-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 18px;
+}
+.mc-detail label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+.mc-detail input,
+.mc-detail textarea {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    font: inherit;
+}
+.mc-detail button {
+    background: #17406a;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 12px 24px;
+    margin-top: 20px;
+    cursor: pointer;
+    font: inherit;
+}
+.mc-detail .info {
+    background: #f1f5f9;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+@@media (max-width: 700px) {
+    .mc-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<section class="mc-detail">
+    <h2>Stok Kart? Ek Bilgileri</h2>
+
+    <div class="info">
+        <div><strong>Kod:</strong> @Model.Code</div>
+        <div><strong>Malzeme:</strong> @Model.Name</div>
+        <div><strong>T?r:</strong> @Model.Type</div>
+    </div>
+
+    @if (TempData["MCDetailSaved"] != null)
+    {
+        <div class="alert alert-success">@TempData["MCDetailSaved"]</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.Error))
+    {
+        <div class="alert alert-danger">@Model.Error</div>
+    }
+
+    @if (!Model.HasCard)
+    {
+        <div class="alert alert-warning">
+            ?nce malzemenin stok kartını oluşturunuz.
+        </div>
+    }
+    else
+    {
+        <form method="post"
+              asp-controller="MCInventoryDetails"
+              asp-action="Edit">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   name="CatalogId"
+                   value="@Model.CatalogId" />
+
+            <div class="mc-detail-grid">
+                <div>
+                    <label for="Barcode">Barkod</label>
+                    <input id="Barcode" name="Barcode"
+                           maxlength="100"
+                           value="@Model.Barcode" />
+                </div>
+
+                <div>
+                    <label for="ShelfLocation">Raf / Depo Konumu</label>
+                    <input id="ShelfLocation" name="ShelfLocation"
+                           maxlength="150"
+                           value="@Model.ShelfLocation" />
+                </div>
+
+                <div>
+                    <label for="MinimumStock">Minimum Stok</label>
+                    <input id="MinimumStock" name="MinimumStock"
+                           inputmode="decimal"
+                           value="@Model.MinimumStock" />
+                </div>
+
+                <div>
+                    <label for="CriticalStock">Kritik Stok</label>
+                    <input id="CriticalStock" name="CriticalStock"
+                           inputmode="decimal"
+                           value="@Model.CriticalStock" />
+                </div>
+
+                <div>
+                    <label for="Supplier">Tedarikçi</label>
+                    <input id="Supplier" name="Supplier"
+                           maxlength="250"
+                           value="@Model.Supplier" />
+                </div>
+
+                <div>
+                    <label for="PurchasePrice">Alış Fiyat?</label>
+                    <input id="PurchasePrice" name="PurchasePrice"
+                           inputmode="decimal"
+                           value="@Model.PurchasePrice" />
+                </div>
+
+                <div>
+                    <label for="Currency">Para Birimi</label>
+                    <input id="Currency" name="Currency"
+                           maxlength="10"
+                           value="@Model.Currency" />
+                </div>
+
+                <div>
+                    <label for="VatRate">KDV Oran? (%)</label>
+                    <input id="VatRate" name="VatRate"
+                           inputmode="decimal"
+                           value="@Model.VatRate" />
+                </div>
+            </div>
+
+            <div style="margin-top:18px">
+                <label for="Notes">A??klama</label>
+                <textarea id="Notes" name="Notes"
+                          maxlength="2000"
+                          rows="4">@Model.Notes</textarea>
+            </div>
+
+            <button type="submit">Bilgileri Kaydet</button>
+        </form>
+    }
+
+    <div style="margin-top:20px">
+        <a asp-controller="MCInventoryCards"
+           asp-action="Create"
+           asp-route-catalogId="@Model.CatalogId">
+            Stok Kartına Dön
+        </a>
+    </div>
+</section>

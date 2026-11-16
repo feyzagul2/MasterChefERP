@@ -1,0 +1,118 @@
+@{
+    var section = ViewData["FinancePage"]?.ToString() ?? "";
+    var title = ViewData["Title"]?.ToString() ?? "";
+}
+
+<style>
+.mc-fp{padding:14px 22px;max-width:1450px;margin:auto}
+.mc-fp-nav{display:flex;gap:10px;flex-wrap:wrap;background:#e8eef5;border:1px solid #d5e0ec;border-radius:13px;padding:8px;margin-bottom:20px}
+.mc-fp-tab{border:1px solid transparent;background:#fff;color:#173b59;padding:13px 21px;border-radius:9px;font-weight:700;font-size:15px;cursor:pointer}.mc-fp-tab:hover,.mc-fp-tab:focus{background:#18365f;color:#fff;border-color:#18365f}
+.mc-fp-tab.active{background:#18365f;color:#fff;border-color:#18365f}
+.mc-fp-panel{display:none;background:white;border:1px solid #dce6ef;border-radius:12px;padding:20px}
+.mc-fp-panel.active{display:block}
+.mc-fp-panel h2{margin:0 0 12px;color:#173b59;font-size:22px}
+.mc-fp-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.mc-fp-actions a{padding:12px 17px;border-radius:9px;background:#193e5d;color:white!important;text-decoration:none!important;font-weight:650}
+.mc-fp-actions a:hover,.mc-fp-actions a:focus{background:#24486d;color:#fff!important}
+@@media(max-width:650px){.mc-fp{padding:10px}.mc-fp-tab{padding:10px}}
+.mc-fp-back{display:inline-flex;align-items:center;padding:9px 13px;border:1px solid #d5e0ec;border-radius:8px;background:#fff;color:#18365f!important;text-decoration:none!important;font-weight:700}.mc-fp-back:hover,.mc-fp-back:focus{background:#18365f;color:#fff!important;border-color:#18365f}/* MC_FINANCE_NAV_STANDARD_V1 */</style>
+
+<div class="mc-fp">
+
+@if (section == "AlacaklarBorclar")
+{
+    <div class="mc-fp-nav">
+        <button class="mc-fp-tab active" type="button" data-panel="alacak">
+            Alacaklar ve Borçlar
+        </button>
+        <button class="mc-fp-tab" type="button" data-panel="cari">
+            Cari Hesaplar
+        </button>
+    </div>
+
+    <section class="mc-fp-panel active" data-content="alacak">
+        <h2>Alacak ve Borç Hesapları</h2>
+        <p>Müşteri ve tedarikçi hesaplarını buradan yönetebilirsiniz.</p>
+        <div class="mc-fp-actions">
+            <a href="/CariAccounts">Cari Hesapları Aç →</a>
+            <a href="/MCPurchaseInvoiceStatus">Fatura Kontrol Merkezi →</a>
+        </div>
+    </section>
+
+    <section class="mc-fp-panel" data-content="cari">
+        <h2>Cari Hesap İşlemleri</h2>
+        <p>Müşteri ve tedarikçi cari hesap işlemlerine buradan erişebilirsiniz.</p>
+        <div class="mc-fp-actions">
+            <a href="/CariAccounts">Cari Hesap Yönetimi →</a>
+            <a href="/MCPurchaseInvoiceCariPosting">Fatura Cari Aktarımı →</a>
+        </div>
+    </section>
+}
+else
+{
+    <div style="margin-bottom:16px">
+        <a href="/MCFinanceOverview" class="mc-fp-back">
+            ← Finans Kontrol Merkezi
+        </a>
+    </div>
+
+    <h1 style="font-size:25px;color:#173b59;margin:0 0 17px">@title</h1>
+
+    @switch (section)
+    {
+        case "VadeTakibi":
+            @await Component.InvokeAsync("MCDueMonitor")
+            break;
+
+        case "FinansDenetimi":
+            @await Component.InvokeAsync("MCFinanceAudit")
+            break;
+
+        case "BankaKasa":
+            @await Component.InvokeAsync("MCBankLinkSummary")
+            break;
+
+        case "CariHareketler":
+            <div class="mc-fp-panel active">
+                <h2>Cari Hareketler</h2>
+                <div class="mc-fp-actions">
+                    <a href="/CariAccounts">Cari Hesapları Aç →</a>
+                    <a href="/MCPurchaseInvoiceCariPosting">Fatura Cari Aktarım Kontrolü →</a>
+                </div>
+            </div>
+            break;
+
+        case "VadeRaporlari":
+            <div class="mc-fp-panel active">
+                <h2>Vade Raporları</h2>
+                <p>Vade raporları ve vade değişiklik geçmişi.</p>
+            </div>
+            break;
+    }
+}
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tabs = document.querySelectorAll(".mc-fp-tab");
+    const panels = document.querySelectorAll(".mc-fp-panel[data-content]");
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+            const selected = tab.getAttribute("data-panel");
+
+            tabs.forEach(function (item) {
+                item.classList.toggle("active", item === tab);
+            });
+
+            panels.forEach(function (panel) {
+                panel.classList.toggle(
+                    "active",
+                    panel.getAttribute("data-content") === selected
+                );
+            });
+        });
+    });
+});
+</script>

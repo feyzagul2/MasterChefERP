@@ -55,7 +55,93 @@
     <link rel="stylesheet"
           href="~/css/site.css"
           asp-append-version="true" />
-</head>
+<!-- MC_PROCUREMENT_MENU_STYLE_V2 -->
+<style>
+.mc-procurement-menu {
+    margin: 4px 0 10px;
+    padding: 0;
+    width: 100%;
+}
+
+.mc-procurement-menu a {
+    text-decoration: none !important;
+    color: #e5e7eb !important;
+    font-size: 14px;
+    line-height: 1.45;
+    box-sizing: border-box;
+}
+
+.mc-procurement-main {
+    display: block;
+    padding: 12px 14px;
+    border-radius: 9px;
+    font-weight: 600;
+    background: transparent;
+}
+
+.mc-procurement-main:hover,
+.mc-procurement-main.active {
+    background: #24496c;
+    color: #fff !important;
+}
+
+.mc-procurement-submenu {
+    padding: 4px 0 4px 18px;
+}
+
+.mc-procurement-submenu a {
+    display: block;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-weight: 400;
+}
+
+.mc-procurement-submenu a:hover {
+    background: #1f2937;
+    color: #fff !important;
+}
+</style>
+<!-- MC_PROCUREMENT_COLLAPSIBLE_STYLE_V1 -->
+<style>
+.mc-procurement-details summary {
+    cursor: pointer;
+    list-style: none;
+}
+.mc-procurement-details summary::-webkit-details-marker {
+    display: none;
+}
+.mc-procurement-details summary::after {
+    content: "▾";
+    float: right;
+}
+.mc-procurement-details[open] summary::after {
+    content: "▴";
+}
+.mc-procurement-details[open] .mc-procurement-main {
+    background: #24496c;
+    color: #fff !important;
+}
+</style>
+    <link rel="stylesheet" href="~/css/mc-sidebar-refine.css" />
+    <link rel="stylesheet" href="/css/masterchef-light-ui.css?v=20261109-opsfix2" />
+    <link rel="stylesheet" href="~/css/mc-login.css" asp-append-version="true" />
+
+<!-- MC_CARI_HUB_PREMIUM_V1 -->
+<style>
+body.mc-app .mc-hub-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;max-width:1200px;margin:18px auto 30px}
+body.mc-app .mc-hub-card{position:relative;display:flex;align-items:center;gap:14px;min-height:108px;padding:20px 20px;background:linear-gradient(145deg,#ffffff,#f7f9fc);border:1px solid #e1e7ef;border-radius:16px;text-decoration:none!important;color:#18365f!important;box-shadow:0 5px 18px rgba(15,23,42,.05);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background .18s ease}
+body.mc-app .mc-hub-card:hover{transform:translateY(-3px);box-shadow:0 11px 28px rgba(15,23,42,.09);border-color:#b8c8d8;background:#fff}
+body.mc-app .mc-hub-card-icon{display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;min-width:46px;border-radius:13px;background:#18365f;color:#fff;font-size:20px;font-weight:800;box-shadow:0 5px 13px rgba(24,54,95,.16)}
+body.mc-app .mc-hub-card-title{font-size:16px;font-weight:800;letter-spacing:-.2px;color:#18365f;line-height:1.25}
+body.mc-app .mc-hub-card-arrow{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#eef3f8;color:#345575;font-size:24px;line-height:1;transition:.18s ease}
+body.mc-app .mc-hub-card:hover .mc-hub-card-arrow{background:#18365f;color:#fff;transform:translateX(2px)}
+body.mc-app #mc-module-hub-title{font-size:29px;font-weight:850;letter-spacing:-.5px;color:#12263f;margin-bottom:5px}
+body.mc-app #mc-module-hub{max-width:1240px;margin-left:auto;margin-right:auto}
+@@media(max-width:900px){body.mc-app .mc-hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@@media(max-width:600px){body.mc-app .mc-hub-grid{grid-template-columns:1fr;gap:10px;margin-top:12px}body.mc-app .mc-hub-card{min-height:82px;padding:15px;border-radius:13px}body.mc-app .mc-hub-card-icon{width:40px;height:40px;min-width:40px;border-radius:11px}body.mc-app .mc-hub-card-title{font-size:15px}body.mc-app #mc-module-hub-title{font-size:24px}}
+</style>
+<!-- /MC_CARI_HUB_PREMIUM_V1 -->
+<!-- MC_UI_REFINEMENT_V2 --><style>.pallet-heading>div:first-child,.transfer-head>div:first-child>div:first-child,.shipment-page .page-heading>div:first-child>div:first-child,.mc-lot-head>div:first-child>div:first-child,.mc-prod-head>div:first-child>div:first-child,.mc-ppl>div:first-child>div:first-child,.ca-head>div:first-child{display:flex!important;flex-wrap:wrap!important;gap:7px!important;align-items:center!important;font-size:0!important;margin-bottom:9px!important}.pallet-heading>div:first-child a,.transfer-head>div:first-child>div:first-child a,.shipment-page .page-heading>div:first-child>div:first-child a,.mc-lot-head>div:first-child>div:first-child a,.mc-prod-head>div:first-child>div:first-child a,.mc-ppl>div:first-child>div:first-child a,.ca-head>div:first-child a{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:34px!important;padding:6px 11px!important;border:1px solid #c9d5e3!important;border-radius:9px!important;background:#fff!important;color:#18365f!important;font-size:12px!important;font-weight:750!important;text-decoration:none!important;box-shadow:0 1px 2px rgba(15,23,42,.03)!important}.pallet-heading>div:first-child a:hover,.transfer-head>div:first-child>div:first-child a:hover,.shipment-page .page-heading>div:first-child>div:first-child a:hover,.mc-lot-head>div:first-child>div:first-child a:hover,.mc-prod-head>div:first-child>div:first-child a:hover,.mc-ppl>div:first-child>div:first-child a:hover,.ca-head>div:first-child a:hover{background:#18365f!important;border-color:#18365f!important;color:#fff!important}.transfer-head{background:#fff!important;color:#12263f!important;border:1px solid #dbe4ee!important;border-radius:16px!important;padding:18px 20px!important;box-shadow:0 4px 16px rgba(15,23,42,.045)!important}.transfer-head h1{color:#12263f!important;font-size:27px!important;margin:5px 0 3px!important}.transfer-head .transfer-note{color:#64748b!important}.transfer-head>a.btn{display:none!important}.ca-head{background:#fff!important;border:1px solid #dbe4ee!important;border-radius:16px!important;padding:18px 20px!important;margin-bottom:16px!important;box-shadow:0 4px 16px rgba(15,23,42,.04)!important}.ca-head h1{color:#12263f!important;font-size:27px!important;font-weight:850!important;letter-spacing:-.4px!important;margin:4px 0!important}.ca-card{border-radius:16px!important;border-color:#dbe4ee!important;box-shadow:0 3px 14px rgba(15,23,42,.035)!important}.ca-table{border-radius:13px!important;overflow:hidden!important}button:disabled,.btn:disabled,input[type=submit]:disabled{opacity:1!important;background:#e6edf5!important;border-color:#c4d1df!important;color:#304b68!important;font-weight:750!important;cursor:not-allowed!important}.pallet-heading{background:#fff!important;color:#12263f!important;border:1px solid #dbe4ee!important;box-shadow:0 4px 16px rgba(15,23,42,.045)!important}.pallet-heading h1{color:#12263f!important}.pallet-heading a{color:#18365f!important}.shipment-page .page-heading>div:first-child>div:first-child a,.mc-prod-head>div:first-child>div:first-child a,.mc-lot-head>div:first-child>div:first-child a{color:#18365f!important}</style><!-- /MC_UI_REFINEMENT_V2 --><!-- MC_SECTION_HEADER_V3 --><style>body.mc-app .pallet-heading,body.mc-app .transfer-head,body.mc-app .mc-lot-head,body.mc-app .shipment-page .page-heading{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:0!important;margin-bottom:18px!important;align-items:flex-start!important}body.mc-app .pallet-heading h1,body.mc-app .transfer-head h1,body.mc-app .mc-lot-head h1,body.mc-app .shipment-page .page-heading h1{margin:0 0 5px!important;font-size:30px!important;font-weight:800!important;color:#17365b!important}body.mc-app .pallet-heading p,body.mc-app .transfer-head .transfer-note,body.mc-app .shipment-page .description{margin:0!important;color:#64748b!important}.mc-section-nav{display:flex!important;flex-wrap:wrap!important;gap:7px!important;margin-top:13px!important}.mc-section-nav a{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:36px!important;padding:7px 12px!important;border:1px solid #c9d5e3!important;border-radius:9px!important;background:#fff!important;color:#18365f!important;font-size:12px!important;font-weight:750!important;text-decoration:none!important}.mc-section-nav a:hover{background:#18365f!important;border-color:#18365f!important;color:#fff!important}</style><!-- /MC_SECTION_HEADER_V3 --><!-- MC_PALLET_SUBTITLE_V1 --><style>body.mc-app .pallet-heading{display:block!important}body.mc-app .pallet-heading>div:first-child{display:block!important}body.mc-app .pallet-heading h1{display:block!important;margin:0 0 5px!important}body.mc-app .pallet-heading .pallet-subtitle{display:block!important;margin:0 0 13px!important;color:#64748b!important;font-size:13px!important}.pallet-heading .mc-section-nav{margin-top:0!important}</style><!-- /MC_PALLET_SUBTITLE_V1 --></head>
 
 <body class="@(signedIn ? "mc-app" : "mc-guest")">
     <a class="skip-link" href="#main-content">İçeriğe geç</a>
@@ -102,11 +188,7 @@
             <path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5" />
         </symbol>
 
-        <symbol id="mc-truck" viewBox="0 0 24 24">
-            <path d="M3 5h11v12H3zM14 9h4l3 4v4h-7" />
-            <circle cx="7" cy="18" r="2" />
-            <circle cx="17" cy="18" r="2" />
-        </symbol>
+        <symbol id="mc-truck" viewBox="0 0 24 24"><path d="M3 6h11v10H3zM14 9h4l3 4v3h-7M5 18h1M18 18h1"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M14 13h7"/></symbol>
 
         <symbol id="mc-return" viewBox="0 0 24 24">
             <path d="m7 5-4 4 4 4M3 9h11a6 6 0 0 1 0 12h-4" />
@@ -306,6 +388,139 @@
                     </a>
                 }
 
+                <div class="sidebar-heading">TİCARİ YÖNETİM</div>
+
+                @if (User.IsInRole(AppRoles.Admin))
+                {
+                    <a class="menu-item @(controller == "CariAccounts" ? "is-active" : "")"
+                       aria-current="@(controller == "CariAccounts" ? "page" : null)"
+                       asp-area=""
+                       asp-controller="CariAccounts"
+                       asp-action="Index">
+                        <span class="menu-icon">
+                            <svg class="ui-icon" aria-hidden="true">
+                                <use href="#mc-users" />
+                            </svg>
+                        </span>
+                        <span>Cari Hesaplar</span>
+                    </a>
+
+                    <!-- MC_FINANCE_INVOICE_NATIVE_MENU -->
+<!-- MC_PROCUREMENT_UNIFIED_MENU_V1 -->
+<a class="menu-item @(controller == "MCProcurementAudit" ? "is-active" : "")"
+   href="/MCProcurementAudit"
+   title="Satın Alma Kontrol Merkezi">
+    <span class="menu-icon">
+        <svg class="ui-icon" aria-hidden="true">
+            <use href="#mc-package" />
+        </svg>
+    </span>
+    <span>Satın Alma Kontrol Merkezi</span>
+</a>
+
+
+
+<a class="menu-item @(controller == "MCPurchaseInvoiceReceiptAudit" ? "is-active" : "")"
+   href="/MCPurchaseInvoiceReceiptAudit">
+    <span class="menu-icon">
+        <svg class="ui-icon" aria-hidden="true">
+            <use href="#mc-check" />
+        </svg>
+    </span>
+    <span>Fatura - Mal Kabul</span>
+</a>
+
+<a class="menu-item @(controller == "MCReceiptStockAudit" ? "is-active" : "")"
+   href="/MCReceiptStockAudit">
+    <span class="menu-icon">
+        <svg class="ui-icon" aria-hidden="true">
+            <use href="#mc-box" />
+        </svg>
+    </span>
+    <span>Mal Kabul - Stok</span>
+</a>
+
+<a class="menu-item @(controller == "MCPurchaseCariAudit" ? "is-active" : "")"
+   href="/MCPurchaseCariAudit/InvoiceList">
+    <span class="menu-icon">
+        <svg class="ui-icon" aria-hidden="true">
+            <use href="#mc-download" />
+        </svg>
+    </span>
+    <span>Fatura - Cari Aktarım</span>
+</a>
+<!-- MC_PROCUREMENT_UNIFIED_MENU_V1_END -->
+
+<a class="menu-item @((controller != null && (controller.StartsWith("MCFinance", StringComparison.OrdinalIgnoreCase) || controller.StartsWith("MCBank", StringComparison.OrdinalIgnoreCase))) ? "is-active" : "")"
+   href="/MCFinanceOverview">
+    <span class="menu-icon">
+        <svg class="ui-icon" aria-hidden="true">
+            <use href="#mc-chart" />
+        </svg>
+    </span>
+    <span>Finans Yönetimi</span>
+</a>
+
+<!-- MC_CARI_AUDIT_NATIVE_LINK_V2 -->
+<!-- MC_PROCUREMENT_COLLAPSIBLE_MENU_V1 -->
+
+<!-- MC_CARI_MENU_CORRECTED_V1 -->
+
+<a class="menu-item @(controller == "CariAccounts" ? "is-active" : "")"
+   href="/CariAccounts">
+    <span class="menu-icon">
+        <svg class="ui-icon" aria-hidden="true">
+            <use href="#mc-user-plus" />
+        </svg>
+    </span>
+    <span>Cari Hesaplar</span>
+</a>
+
+<a class="menu-item @(controller == "MCCariLedger" ? "is-active" : "")"
+   href="/MCCariLedger">
+    <span class="menu-icon">
+        <svg class="ui-icon" aria-hidden="true">
+            <use href="#mc-return" />
+        </svg>
+    </span>
+    <span>Cari Hareketleri</span>
+</a>
+
+<!-- MC_CARI_MENU_CORRECTED_V1_END -->
+<a class="menu-item @((controller != null && (controller.StartsWith("MCPurchaseInvoice", StringComparison.OrdinalIgnoreCase) || controller == "MCPurchaseSupplierCariLinks")) ? "is-active" : "")"
+   href="/MCPurchaseInvoiceStatus">
+    <span class="menu-icon">
+        <svg class="ui-icon" aria-hidden="true">
+            <use href="#mc-clock" />
+        </svg>
+    </span>
+    <span>Fatura Kontrol Merkezi</span>
+</a>
+<!-- MC_FINANCE_INVOICE_NATIVE_MENU_END -->
+
+
+                    <!-- MC_LOT_QUALITY_MANAGEMENT_2026 -->
+                    <a class="menu-item @(controller == "LotQuality" ? "is-active" : "")"
+                       asp-controller="LotQuality"
+                       asp-action="Index">
+                        <span class="menu-icon">
+                            <svg class="ui-icon" aria-hidden="true">
+                                <use href="#mc-products" />
+                            </svg>
+                        </span>
+                        <span>Lot / SKT / Kalite</span>
+                    </a>
+
+
+
+
+
+
+                }
+
+
+                
+
                 <div class="sidebar-heading">YÖNETİM VE SİSTEM</div>
 
                 @if (canViewUsers || canManageRoles)
@@ -456,12 +671,148 @@
                 <div id="common-page-actions">
                     @if (controller != "Home")
                     {
-                        <a asp-area=""
-                           asp-controller="Home"
-                           asp-action="Index"
-                           class="btn btn-outline-secondary page-return">
-                            ← Genel Bakış'a dön
-                        </a>
+                        
+    var mcReturnController =
+        (ViewContext.RouteData.Values["controller"]?.ToString()
+         ?? "").ToLowerInvariant();
+
+    var mcReturnAction =
+        (ViewContext.RouteData.Values["action"]?.ToString()
+         ?? "Index").ToLowerInvariant();
+
+    var mcReturnSection = mcReturnController switch
+    {
+        "cariaccounts" or "currentaccounts"
+        or "purchases" or "purchaseorders"
+        or "purchasedispatchnotes"
+        or "purchasegoodsreceipts"
+        or "goodsreceipts" => "cari",
+
+        "rawmaterials" or "rawwarehouses"
+        or "rawwarehousetransfers"
+        or "rawstockcounts" => "hammadde",
+
+        "production" or "productionpackaging" => "uretim",
+
+        "lotquality" => "kalite",
+
+        _ => ""
+    };
+
+    var mcReturnModuleName = mcReturnSection switch
+    {
+        "cari" => "Cari ve Satın Alma",
+        "hammadde" => "Hammadde Yönetimi",
+        "uretim" => "Üretim Yönetimi",
+        "kalite" => "Kalite Yönetimi",
+        _ => "Genel Bakış"
+    };
+
+    var mcReturnListName = mcReturnController switch
+    {
+        "cariaccounts" or "currentaccounts" => "Cari Hesaplar",
+        "purchases" or "purchaseorders" => "Satın Alma Siparişleri",
+        "purchasedispatchnotes" => "Alış İrsaliyeleri",
+        "purchasegoodsreceipts" or "goodsreceipts" => "Mal Kabul",
+        "rawmaterials" => "Hammadde Stoklar?",
+        "rawwarehouses" => "Hammadde Depolar?",
+        "rawwarehousetransfers" => "Depolar Aras? Transfer",
+        "rawstockcounts" => "Hammadde Stok Sayımı",
+        "production" => "Üretim Yönetimi",
+        "productionpackaging" => "?retim / Paketleme Bağlantıs?",
+        "lotquality" => "Lot / SKT / Kalite",
+        _ => "Genel Bakış"
+    };
+
+    var mcReturnIsList = mcReturnAction == "index";
+
+    var mcReturnHref = mcReturnController == "modulehub"
+        ? Url.Action("Index", "Home")
+        : mcReturnSection == ""
+            ? Url.Action("Index", "Home")
+            : mcReturnIsList
+                ? Url.Action("Index", "ModuleHub",
+                    new { section = mcReturnSection })
+                : Url.Action("Index", mcReturnController);
+
+    var mcReturnText = mcReturnController == "modulehub"
+        ? "Genel Bakış'a dön"
+        : mcReturnSection == ""
+            ? "Genel Bakış'a dön"
+            : mcReturnIsList
+                ? mcReturnModuleName + " sayfasına dön"
+                : mcReturnListName + " sayfasına dön";
+
+    // MC_OPERATIONS_RETURN_RULE_2026
+    // Main list screens return to Operations Overview.
+    // Create/Edit/Details screens continue returning to their lists.
+    var mcOperationsPages = new[]
+    {
+        "rawmaterials",
+        "rawwarehouses",
+        "rawwarehousetransfers",
+        "rawstockcounts",
+        "production",
+        "productionpackaging",
+        "lotquality",
+        "reports"
+    };
+
+    if (mcReturnAction == "index" &&
+        mcOperationsPages.Contains(mcReturnController))
+    {
+        mcReturnHref = Url.Action("Index", "OperationsOverview");
+        mcReturnText = "Operasyon Raporlarına dön";
+    }
+
+
+@* MC_HIDE_PRODUCTION_BACK_FINAL_2026 *@
+@if (!(
+    string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(),
+        "Production", StringComparison.OrdinalIgnoreCase)
+    &&
+    string.Equals(ViewContext.RouteData.Values["action"]?.ToString() ?? "Index",
+        "Index", StringComparison.OrdinalIgnoreCase)
+))
+{
+
+@* MC_LOT_BACK_TO_OPERATIONS_2026 *@
+@if (
+    string.Equals(
+        ViewContext.RouteData.Values["controller"]?.ToString(),
+        "LotQuality",
+        StringComparison.OrdinalIgnoreCase
+    )
+    &&
+    string.Equals(
+        ViewContext.RouteData.Values["action"]?.ToString() ?? "Index",
+        "Index",
+        StringComparison.OrdinalIgnoreCase
+    )
+)
+{
+    <a href="@Url.Action("Index", "OperationsOverview")"
+       class="btn btn-outline-secondary page-return">
+        &#8592; Operasyon Raporlarına dön
+    </a>
+}
+else
+{
+<a href="@(mcReturnController == "lotquality" &&
+             mcReturnAction == "index"
+             ? Url.Action("Index", "Home")
+             : mcReturnHref)"
+   class="btn btn-outline-secondary page-return">
+    &#8592; @(mcReturnController == "lotquality" &&
+               mcReturnAction == "index"
+               ? "Genel Bakış'a dön"
+               : mcReturnText)
+</a>
+}
+
+}
+
+
                     }
                     else
                     {
@@ -493,5 +844,2018 @@
     <script src="~/js/masterchef-ui.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
-</body>
-</html>
+<!-- MC_OPERATIONS_MENU_V1 -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Gelismis virman denetimini yalnizca ana menuden gizle.
+    // Raporun kendisi ve basit banka/kasa islemleri silinmez.
+
+    document.querySelectorAll(
+        "aside a, nav a, .sidebar a, #sidebar a"
+    ).forEach(function (link) {
+
+        var path = "";
+
+        try {
+            path = new URL(link.href, location.origin)
+                .pathname.toLowerCase();
+        } catch (e) {
+            return;
+        }
+
+        if (
+            path === "/mcbankcashaudit" ||
+            path.indexOf("/mcbankcashaudit/") === 0
+        ) {
+            var parent = link.closest("li");
+
+            if (
+                parent &&
+                parent.querySelectorAll("a").length === 1
+            ) {
+                parent.hidden = true;
+            } else {
+                link.hidden = true;
+            }
+        }
+    });
+
+
+});
+</script>
+
+<!-- MC_HELP_NEXT_TO_TITLE_V2_START -->
+<script>
+(function () {
+    function placeHelp() {
+        if (location.pathname.toLowerCase() !== "/production") return;
+
+        const heading = Array.from(document.querySelectorAll("h1,h2,h3"))
+            .find(e => e.textContent.trim() === "Üretim Reçeteleri");
+
+        const help = Array.from(document.querySelectorAll("button,a"))
+            .find(e => e.textContent.trim() === "Bu sayfa nasıl kullanılır?");
+
+        if (!heading || !help) return;
+
+        let group = document.getElementById("mc-production-title-group");
+
+        if (!group) {
+            group = document.createElement("div");
+            group.id = "mc-production-title-group";
+            group.style.cssText =
+                "display:flex;align-items:center;gap:12px;flex-wrap:wrap";
+
+            heading.parentNode.insertBefore(group, heading);
+            group.appendChild(heading);
+        }
+
+        group.appendChild(help);
+
+        heading.style.margin = "0";
+        help.style.position = "static";
+        help.style.margin = "0";
+        help.style.transform = "none";
+
+        const row = group.parentElement;
+        if (row) {
+            row.style.display = "flex";
+            row.style.alignItems = "center";
+            row.style.justifyContent = "space-between";
+            row.style.flexWrap = "wrap";
+            row.style.gap = "12px";
+        }
+    }
+
+    if (document.readyState === "loading")
+        document.addEventListener("DOMContentLoaded", placeHelp);
+    else
+        placeHelp();
+})();
+</script>
+<!-- MC_HELP_NEXT_TO_TITLE_V2_END -->
+
+<!-- MC_PRODUCTION_COMPACT_V1_START -->
+<style>
+body.mc-production-compact #mc-production-title-group {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    flex-wrap: wrap;
+}
+
+body.mc-production-compact #mc-production-title-group h1,
+body.mc-production-compact #mc-production-title-group h2 {
+    margin: 0 !important;
+}
+
+body.mc-production-compact #mc-production-title-group button,
+body.mc-production-compact #mc-production-title-group a {
+    margin: 0 !important;
+}
+
+body.mc-production-compact #mc-production-title-group {
+    margin-bottom: 4px !important;
+}
+</style>
+
+<script>
+(function () {
+    function compact() {
+        if (location.pathname.toLowerCase() !== "/production") return;
+
+        document.body.classList.add("mc-production-compact");
+
+        const group = document.getElementById(
+            "mc-production-title-group"
+        );
+
+        if (!group) return;
+
+        const row = group.parentElement;
+
+        if (row) {
+            row.style.display = "flex";
+            row.style.alignItems = "center";
+            row.style.justifyContent = "space-between";
+            row.style.flexWrap = "wrap";
+            row.style.gap = "10px";
+            row.style.marginTop = "0";
+            row.style.marginBottom = "12px";
+        }
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", compact);
+    } else {
+        compact();
+    }
+})();
+</script>
+<!-- MC_PRODUCTION_COMPACT_V1_END -->
+
+
+
+
+
+
+
+
+<script>
+(function () {
+    function markSidebar() {
+        var nodes = document.querySelectorAll(
+            'aside, nav, [class*="sidebar"], [class*="side-menu"]'
+        );
+
+        nodes.forEach(function (node) {
+            if (!node.textContent ||
+                !node.textContent.includes("Satın Alma Kontrol Merkezi")) {
+                return;
+            }
+
+            if (
+                node.matches('aside') ||
+                node.classList.contains('sidebar') ||
+                /sidebar|side-menu/i.test(node.className || '')
+            ) {
+                node.classList.add('mc-ticari-sidebar');
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', markSidebar);
+    } else {
+        markSidebar();
+    }
+})();
+</script>
+    <script src="~/js/mc-trade-menu.js" asp-append-version="true"></script>
+    <script src="~/js/mc-operations-menu.js" asp-append-version="true"></script>
+
+
+
+
+
+
+
+<!-- MC_FILTER_RUNTIME_V2_START -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const filterLabels = new Set([
+        "Tüm Kayıtlar",
+        "Yalnızca Sorunlular",
+        "Tüm Faturalar",
+        "Bekleyen İşlemler",
+        "Kontrol Gerektiren",
+        "Bağlantıları Tamamlananlar"
+    ]);
+
+    const backLabels = new Set([
+        "Kontrol Merkezine Dön"
+    ]);
+
+    function cleanText(value) {
+        return (value || "")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function normalizedUrl(value) {
+        try {
+            const u = new URL(value, window.location.origin);
+
+            u.searchParams.delete("page");
+            u.searchParams.delete("pageNumber");
+            u.searchParams.delete("pageSize");
+
+            const params = Array.from(u.searchParams.entries())
+                .sort(function (a, b) {
+                    return a[0].localeCompare(b[0]);
+                });
+
+            const query = params
+                .map(function (x) {
+                    return encodeURIComponent(x[0]) +
+                        "=" +
+                        encodeURIComponent(x[1]);
+                })
+                .join("&");
+
+            return u.pathname.toLowerCase() +
+                (query ? "?" + query : "");
+        }
+        catch {
+            return "";
+        }
+    }
+
+    const links = Array.from(document.querySelectorAll("a"));
+
+    links.forEach(function (link) {
+
+        const label = cleanText(link.textContent);
+
+        if (filterLabels.has(label)) {
+            link.classList.add("mc-filter-link");
+        }
+
+        if (backLabels.has(label)) {
+            link.classList.add("mc-filter-back");
+        }
+    });
+
+    const current = normalizedUrl(window.location.href);
+
+    document.querySelectorAll("a.mc-filter-link").forEach(function (link) {
+
+        link.classList.remove("is-active");
+
+        if (normalizedUrl(link.href) === current) {
+            link.classList.add("is-active");
+        }
+    });
+
+    /* Query string yoksa "Tüm..." sekmesini aktif göster */
+    const activeCount =
+        document.querySelectorAll("a.mc-filter-link.is-active").length;
+
+    if (activeCount === 0) {
+
+        const currentUrl = new URL(window.location.href);
+
+        if (!currentUrl.search) {
+
+            const defaults = Array.from(
+                document.querySelectorAll("a.mc-filter-link")
+            );
+
+            const defaultLink = defaults.find(function (link) {
+                const t = cleanText(link.textContent);
+
+                return t === "Tüm Kayıtlar" ||
+                       t === "Tüm Faturalar";
+            });
+
+            if (defaultLink) {
+                defaultLink.classList.add("is-active");
+            }
+        }
+    }
+});
+</script>
+<!-- MC_FILTER_RUNTIME_V2_END -->
+
+<!-- MC_MAL_KABUL_UX_V1_START -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const heading = Array.from(
+        document.querySelectorAll("h1,h2,h3")
+    ).find(function(el) {
+        return (el.textContent || "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .includes("Satın Alma Faturası - Mal Kabul Kontrolü");
+    });
+
+    if (!heading) return;
+
+    function text(el) {
+        return (el && el.textContent ? el.textContent : "")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function numberFromPage(label) {
+        const bodyText = document.body.innerText || "";
+
+        const escaped = label.replace(
+            /[.*+?^${}()|[\]\\]/g,
+            "\\$&"
+        );
+
+        const re = new RegExp(
+            escaped + "\\s*:?\\s*(\\d+)",
+            "i"
+        );
+
+        const m = bodyText.match(re);
+
+        return m ? parseInt(m[1],10) : 0;
+    }
+
+    const checked  = numberFromPage("Kontrol Edilen Satır");
+    const matched  = numberFromPage("Eşleşen");
+    const shown    = numberFromPage("Görüntülenen");
+    const problems = numberFromPage("Kontrol Gerektiren");
+
+    /* ---------------------------------------------
+       Eski daginik sayac blogunu bul ve gizle
+       --------------------------------------------- */
+
+    const candidates = Array.from(
+        document.querySelectorAll("div,section,p")
+    ).filter(function(el) {
+        const t = text(el);
+
+        return t.includes("Kontrol Edilen Satır") &&
+               t.includes("Eşleşen") &&
+               t.includes("Görüntülenen") &&
+               t.includes("Kontrol Gerektiren");
+    }).sort(function(a,b) {
+        return text(a).length - text(b).length;
+    });
+
+    if (candidates.length) {
+        candidates[0].style.display = "none";
+    }
+
+    /* ---------------------------------------------
+       Alttaki uzun Bilgi yazisini gizle
+       --------------------------------------------- */
+
+    Array.from(
+        document.querySelectorAll("p,div,span")
+    ).forEach(function(el) {
+        const t = text(el);
+
+        if (
+            t.startsWith(
+                "Bilgi: Bu ekran yalnızca fatura satırlarına"
+            )
+        ) {
+            el.style.display = "none";
+        }
+    });
+
+    /* ---------------------------------------------
+       Ozet kartlarini olustur
+       --------------------------------------------- */
+
+    const table = heading.parentElement
+        ? heading.parentElement.querySelector("table")
+        : null;
+
+    const realTable = table || document.querySelector("table");
+
+    if (realTable && !document.querySelector(".mc-audit-summary")) {
+
+        const wrap = document.createElement("div");
+        wrap.className = "mc-audit-summary";
+
+        const data = [
+            ["Kontrol Edilen", checked],
+            ["Eşleşen", matched],
+            ["Görüntülenen", shown],
+            ["Kontrol Gerektiren", problems]
+        ];
+
+        data.forEach(function(item) {
+
+            const card = document.createElement("div");
+            card.className = "mc-audit-summary-card";
+
+            const label = document.createElement("span");
+            label.className = "mc-audit-summary-label";
+            label.textContent = item[0];
+
+            const value = document.createElement("span");
+            value.className = "mc-audit-summary-value";
+            value.textContent = item[1];
+
+            card.appendChild(label);
+            card.appendChild(value);
+            wrap.appendChild(card);
+        });
+
+        realTable.parentNode.insertBefore(wrap,realTable);
+    }
+
+    /* ---------------------------------------------
+       Bos kayit mesajini duzelt
+       --------------------------------------------- */
+
+    if (realTable) {
+        Array.from(
+            realTable.querySelectorAll("tbody td")
+        ).forEach(function(td) {
+
+            if (
+                text(td).includes(
+                    "Seçilen filtrede gösterilecek fatura satırı bulunmuyor"
+                )
+            ) {
+                td.textContent =
+                    "Bu filtrede gösterilecek kayıt bulunmuyor.";
+
+                td.classList.add("mc-audit-empty");
+            }
+        });
+    }
+
+    /* ---------------------------------------------
+       FILTRE LINKLERI
+       --------------------------------------------- */
+
+    const allLink = Array.from(
+        document.querySelectorAll("a")
+    ).find(function(a) {
+        return text(a) === "Tüm Kayıtlar" ||
+               text(a).startsWith("Tüm Kayıtlar (");
+    });
+
+    const problemLink = Array.from(
+        document.querySelectorAll("a")
+    ).find(function(a) {
+        return text(a) === "Yalnızca Sorunlular" ||
+               text(a).startsWith("Yalnızca Sorunlular (");
+    });
+
+    if (allLink) {
+        allLink.textContent =
+            "Tüm Kayıtlar (" + shown + ")";
+        allLink.classList.add("mc-filter-link");
+    }
+
+    if (problemLink) {
+        problemLink.textContent =
+            "Yalnızca Sorunlular (" + problems + ")";
+        problemLink.classList.add("mc-filter-link");
+    }
+
+    function normalizedHref(a) {
+        if (!a) return "";
+
+        try {
+            const u = new URL(
+                a.href,
+                window.location.origin
+            );
+
+            return u.pathname.toLowerCase() +
+                   u.search.toLowerCase();
+        }
+        catch {
+            return "";
+        }
+    }
+
+    /* ---------------------------------------------
+       Backend linkleri farkliysa mevcut backend'i
+       aynen kullan.
+       --------------------------------------------- */
+
+    const differentRoutes =
+        allLink &&
+        problemLink &&
+        normalizedHref(allLink) !==
+        normalizedHref(problemLink);
+
+    if (differentRoutes) {
+
+        const current =
+            window.location.pathname.toLowerCase() +
+            window.location.search.toLowerCase();
+
+        if (normalizedHref(allLink) === current) {
+            allLink.classList.add("mc-runtime-active");
+        }
+
+        if (normalizedHref(problemLink) === current) {
+            problemLink.classList.add("mc-runtime-active");
+        }
+    }
+
+    /* ---------------------------------------------
+       Eger iki link ayni adrese gidiyorsa,
+       mevcut tablodaki Durum sutununu kullanarak
+       gercek client-side filtre yap.
+       --------------------------------------------- */
+
+    if (
+        !differentRoutes &&
+        realTable &&
+        allLink &&
+        problemLink
+    ) {
+        const headers = Array.from(
+            realTable.querySelectorAll("thead th")
+        );
+
+        const statusIndex = headers.findIndex(
+            function(th) {
+                return text(th).toLowerCase() === "durum";
+            }
+        );
+
+        const rows = Array.from(
+            realTable.querySelectorAll("tbody tr")
+        );
+
+        function isEmptyRow(row) {
+            return row.cells.length === 1 &&
+                   row.cells[0].hasAttribute("colspan");
+        }
+
+        function isProblemRow(row) {
+
+            if (statusIndex < 0) return false;
+
+            const cell = row.cells[statusIndex];
+
+            if (!cell) return false;
+
+            const value = text(cell).toLocaleLowerCase("tr-TR");
+
+            if (!value) return false;
+
+            const good = [
+                "eşleşti",
+                "eslesti",
+                "uygun",
+                "tamam",
+                "başarılı",
+                "basarili",
+                "sorun yok",
+                "ok"
+            ];
+
+            return !good.some(function(x) {
+                return value === x ||
+                       value.includes(x);
+            });
+        }
+
+        function setFilter(mode) {
+
+            let visible = 0;
+
+            rows.forEach(function(row) {
+
+                if (isEmptyRow(row)) {
+                    row.style.display = "none";
+                    return;
+                }
+
+                const show =
+                    mode === "all" ||
+                    isProblemRow(row);
+
+                row.style.display = show ? "" : "none";
+
+                if (show) visible++;
+            });
+
+            allLink.classList.toggle(
+                "mc-runtime-active",
+                mode === "all"
+            );
+
+            problemLink.classList.toggle(
+                "mc-runtime-active",
+                mode === "problems"
+            );
+
+            sessionStorage.setItem(
+                "mc-mal-kabul-filter",
+                mode
+            );
+
+            let empty = realTable.querySelector(
+                "tr.mc-runtime-empty"
+            );
+
+            if (visible === 0) {
+
+                if (!empty) {
+                    empty = document.createElement("tr");
+                    empty.className = "mc-runtime-empty";
+
+                    const td = document.createElement("td");
+                    td.colSpan = Math.max(headers.length,1);
+                    td.className = "mc-audit-empty";
+                    td.textContent =
+                        "Bu filtrede gösterilecek kayıt bulunmuyor.";
+
+                    empty.appendChild(td);
+
+                    realTable.querySelector("tbody")
+                        .appendChild(empty);
+                }
+
+                empty.style.display = "";
+            }
+            else if (empty) {
+                empty.style.display = "none";
+            }
+        }
+
+        allLink.addEventListener(
+            "click",
+            function(e) {
+                e.preventDefault();
+                setFilter("all");
+            }
+        );
+
+        problemLink.addEventListener(
+            "click",
+            function(e) {
+                e.preventDefault();
+                setFilter("problems");
+            }
+        );
+
+        const saved =
+            sessionStorage.getItem(
+                "mc-mal-kabul-filter"
+            ) || "all";
+
+        setFilter(saved);
+    }
+});
+</script>
+<!-- MC_MAL_KABUL_UX_V1_END -->
+
+<!-- MC_BACK_BUTTON_LEFT_V1_START -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const links = Array.from(document.querySelectorAll("a"));
+
+    const back = links.find(function(a) {
+        return (a.textContent || "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .includes("Kontrol Merkezine Dön");
+    });
+
+    const all = links.find(function(a) {
+        return (a.textContent || "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .startsWith("Tüm Kayıtlar");
+    });
+
+    if (back && all && back.parentElement === all.parentElement) {
+        back.parentElement.insertBefore(back, all);
+    }
+});
+</script>
+<!-- MC_BACK_BUTTON_LEFT_V1_END -->
+
+
+
+<!-- MC_CARI_SCREEN_FORCE_FIX_V1 -->
+<script>
+(function () {
+    "use strict";
+
+    function fixCariHub() {
+        try {
+            const qs = new URLSearchParams(window.location.search);
+
+            if (
+                !window.location.pathname.toLowerCase().includes("/modulehub") ||
+                qs.get("section") !== "cari"
+            ) {
+                return false;
+            }
+
+            const hub = document.getElementById("mc-module-hub");
+
+            if (!hub) {
+                return false;
+            }
+
+            const cards = Array.from(
+                hub.querySelectorAll("a.mc-hub-card")
+            );
+
+            if (cards.length < 5) {
+                return false;
+            }
+
+            const wanted = [
+                {
+                    title: "Cari Hesaplar",
+                    href: "/CariAccounts"
+                },
+                {
+                    title: "Cari Hareketleri",
+                    href: "/MCCariLedger"
+                },
+                {
+                    title: "Satın Alma",
+                    href: "/Purchasing"
+                },
+                {
+                    title: "Alış İrsaliyeleri",
+                    href: "/PurchaseDispatch"
+                },
+                {
+                    title: "Mal Kabul",
+                    href: "/PurchaseGoodsReceipt"
+                }
+            ];
+
+            for (let i = 0; i < 5; i++) {
+                const card = cards[i];
+                const title = card.querySelector(".mc-hub-card-title");
+
+                card.href = wanted[i].href;
+
+                if (title) {
+                    title.textContent = wanted[i].title;
+                }
+            }
+
+            // Fazladan Cari karti varsa gizle
+            for (let i = 5; i < cards.length; i++) {
+                cards[i].style.display = "none";
+            }
+
+            hub.setAttribute("data-mc-cari-fixed", "1");
+
+            return true;
+        }
+        catch {
+            return false;
+        }
+    }
+
+    function runFix() {
+        fixCariHub();
+
+        setTimeout(fixCariHub, 50);
+        setTimeout(fixCariHub, 250);
+        setTimeout(fixCariHub, 750);
+        setTimeout(fixCariHub, 1500);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", runFix);
+    }
+    else {
+        runFix();
+    }
+
+    const observer = new MutationObserver(function () {
+        fixCariHub();
+    });
+
+    observer.observe(
+        document.documentElement,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+})();
+</script>
+<!-- MC_CARI_SCREEN_FORCE_FIX_V1_END -->
+
+<script src="/js/mc-cari-hub-fix.js?v=20261107-final"></script>
+
+<script src="/js/mc-sidebar-scroll-memory.js?v=20261107-1"></script><!-- MC_FINAL_BUTTON_SYSTEM_V1 --><style>html body.mc-app .btn.btn-dark,html body.mc-app .btn.btn-primary,html body.mc-app button.btn-dark,html body.mc-app button.btn-primary,html body.mc-app a.btn-dark,html body.mc-app a.btn-primary,html body.mc-app input.btn-dark,html body.mc-app input.btn-primary,html body.mc-app .mc-lot-primary,html body.mc-app .mc-ops-btn{background:#18365F!important;background-color:#18365F!important;border-color:#18365F!important;color:#FFFFFF!important;opacity:1!important}html body.mc-app .btn.btn-dark *,html body.mc-app .btn.btn-primary *,html body.mc-app .mc-lot-primary *,html body.mc-app .mc-ops-btn *{color:#FFFFFF!important}html body.mc-app .btn.btn-dark:hover,html body.mc-app .btn.btn-primary:hover,html body.mc-app button.btn-dark:hover,html body.mc-app button.btn-primary:hover,html body.mc-app a.btn-dark:hover,html body.mc-app a.btn-primary:hover,html body.mc-app .mc-lot-primary:hover,html body.mc-app .mc-ops-btn:hover{background:#24486D!important;background-color:#24486D!important;border-color:#24486D!important;color:#FFFFFF!important}html body.mc-app .btn.btn-dark:disabled,html body.mc-app .btn.btn-primary:disabled,html body.mc-app button.btn-dark:disabled,html body.mc-app button.btn-primary:disabled,html body.mc-app input.btn-dark:disabled,html body.mc-app input.btn-primary:disabled,html body.mc-app .btn.btn-dark.disabled,html body.mc-app .btn.btn-primary.disabled,html body.mc-app a.btn-dark.disabled,html body.mc-app a.btn-primary.disabled{background:#E6EDF5!important;background-color:#E6EDF5!important;border-color:#C4D1DF!important;color:#304B68!important;opacity:1!important;cursor:not-allowed!important}html body.mc-app .btn.btn-dark:disabled *,html body.mc-app .btn.btn-primary:disabled *,html body.mc-app .btn.btn-dark.disabled *,html body.mc-app .btn.btn-primary.disabled *{color:#304B68!important}html body.mc-app .btn-success,html body.mc-app .btn-danger{color:#FFFFFF!important}html body.mc-app .btn-success *,html body.mc-app .btn-danger *{color:#FFFFFF!important}</style><!-- /MC_FINAL_BUTTON_SYSTEM_V1 --><!-- MC_SECTION_NAV_STATE_FIX_V1 --><style>html body.mc-app .mc-section-nav a{background:#fff!important;border-color:#c9d5e3!important;color:#18365f!important}html body.mc-app .mc-section-nav a:hover,html body.mc-app .mc-section-nav a:focus,html body.mc-app .mc-section-nav a.active,html body.mc-app .mc-section-nav a[aria-current="page"]{background:#18365f!important;background-color:#18365f!important;border-color:#18365f!important;color:#fff!important}html body.mc-app .mc-section-nav a:hover *,html body.mc-app .mc-section-nav a:focus *,html body.mc-app .mc-section-nav a.active *,html body.mc-app .mc-section-nav a[aria-current="page"] *{color:#fff!important}</style><!-- /MC_SECTION_NAV_STATE_FIX_V1 --></body>
+</
+<!-- MC_TURKISH_DATE_DISPLAY_2026 -->
+<script>
+(function () {
+    "use strict";
+
+    const locale = "tr-TR";
+
+    document.documentElement.lang = "tr";
+
+    function formatDate(value, withTime) {
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) return null;
+
+        return new Intl.DateTimeFormat(locale, {
+            timeZone: "Europe/Istanbul",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            ...(withTime ? {
+                hour: "2-digit",
+                minute: "2-digit",
+                hourCycle: "h23"
+            } : {})
+        }).format(date);
+    }
+
+    function apply() {
+        document.querySelectorAll(
+            "[data-mc-date], [data-mc-datetime]"
+        ).forEach(function (element) {
+            const withTime = element.hasAttribute("data-mc-datetime");
+
+            const raw = withTime
+                ? element.getAttribute("data-mc-datetime")
+                : element.getAttribute("data-mc-date");
+
+            if (!raw) return;
+
+            const result = formatDate(raw, withTime);
+
+            if (result) element.textContent = result;
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", apply);
+    } else {
+        apply();
+    }
+})();
+</script>
+
+
+<!-- MC_EMBEDDED_CONTENT_MODE_2026 -->
+<script>
+(function () {
+    "use strict";
+
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("mcEmbed") !== "1") return;
+
+    document.documentElement.classList.add("mc-embedded-page");
+
+    const style = document.createElement("style");
+
+    style.textContent = `
+        html.mc-embedded-page,
+        html.mc-embedded-page body {
+            margin:0!important;
+            padding:0!important;
+            width:100%!important;
+            min-width:0!important;
+            overflow-x:hidden!important;
+            background:transparent!important;
+        }
+
+        html.mc-embedded-page aside,
+        html.mc-embedded-page header,
+        html.mc-embedded-page .sidebar,
+        html.mc-embedded-page .topbar,
+        html.mc-embedded-page .app-sidebar,
+        html.mc-embedded-page .app-header {
+            display:none!important;
+        }
+
+        html.mc-embedded-page main,
+        html.mc-embedded-page .main-content,
+        html.mc-embedded-page .content-wrapper,
+        html.mc-embedded-page .app-main {
+            margin:0!important;
+            padding:12px!important;
+            width:100%!important;
+            max-width:100%!important;
+            min-width:0!important;
+            box-sizing:border-box!important;
+        }
+
+        html.mc-embedded-page .container,
+        html.mc-embedded-page .container-fluid {
+            width:100%!important;
+            max-width:100%!important;
+            min-width:0!important;
+            margin:0 auto!important;
+            box-sizing:border-box!important;
+        }
+
+        @@media(max-width:700px) {
+            html.mc-embedded-page main,
+            html.mc-embedded-page .main-content,
+            html.mc-embedded-page .content-wrapper {
+                padding:8px!important;
+            }
+        }
+    `;
+
+    document.head.appendChild(style);
+})();
+</script>
+
+
+<!-- MC_GLOBAL_BACK_NAVIGATION_2026 -->
+<script>
+(function () {
+    "use strict";
+
+    function setupBackLinks() {
+
+        document.querySelectorAll("a").forEach(function (link) {
+
+            if (link.dataset.mcBackReady === "1") return;
+
+            const text = (link.textContent || "")
+                .replace(/\s+/g, " ")
+                .trim();
+
+            const normalized = text.toLocaleLowerCase("tr-TR");
+
+            const isBackLink =
+                (
+                    normalized.includes("genel bakış") &&
+                    normalized.includes("dön")
+                ) ||
+                normalized.includes("önceki sayfaya dön") ||
+                normalized.includes("geri dön") ||
+                normalized.includes("geriye dön") ||
+                (
+                    normalized.startsWith("←") &&
+                    normalized.includes("dön")
+                );
+
+            if (!isBackLink) return;
+
+            link.dataset.mcBackReady = "1";
+
+            link.textContent = "← Önceki Sayfaya Dön";
+
+            link.addEventListener("click", function (event) {
+
+                if (
+                    event.ctrlKey ||
+                    event.metaKey ||
+                    event.shiftKey ||
+                    event.altKey ||
+                    event.button !== 0
+                ) {
+                    return;
+                }
+
+                let previousIsInternal = false;
+
+                try {
+                    if (document.referrer) {
+                        const previous = new URL(document.referrer);
+
+                        previousIsInternal =
+                            previous.origin === window.location.origin &&
+                            previous.href !== window.location.href;
+                    }
+                } catch (error) {
+                    previousIsInternal = false;
+                }
+
+                if (previousIsInternal && window.history.length > 1) {
+                    event.preventDefault();
+                    window.history.back();
+                }
+
+                // Tarayici gecmisi yoksa mevcut baglanti
+                // guvenli alternatif olarak korunur.
+            });
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupBackLinks);
+    } else {
+        setupBackLinks();
+    }
+
+    const observer = new MutationObserver(function () {
+        setupBackLinks();
+    });
+
+    observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+    });
+})();
+</script>
+
+
+<!-- MC_OPS_FINAL_LAYOUT_2026 -->
+<script>
+(function () {
+    "use strict";
+
+    const titles = [
+        "Ürün Kartları",
+        "Palet Sayısı",
+        "Palet Ürün Kayıtları",
+        "Sevkiyat Kayıtları",
+        "Hammadde Kartlar?",
+        "Kritik Hammaddeler",
+        "?retim Emirleri",
+        "Lot / SKT Kayıtları",
+        "Kalite Onay? Bekleyen Lot",
+        "SKT Geçmiş Lot",
+        "Hammadde Sayımları",
+        "Sayım Onayı Bekleyen"
+    ];
+
+    function normalize(text) {
+        return (text || "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .toLocaleLowerCase("tr-TR");
+    }
+
+    const titleSet = new Set(titles.map(normalize));
+
+    function addIcon() {
+        const links = document.querySelectorAll(
+            "aside a[href], .sidebar a[href]"
+        );
+
+        for (const link of links) {
+            const url = new URL(link.href, location.origin);
+
+            const isReport =
+                url.pathname.toLowerCase() ===
+                "/operationsoverview" ||
+                normalize(link.textContent) ===
+                normalize("Operasyon Raporlar?");
+
+            if (!isReport) continue;
+
+            if (link.querySelector(".mc-ops-menu-icon")) continue;
+
+            const slot = link.querySelector(
+                ":scope > .menu-icon"
+            );
+
+            const wrapper = slot ||
+                document.createElement("span");
+
+            wrapper.classList.add("mc-ops-menu-icon");
+
+            const svg = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "svg"
+            );
+
+            svg.setAttribute("viewBox", "0 0 24 24");
+            svg.setAttribute("aria-hidden", "true");
+
+            svg.innerHTML =
+                '<path d="M4 21V4M4 21h17"/>' +
+                '<path d="M8 17v-5m5 5V7m5 10V4"/>';
+
+            wrapper.replaceChildren(svg);
+
+            if (!slot) link.prepend(wrapper);
+
+            link.classList.add("mc-ops-menu-link");
+        }
+    }
+
+    function findCard(labelElement) {
+        let element = labelElement.parentElement;
+
+        for (let depth = 0; depth < 6 && element; depth++) {
+            const style = getComputedStyle(element);
+            const rect = element.getBoundingClientRect();
+
+            const hasBorder =
+                parseFloat(style.borderTopWidth) > 0 &&
+                style.borderTopStyle !== "none";
+
+            const hasShape =
+                parseFloat(style.borderTopLeftRadius) > 4;
+
+            const hasValue = /\d/.test(element.textContent);
+
+            if (
+                rect.width > 110 &&
+                rect.height > 55 &&
+                hasBorder &&
+                hasShape &&
+                hasValue
+            ) {
+                return element;
+            }
+
+            element = element.parentElement;
+        }
+
+        return null;
+    }
+
+    function compactReports() {
+        if (
+            !location.pathname.toLowerCase()
+                .startsWith("/operationsoverview")
+        ) return;
+
+        document.body.classList.add("mc-ops-page");
+
+        const cards = new Set();
+
+        for (const element of document.querySelectorAll(
+            "main *, .main-content *, .content *, .content-wrapper *"
+        )) {
+            if (element.children.length !== 0) continue;
+
+            if (!titleSet.has(normalize(element.textContent))) {
+                continue;
+            }
+
+            const card = findCard(element);
+
+            if (card) cards.add(card);
+        }
+
+        const parents = new Map();
+
+        for (const card of cards) {
+            const parent = card.parentElement;
+
+            if (!parent) continue;
+
+            if (!parents.has(parent)) {
+                parents.set(parent, []);
+            }
+
+            parents.get(parent).push(card);
+        }
+
+        let total = 0;
+
+        for (const [parent, siblings] of parents) {
+            if (siblings.length < 3) continue;
+
+            parent.classList.add("mc-ops-real-grid");
+
+            for (const card of siblings) {
+                card.classList.add("mc-ops-real-card");
+                total++;
+            }
+        }
+
+        console.log(
+            "MASTER CHEF - Kucultulen rapor kartlari:",
+            total
+        );
+    }
+
+    function run() {
+        addIcon();
+        compactReports();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", run);
+    } else {
+        run();
+    }
+
+    /* Menu entries may be reorganized after DOMContentLoaded. */
+    const observer = new MutationObserver(function () {
+        addIcon();
+    });
+
+    window.addEventListener("load", function () {
+        const sidebar = document.querySelector(
+            "aside.sidebar, .sidebar, aside"
+        );
+
+        if (sidebar) {
+            observer.observe(sidebar, {
+                childList: true,
+                subtree: true
+            });
+        }
+
+        run();
+    }, { once: true });
+})();
+</script>
+<!-- MC_OPS_FINAL_LAYOUT_END_2026 -->
+
+
+
+
+
+
+
+
+<!-- MC_RESPONSIVE_PRODUCTION_2026 -->
+<style>
+/* Production pages only */
+body.mc-production-responsive {
+    overflow-x: hidden;
+}
+
+body.mc-production-responsive .mc-production-tabs-v2 {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 0 18px;
+    padding: 6px;
+    border: 1px solid #d9e3ef;
+    border-radius: 12px;
+    background: #eaf0f7;
+}
+
+body.mc-production-responsive .mc-production-tab-v2 {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 42px;
+    padding: 10px 16px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: #244567;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.35;
+    text-decoration: none;
+    box-sizing: border-box;
+    white-space: normal;
+}
+
+body.mc-production-responsive .mc-production-tab-v2:hover {
+    background: #dce7f5;
+    color: #163b63;
+    text-decoration: none;
+}
+
+body.mc-production-responsive .mc-production-tab-v2.active {
+    background: #193e67;
+    color: #fff;
+}
+
+body.mc-production-responsive .mc-production-tab-v2 svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    max-width: 18px;
+    max-height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+body.mc-production-responsive main,
+body.mc-production-responsive .main-content,
+body.mc-production-responsive .content-wrapper {
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+body.mc-production-responsive input,
+body.mc-production-responsive select,
+body.mc-production-responsive textarea {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+body.mc-production-responsive .card,
+body.mc-production-responsive .table-responsive {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+body.mc-production-responsive table {
+    max-width: 100%;
+}
+
+@@media (max-width: 768px) {
+    body.mc-production-responsive .mc-production-tabs-v2 {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 5px;
+    }
+
+    body.mc-production-responsive .mc-production-tab-v2 {
+        width: 100%;
+        justify-content: flex-start;
+        min-height: 44px;
+    }
+
+    body.mc-production-responsive input,
+    body.mc-production-responsive select,
+    body.mc-production-responsive textarea {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    body.mc-production-responsive .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+</style>
+
+<script>
+(function () {
+    "use strict";
+
+    const path = location.pathname
+        .replace(/\/+$/, "")
+        .toLowerCase();
+
+    const params = new URLSearchParams(location.search);
+
+    // The sidebar's Production module opens the real production page.
+    // No iframe is used.
+    if (
+        path === "/modulehub" &&
+        params.get("section") === "uretim"
+    ) {
+        location.replace("/Production");
+        return;
+    }
+
+    const productionRoutes = [
+        "/production",
+        "/productionpackaging"
+    ];
+
+    const isProduction = productionRoutes.some(function (route) {
+        return path === route || path.startsWith(route + "/");
+    });
+
+    if (!isProduction) return;
+
+    function createIcon() {
+        const svg = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "svg"
+        );
+
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.setAttribute("aria-hidden", "true");
+
+        svg.innerHTML =
+            '<path d="M3 21V10l6 4V9l6 5V5h6v16z"/>' +
+            '<path d="M7 18h1m5 0h1m5 0h1"/>';
+
+        return svg;
+    }
+
+    function findContent() {
+        const back = document.querySelector("a.page-return");
+
+        if (back) {
+            const section = back.closest(
+                ".content, .main-content, main, .content-wrapper"
+            );
+
+            if (section) return section;
+        }
+
+        for (const selector of [
+            "main",
+            ".main-content",
+            ".content-wrapper",
+            ".content"
+        ]) {
+            const element = document.querySelector(selector);
+
+            if (element) return element;
+        }
+
+        return null;
+    }
+
+    function addTabs() {
+        if (document.querySelector(".mc-production-tabs-v2")) {
+            return;
+        }
+
+        const content = findContent();
+
+        if (!content) {
+            console.warn("Production content container not found.");
+            return;
+        }
+
+        document.body.classList.add("mc-production-responsive");
+
+        const tabs = document.createElement("nav");
+        tabs.className = "mc-production-tabs-v2";
+        tabs.setAttribute(
+            "aria-label",
+            "\u00dcretim y\u00f6netimi b\u00f6l\u00fcmleri"
+        );
+
+        const definitions = [
+            {
+                text: "\u00dcretim \u0130\u015flemleri",
+                href: "/Production",
+                active: path.startsWith("/production") &&
+                    !path.startsWith("/productionpackaging")
+            },
+            {
+                text: "\u00dcretim / Paketleme Ba\u011flant\u0131s\u0131",
+                href: "/ProductionPackaging",
+                active: path.startsWith("/productionpackaging")
+            }
+        ];
+
+        for (const definition of definitions) {
+            const link = document.createElement("a");
+
+            link.href = definition.href;
+            link.className = "mc-production-tab-v2";
+
+            if (definition.active) {
+                link.classList.add("active");
+                link.setAttribute("aria-current", "page");
+            }
+
+            link.appendChild(createIcon());
+
+            const label = document.createElement("span");
+            label.textContent = definition.text;
+
+            link.appendChild(label);
+            tabs.appendChild(link);
+        }
+
+        // Place tabs inside the actual page content,
+        // not in a nested iframe or a duplicated layout.
+        const returnButton = content.querySelector("a.page-return");
+
+        if (returnButton) {
+            const header = returnButton.parentElement;
+
+            if (header && header.parentElement) {
+                header.parentElement.insertBefore(tabs, header);
+            } else {
+                content.prepend(tabs);
+            }
+        } else {
+            content.prepend(tabs);
+        }
+
+
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", addTabs);
+    } else {
+        addTabs();
+    }
+})();
+</script>
+<!-- MC_RESPONSIVE_PRODUCTION_END_2026 -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- MC_MODULE_HUB_2026 -->
+<style>
+.mc-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 22px;
+}
+.mc-hub-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 96px;
+    padding: 20px;
+    border: 1px solid #dbe3ed;
+    border-radius: 12px;
+    background: #fff;
+    color: #1e293b;
+    text-decoration: none;
+    box-shadow: 0 3px 12px rgba(15,23,42,.04);
+}
+.mc-hub-card:hover {
+    border-color: #60a5fa;
+    color: #0f172a;
+    text-decoration: none;
+}
+.mc-hub-card-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 23px;
+}
+.mc-hub-card-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 650;
+}
+.mc-hub-card-arrow {
+    font-size: 23px;
+    color: #64748b;
+}
+.mc-hub-intro {
+    color: #64748b;
+    font-size: 14px;
+}
+</style>
+
+<script>
+(function () {
+    "use strict";
+
+    const modules = [];
+
+    function normalize(value) {
+        return (value || "")
+            .toLocaleLowerCase("tr-TR")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function route(link) {
+        try {
+            return new URL(link.href, location.origin)
+                .pathname.split("/")
+                .filter(Boolean)[0]
+                .toLowerCase();
+        } catch {
+            return "";
+        }
+    }
+
+    function findSidebar() {
+        for (const selector of [
+            "aside.sidebar",
+            ".sidebar",
+            ".sidebar-nav",
+            ".sidebar-menu",
+            ".side-menu",
+            "aside",
+            "nav"
+        ]) {
+            for (const el of document.querySelectorAll(selector)) {
+                if (el.querySelectorAll("a.menu-item[href]").length >= 4) {
+                    return el;
+                }
+            }
+        }
+        return null;
+    }
+
+    function getScrollBox(el) {
+        while (el && el !== document.body) {
+            const style = getComputedStyle(el);
+            if (/(auto|scroll)/.test(style.overflowY))
+                return el;
+            el = el.parentElement;
+        }
+        return document.scrollingElement;
+    }
+
+    function init() {
+        const sidebar = findSidebar();
+        if (!sidebar) return;
+
+        const links = Array.from(
+            sidebar.querySelectorAll("a.menu-item[href]")
+        );
+
+        const scrollBox = getScrollBox(sidebar);
+        const scrollKey = "MC_MODULE_HUB_SCROLL";
+        let oldScroll = 0;
+
+        try {
+            oldScroll = Number(
+                sessionStorage.getItem(scrollKey) || 0
+            );
+        } catch {}
+
+        const available = [];
+
+        for (const module of modules) {
+            const matches = links.filter(function (a) {
+                return module.routes.includes(route(a)) ||
+                    module.labels.some(
+                        text => normalize(text) === normalize(a.textContent)
+                    );
+            });
+
+            if (!matches.length) continue;
+
+            const destinations = Array.from(
+                new Map(
+                    matches.map(function (a) {
+                        return [
+                            new URL(a.href, window.location.origin).pathname.toLowerCase(),
+                            {
+                                title: a.textContent.trim(),
+                                url: a.href
+                            }
+                        ];
+                    })
+                ).values()
+            );
+
+
+            // MC_CARI_HUB_FIXED_V1
+            if (module.key === "cari") {
+                function mcFindLink(routeNames) {
+                    return links.find(function (a) {
+                        return routeNames.includes(route(a));
+                    });
+                }
+
+                const mcCariAccounts =
+                    mcFindLink(["cariaccounts"]) ||
+                    mcFindLink(["currentaccounts"]);
+
+                const mcCariLedger =
+                    mcFindLink(["mccariledger"]);
+
+                const mcPurchase =
+                    mcFindLink(["purchases"]) ||
+                    mcFindLink(["purchaseorders"]);
+
+                const mcDispatch =
+                    mcFindLink(["purchasedispatchnotes"]);
+
+                const mcGoodsReceipt =
+                    mcFindLink(["purchasegoodsreceipts"]) ||
+                    mcFindLink(["goodsreceipts"]);
+
+                const mcFixedDestinations = [];
+
+                if (mcCariAccounts) {
+                    mcFixedDestinations.push({
+                        title: "Cari Hesaplar",
+                        url: mcCariAccounts.href
+                    });
+                }
+
+                if (mcCariLedger) {
+                    mcFixedDestinations.push({
+                        title: "Cari Hareketleri",
+                        url: mcCariLedger.href
+                    });
+                }
+
+                if (mcPurchase) {
+                    mcFixedDestinations.push({
+                        title: "Satın Alma",
+                        url: mcPurchase.href
+                    });
+                }
+
+                if (mcDispatch) {
+                    mcFixedDestinations.push({
+                        title: "Alış İrsaliyeleri",
+                        url: mcDispatch.href
+                    });
+                }
+
+                if (mcGoodsReceipt) {
+                    mcFixedDestinations.push({
+                        title: "Mal Kabul",
+                        url: mcGoodsReceipt.href
+                    });
+                }
+
+                destinations.splice(
+                    0,
+                    destinations.length,
+                    ...mcFixedDestinations
+                );
+            }
+            // MC_CARI_HUB_FIXED_V1_END
+
+            const main = matches[0];
+
+            main.href = "/ModuleHub?section=" + module.key;
+
+            // Keep original icon and menu classes.
+            const icon = main.querySelector("svg, i");
+            const iconCopy = icon ? icon.cloneNode(true) : null;
+
+            main.replaceChildren();
+
+
+// MC_DIRECT_MODULE_ICONS_V1
+const mcIconShapes = {
+    cari: '<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 5"/>',
+    hammadde: '<path d="M3 21V9l9-6 9 6v12M3 10h18M8 21v-8h8v8"/>',
+    uretim: '<path d="M3 21V10l6 4V9l6 5V5h6v16zM7 18h1m5 0h1m5 0h1"/>',
+    kalite: '<path d="m12 2 9 4v6c0 5-4 8-9 10-5-2-9-5-9-10V6zM8 12l3 3 5-6"/>'
+};
+
+const mcIconWrapper = document.createElement("span");
+mcIconWrapper.className = "menu-icon";
+mcIconWrapper.setAttribute("aria-hidden", "true");
+
+const mcSvg = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "svg"
+);
+
+mcSvg.setAttribute("viewBox", "0 0 24 24");
+mcSvg.setAttribute("width", "18");
+mcSvg.setAttribute("height", "18");
+mcSvg.setAttribute("aria-hidden", "true");
+mcSvg.setAttribute("class", "ui-icon");
+
+mcSvg.style.setProperty("width", "18px", "important");
+mcSvg.style.setProperty("height", "18px", "important");
+mcSvg.style.setProperty("min-width", "18px", "important");
+mcSvg.style.setProperty("max-width", "18px", "important");
+mcSvg.style.setProperty("max-height", "18px", "important");
+mcSvg.style.setProperty("fill", "none", "important");
+mcSvg.style.setProperty("stroke", "currentColor", "important");
+mcSvg.style.setProperty("stroke-width", "1.8", "important");
+mcSvg.style.setProperty("stroke-linecap", "round", "important");
+mcSvg.style.setProperty("stroke-linejoin", "round", "important");
+
+mcSvg.innerHTML = mcIconShapes[module.key] || mcIconShapes.cari;
+
+mcIconWrapper.style.setProperty("width", "20px", "important");
+mcIconWrapper.style.setProperty("height", "20px", "important");
+mcIconWrapper.style.setProperty("min-width", "20px", "important");
+mcIconWrapper.style.setProperty("max-width", "20px", "important");
+mcIconWrapper.style.setProperty("flex", "0 0 20px", "important");
+mcIconWrapper.style.setProperty("display", "inline-flex", "important");
+mcIconWrapper.style.setProperty("align-items", "center", "important");
+mcIconWrapper.style.setProperty("justify-content", "center", "important");
+
+mcIconWrapper.appendChild(mcSvg);
+main.appendChild(mcIconWrapper);
+
+
+            const title = document.createElement("span");
+            title.textContent = module.title;
+            main.appendChild(title);
+
+            // Hide sub-pages from sidebar without deleting their routes.
+            for (const a of matches.slice(1)) {
+                a.style.display = "none";
+            }
+
+            available.push({
+                module: module,
+                destinations: destinations,
+                main: main
+            });
+        }
+
+        const hub = document.getElementById("mc-module-hub");
+
+        if (hub) {
+            const section = new URLSearchParams(
+                location.search
+            ).get("section");
+
+            const selected = available.find(
+                x => x.module.key === section
+            );
+
+            if (selected) {
+                const heading = document.getElementById(
+                    "mc-module-hub-title"
+                );
+
+                if (heading)
+                    heading.textContent = selected.module.title;
+
+                document.title =
+                    selected.module.title + " - MASTER CHEF TAKIP";
+
+                const grid = document.createElement("div");
+                grid.className = "mc-hub-grid";
+
+                // MC_CARI_FINAL_DESTINATIONS_V1                 const mcRenderDestinations =                     selected.module.key === "cari"                         ? [                             { title: "Cari Hesaplar", url: "/CariAccounts" },                             { title: "Cari Hareketleri", url: "/MCCariLedger" },                             { title: "Satın Alma", url: "/Purchasing" },                             { title: "Alış İrsaliyeleri", url: "/PurchaseDispatch" },                             { title: "Mal Kabul", url: "/PurchaseGoodsReceipt" }                           ]                         : selected.destinations;                  for (const destination of mcRenderDestinations) {
+                    const card = document.createElement("a");
+                    card.className = "mc-hub-card";
+                    card.href = destination.url;
+
+                    const icon = document.createElement("span");
+                    icon.className = "mc-hub-card-icon";
+                    icon.textContent = "\u25a3";
+
+                    const title = document.createElement("span");
+                    title.className = "mc-hub-card-title";
+                    title.textContent = destination.title;
+
+                    const arrow = document.createElement("span");
+                    arrow.className = "mc-hub-card-arrow";
+                    arrow.textContent = "\u203a";
+
+                    card.append(icon, title, arrow);
+                    grid.appendChild(card);
+                }
+
+                hub.replaceChildren(grid);
+                selected.main.classList.add("active");
+            } else {
+                hub.textContent =
+                    "Bu mod\u00fcl i\u00e7in eri\u015filebilir " +
+                    "sayfa bulunamad\u0131.";
+            }
+        }
+
+        sidebar.addEventListener("click", function (event) {
+            if (!event.target.closest("a[href]")) return;
+
+            try {
+                sessionStorage.setItem(
+                    scrollKey, String(scrollBox.scrollTop)
+                );
+            } catch {}
+        }, true);
+
+        requestAnimationFrame(function () {
+            scrollBox.scrollTop = oldScroll;
+            requestAnimationFrame(function () {
+                scrollBox.scrollTop = oldScroll;
+            });
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+    } else {
+        init();
+    }
+})();
+</script>
+<!-- MC_MODULE_HUB_END_2026 -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- MC_HELP_DATE_FINAL_START -->
+<style>
+body:has(.mc-dashboard-help-date) main {
+    padding-top: 12px !important;
+}
+.mc-dashboard-help-date {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+}
+.mc-dashboard-help-date > * {
+    position: static !important;
+    transform: none !important;
+    margin: 0 !important;
+}
+</style>
+<script>
+(function () {
+    function arrange() {
+        const heading = Array.from(document.querySelectorAll("h1,h2"))
+            .find(x => x.textContent.trim() === "Genel Bakış");
+        const help = Array.from(document.querySelectorAll("a,button"))
+            .find(x => x.textContent.trim() === "Bu sayfa nasıl kullanılır?");
+        if (!heading || !help) return;
+
+        const date = Array.from(document.querySelectorAll("main *"))
+            .find(x => x.children.length === 0 &&
+                /^\d{2}\.\d{2}\.\d{4}$/.test(x.textContent.trim()));
+        if (!date) return;
+
+        help.style.transform = "none";
+        help.style.position = "static";
+
+        const row = document.createElement("div");
+        row.className = "mc-dashboard-help-date";
+
+        const dateParent = date.parentElement;
+        dateParent.insertBefore(row,date);
+        row.appendChild(date);
+        row.appendChild(help);
+
+        const main = heading.closest("main");
+        if (main) {
+            const top = main.querySelector("h1,h2");
+            const container = top && top.parentElement;
+            if (container) {
+                container.style.marginTop = "0";
+                container.style.paddingTop = "0";
+            }
+        }
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded",arrange);
+    } else {
+        arrange();
+    }
+})();
+</script>
+<!-- MC_HELP_DATE_FINAL_END -->
+
+<!-- MC_SIDEBAR_LAYOUT_FINAL_START -->
+<style>
+@@media (min-width: 992px) {
+    body {
+        margin: 0 !important;
+    }
+
+    body > aside,
+    body > .sidebar,
+    body > #sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        overscroll-behavior: contain !important;
+    }
+}
+
+html, body {
+    scroll-behavior: auto !important;
+}
+
+#mc-dashboard-title-row {
+    margin-top: 0 !important;
+}
+</style>
+<!-- MC_SIDEBAR_LAYOUT_FINAL_END -->

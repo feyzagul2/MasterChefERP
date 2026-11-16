@@ -1,0 +1,363 @@
+
+@model MasterChefTakip.Controllers.RawReceiptPage
+
+@{
+    ViewData["Title"] = "Mal Kabul Hammadde Aktarimi";
+}
+
+<!-- MC_RAW_RECEIPT_TRANSFER_2026 -->
+
+<style>
+.mc-rtr{max-width:1150px;margin:auto}
+.mc-rtr h1{font-size:24px;color:#17365b}
+.mc-rtr-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:15px 0}
+.mc-rtr-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.mc-rtr-tablewrap{overflow-x:auto}
+.mc-rtr-table{width:100%;min-width:850px;border-collapse:collapse}
+.mc-rtr-table th{text-align:left;padding:11px;background:#f8fafc;color:#475569;font-size:12px}
+.mc-rtr-table td{padding:11px;border-bottom:1px solid #edf2f7;font-size:13px}
+.mc-rtr select{width:100%;min-width:140px;padding:9px;border:1px solid #cbd5e1;border-radius:7px}
+.mc-rtr-btn{display:inline-block;border:1px solid #cbd5e1;padding:9px 13px;border-radius:8px;color:#17406a;background:#fff;text-decoration:none;font-size:13px;cursor:pointer}
+.mc-rtr-primary{background:#17406a;color:#fff;border-color:#17406a}
+.mc-rtr-info{padding:12px;background:#eff6ff;color:#1e40af;border-radius:8px;font-size:13px}
+.mc-rtr-success{padding:12px;background:#dcfce7;color:#166534;border-radius:8px}
+</style>
+
+<div class="mc-rtr">
+    <div class="mc-rtr-head">
+        <div>
+            <h1>Mal Kabul / Hammadde Sto&#287;u</h1>
+            <div style="color:#64748b;font-size:13px">
+                @Model.ReceiptNumber - @Model.SupplierName
+            </div>
+        </div>
+
+        <a class="mc-rtr-btn"
+           asp-controller="PurchaseGoodsReceipt"
+           asp-action="Details"
+           asp-route-id="@Model.ReceiptId">
+            Mal Kabul Detay&#305;
+        </a>
+    </div>
+
+    @if (TempData["RawReceiptSuccess"] is string success)
+    {
+        <div class="mc-rtr-success" style="margin:15px 0">
+            @success
+        </div>
+    }
+
+    <div class="mc-rtr-info" style="margin:15px 0">
+        Kg ve litre birimli kabul edilmi&#351; hammaddeler,
+        ayn&#305; birimdeki hammadde kart&#305;na aktar&#305;l&#305;r.
+        Her mal kabul kalemi yaln&#305;zca bir kez aktar&#305;labilir.
+        Otomatik birim d&#246;n&#252;&#351;&#252;m&#252; uygulanmaz.
+    </div>
+
+    <div class="mc-rtr-card mc-rtr-tablewrap">
+        <table class="mc-rtr-table">
+            <thead>
+                <tr>
+                    <th>Mal Kabul Kalemi</th>
+                    <th>Birim</th>
+                    <th>Kabul Edilen</th>
+                    <th>Hammadde Kart&#305;</th>
+                    <th>Depo</th>
+                    <th>Durum / &#304;&#351;lem</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            @foreach (var line in Model.Lines)
+            {
+                var canTransfer =
+                    Model.CanTransfer &&
+                    line.AcceptedQuantity > 0 &&
+                    line.SupportedUnit &&
+                    !line.Transferred;
+
+                var formId = "rawtransfer-" + line.Id;
+
+                <tr>
+                    <td>@line.Description</td>
+                    <td>@line.Unit</td>
+                    <td>@line.AcceptedQuantity.ToString("N4")</td>
+
+                    <td>
+                        @if (canTransfer)
+                        {
+                            <select name="rawMaterialId"
+                                    form="@formId"
+                                    required>
+                                <option value="">
+                                    Hammadde Se&#231;
+                                </option>
+
+                                @foreach (var item in Model.Materials)
+                                {
+                                    <option value="@item.Id">
+                                        @item.Name (@item.Unit)
+                                    </option>
+                                }
+                            </select>
+                        }
+                    </td>
+
+                    <td>
+                        @if (canTransfer)
+                        {
+                            <select name="warehouseId"
+                                    form="@formId"
+                                    required>
+                                <option value="">
+                                    Depo Se&#231;
+                                </option>
+
+                                @foreach (var depot in Model.Warehouses)
+                                {
+                                    <option value="@depot.Id">
+                                        @depot.Name
+                                    </option>
+                                }
+                            </select>
+                        }
+                    </td>
+
+                    <td>
+                        @if (line.Transferred)
+                        {
+                            <strong style="color:#166534">
+                                Aktar&#305;ld&#305;
+                            </strong>
+                        }
+                        else if (!canTransfer)
+                        {
+                            <span style="color:#64748b">
+                                Aktar&#305;ma Uygun De&#287;il
+                            </span>
+                        }
+                        else
+                        {
+                            <form id="@formId"
+                                  asp-action="Transfer"
+                                  method="post">
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="receiptLineId"
+                                       value="@line.Id" />
+
+                                
+    <!-- MC_STOCK_TRANSFER_CONFIRM_UI_V1 -->
+    <div style="margin:18px 0;padding:16px;
+                border:1px solid #f59e0b;
+                background:#fffbeb;border-radius:9px">
+
+        <label style="display:flex;gap:12px;
+                      align-items:flex-start;cursor:pointer">
+
+            <input type="checkbox"
+                   name="__mcTransferConfirmed"
+                   value="yes"
+                   required
+                   style="width:20px;height:20px;
+                          flex-shrink:0;margin-top:3px" />
+
+            <span>
+                <strong>Stok Aktarım Onayı</strong>
+                <br />
+                Seçtiğim mal kabul kaydının doğruluğunu,
+                hammaddeyi, depoyu, miktar? ve ölçü birimini
+                kontrol ettim. Bu kaydın stoğa işlenmesini
+                onaylıyorum.
+            </span>
+        </label>
+    </div>
+
+<button type="submit"
+                                        class="mc-rtr-btn mc-rtr-primary"
+                                        onclick="return confirm('Hammadde stok girisini onayliyor musunuz?')">
+                                    Sto&#287;a Aktar
+                                </button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+
+            @if (!Model.Lines.Any())
+            {
+                <tr>
+                    <td colspan="6">
+                        Mal kabul kalemi bulunmuyor.
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <a asp-controller="RawMaterials"
+       asp-action="Index"
+       class="mc-rtr-btn">
+        Hammadde Stoklar&#305;n&#305; G&#246;r
+    </a>
+</div>
+
+
+<!-- MC_RECEIPT_STOCK_SUGGESTION_2026 -->
+<script src="/js/mc-receipt-stock-suggestion.js"
+        asp-append-version="true"></script>
+
+@* MC_RECEIPT_HISTORY_LINK_V2 *@
+<div style="margin:18px 0">
+    <a asp-controller="MCReceiptTransferHistory"
+       asp-action="Index"
+       style="display:inline-block;padding:11px 17px;
+              background:#334155;color:white;
+              text-decoration:none;border-radius:8px">
+        Stok Aktarım Geçmişini Görüntüle
+    </a>
+</div>
+
+<!-- MC_RECEIPT_STOCK_MATCH_HINT_V1 -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const selects = Array.from(
+        document.querySelectorAll(
+            'select[name="rawMaterialId"], select[name="RawMaterialId"]'
+        )
+    );
+
+    for (const select of selects) {
+        const note = document.createElement("div");
+        note.style.cssText =
+            "font-size:12px;color:#64748b;margin-top:5px";
+
+        note.textContent =
+            "Mal kabulde secilen stok kartinin kodu ve birimi " +
+            "irsaliye bilgileriyle uyusmalidir.";
+
+        select.insertAdjacentElement("afterend", note);
+
+        select.addEventListener("change", function () {
+            const option = select.selectedOptions[0];
+
+            note.textContent = option && option.value
+                ? "Secilen stok karti: " +
+                  option.textContent.trim() +
+                  ". Kaydetmeden once birimi kontrol edin."
+                : "Stok karti seciniz.";
+        });
+    }
+});
+</script>
+<!-- MC_RECEIPT_STOCK_SUGGESTION_UI_V3 -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    "use strict";
+
+    const selects = document.querySelectorAll(
+        'select[name="rawMaterialId"], select[name="RawMaterialId"]'
+    );
+
+    for (const select of selects) {
+        const form = select.closest("form");
+        if (!form) continue;
+
+        // MC_RECEIPT_LINE_ID_FIX_V4
+        const lineInput = form.querySelector(
+            '[name="lineId"], [name="receiptLineId"], ' +
+            '[name="PurchaseGoodsReceiptLineId"], [name="id"]'
+        );
+
+        if (!lineInput) continue;
+
+        const lineId = Number(lineInput.value);
+
+        if (!Number.isSafeInteger(lineId) || lineId <= 0) continue;
+
+        const note = document.createElement("div");
+        note.style.cssText =
+            "font-size:12px;color:#475569;margin-top:6px";
+
+        note.textContent = "Stok karti eslestirmesi kontrol ediliyor...";
+
+        select.insertAdjacentElement("afterend", note);
+
+        fetch(
+            "/MCReceiptMatching/StockSuggestion?lineId=" +
+                encodeURIComponent(lineId),
+            {
+                credentials: "same-origin",
+                headers: { "Accept": "application/json" }
+            }
+        )
+        .then(async response => {
+            if (!response.ok) {
+                throw new Error("API yaniti basarisiz.");
+            }
+
+            const type = response.headers.get("content-type") || "";
+
+            if (!type.includes("application/json")) {
+                throw new Error("API JSON donmedi.");
+            }
+
+            return response.json();
+        })
+        .then(data => {
+            if (!data || data.matched !== true || !data.material) {
+                note.textContent =
+                    "Kesin katalog-stok eslesmesi bulunamadi. " +
+                    "Manuel kontrol gerekli.";
+                return;
+            }
+
+            const material = data.material;
+
+            const option = Array.from(select.options).find(
+                item => String(item.value) === String(material.id)
+            );
+
+            if (!option) {
+                note.textContent =
+                    "Eslesen stok karti mevcut secim listesinde yok: " +
+                    (material.code || "") +
+                    ". Manuel kontrol gerekli.";
+                return;
+            }
+
+            note.textContent =
+                "Onerilen stok karti: " +
+                (material.code || "") + " - " +
+                (material.name || "") +
+                " (" + (material.unit || "") + ")";
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "Onerilen Karti Sec";
+            button.style.cssText =
+                "margin-left:8px;padding:5px 9px;border:0;" +
+                "border-radius:5px;background:#166534;color:#fff;cursor:pointer";
+
+            button.addEventListener("click", function () {
+                select.value = option.value;
+                select.dispatchEvent(
+                    new Event("change", { bubbles: true })
+                );
+
+                button.textContent = "Secildi";
+                button.disabled = true;
+            });
+
+            note.appendChild(button);
+        })
+        .catch(() => {
+            note.textContent =
+                "Otomatik stok karti onerisi alinamadi. " +
+                "Manuel secim devam edebilir.";
+        });
+    }
+});
+</script>

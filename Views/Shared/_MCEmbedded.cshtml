@@ -1,0 +1,135 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1" />
+
+    <title>@ViewData["Title"]</title>
+
+    <!-- MC_EMBEDDED_LAYOUT_2026 -->
+
+<link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <style>
+        html, body {
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background: #fff;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        body {
+            box-sizing: border-box;
+        }
+
+        #mc-embedded-content {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            margin: 0;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        #mc-embedded-content > * {
+            max-width: 100%;
+        }
+
+        .table-responsive {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        input, select, textarea {
+            max-width: 100%;
+        }
+
+        @@media (max-width: 768px) {
+            #mc-embedded-content {
+                padding: 8px;
+            }
+        }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+
+    <main id="mc-embedded-content">
+        @RenderBody()
+    </main>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/masterchef-ui.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+    (function () {
+        "use strict";
+
+        // Icerideki sayfa baglantilarinda da sade layout korunsun.
+        document.addEventListener("click", function (event) {
+            const link = event.target.closest("a[href]");
+
+            if (!link) return;
+
+            const href = link.getAttribute("href");
+
+            if (
+                !href ||
+                href.startsWith("#") ||
+                href.startsWith("javascript:") ||
+                href.startsWith("mailto:") ||
+                href.startsWith("tel:")
+            ) return;
+
+            try {
+                const destination = new URL(href, location.href);
+
+                if (destination.origin !== location.origin) return;
+
+                if (destination.pathname.startsWith("/Identity/")) return;
+                if (destination.pathname.startsWith("/Account/")) return;
+
+                destination.searchParams.set("mcEmbed", "1");
+
+                link.href = destination.pathname +
+                    destination.search +
+                    destination.hash;
+            } catch (_) {}
+        }, true);
+
+        // Icerik icindeki gereksiz geri ve yardim dugmelerini kaldir.
+        document.querySelectorAll("a, button").forEach(function (item) {
+            const label = (item.textContent || "")
+                .replace(/\s+/g, " ")
+                .trim()
+                .toLocaleLowerCase("tr-TR");
+
+            if (
+                label.includes("\u00f6nceki sayfaya d\u00f6n") ||
+                label.includes("bu sayfa nas\u0131l kullan\u0131l\u0131r")
+            ) {
+                item.style.display = "none";
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

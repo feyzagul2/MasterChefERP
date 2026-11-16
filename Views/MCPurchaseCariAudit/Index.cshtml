@@ -1,0 +1,88 @@
+@model string
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Cari Mutabakat Kontrolü";
+}
+
+<div class="mc-cari-audit-page"><div class="mc-audit-flow"><a href="/MCPurchaseInvoiceCariCheck">← Cari Kontrol</a><strong>Mutabakat ve Kontrol Merkezi</strong><a href="/MCPurchaseCariExport">Raporlar / Excel →</a></div>
+    @Html.Raw(Model)
+<style>.mc-audit-flow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 18px;padding:14px 16px;background:#f8fafc;border:1px solid #dbe4ee;border-radius:12px}.mc-audit-flow a{text-decoration:none;padding:8px 12px;border-radius:7px;background:#eef4f8;color:#24496c;font-weight:600}.mc-audit-flow strong{font-size:17px;color:#173b60}</style><!-- MC_CARI_ISSUE_FILTER_UI_V1 -->
+<section class="mc-issue-export">
+    <h3>Sorun Türüne Göre Excel Raporu</h3>
+    <form method="get" action="/MCPurchaseCariAudit/DetailsCsv">
+        <label for="mcIssueType">Sorun türü</label>
+        <select id="mcIssueType" name="issueType" required>
+            <option value="">Sorun türü seçiniz</option>
+            <option value="FATURA_YOK">Faturası Bulunmayan</option>
+            <option value="CARI_HAREKET_YOK">Eksik Cari Hareket</option>
+            <option value="CARI_HESAP_FARKI">Cari Hesap Farkı</option>
+            <option value="PARA_BIRIMI_FARKI">Para Birimi Farkı</option>
+            <option value="TUTAR_FARKI">Tutar Farkı</option>
+        </select>
+        <button type="submit" class="mc-missing-cari-excel">Seçilen Sorun Türünü Excel'e Aktar</button>
+    </form>
+</section>
+
+<style>
+.mc-issue-export {
+    margin: 18px 0;
+    padding: 18px;
+    border: 1px solid #dbe4ee;
+    border-radius: 12px;
+    background: #fff;
+}
+.mc-issue-export h3 {
+    margin: 0 0 14px;
+    font-size: 17px;
+    color: #24496c;
+}
+.mc-issue-export form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+.mc-issue-export select {
+    min-width: 230px;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+}
+.mc-issue-export button {
+    padding: 11px 16px;
+    background: #24496c;
+    color: white;
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+}
+</style>
+</div>
+
+<!-- MC_MISSING_CARI_DIRECT_V2_START -->
+<style>
+html body .mc-missing-cari-excel {
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 14px !important;
+
+    background: #E3EAF2 !important;
+    background-color: #E3EAF2 !important;
+
+    border: 1px solid #C5D2DF !important;
+    border-radius: 7px !important;
+
+    color: #24486D !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+
+    box-shadow: none !important;
+}
+
+html body .mc-missing-cari-excel:hover {
+    background: #D8E2EC !important;
+    border-color: #B8C8D8 !important;
+    color: #173B60 !important;
+}
+</style>
+<!-- MC_MISSING_CARI_DIRECT_V2_END -->

@@ -1,0 +1,83 @@
+@model MasterChefTakip.Controllers.MCReceiptHistoryPage
+
+@{
+    ViewData["Title"] = "Hammadde Stok Aktarım Geçmişi";
+}
+
+<div style="max-width:1350px;margin:24px auto;padding:20px">
+
+    <h2>MASTER CHEF ? Hammadde Stok Aktarım Geçmişi</h2>
+
+    <p>
+        Gerçekleştirilen mal kabul stok aktarımlar?n?n
+        son 500 kaydı gÜrünt?lenir.
+    </p>
+
+    <div style="padding:18px;margin:18px 0;
+                background:#f0fdf4;border:1px solid #86efac;
+                border-radius:9px">
+        <strong>Görüntülenen aktarım: @Model.Rows.Count</strong>
+    </div>
+
+    <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse">
+            <thead style="background:#f1f5f9">
+                <tr>
+                    <th style="padding:12px">Aktarım No</th>
+                    <th style="padding:12px">Mal Kabul Satır?</th>
+                    <th style="padding:12px">Hammadde</th>
+                    <th style="padding:12px">Depo</th>
+                    <th style="padding:12px">Miktar</th>
+                    <th style="padding:12px">Birim</th>
+                    <th style="padding:12px">Tarih (UTC)</th>
+                    <th style="padding:12px">Stok Hareket No</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Rows)
+                {
+                    <tr style="border-bottom:1px solid #e2e8f0">
+                        <td style="padding:10px">@row.Id</td>
+                        <td style="padding:10px">@row.ReceiptLineId</td>
+                        <td style="padding:10px">
+                            @row.MaterialName (@row.MaterialId)
+                        </td>
+                        <td style="padding:10px">
+                            @row.WarehouseName (@row.WarehouseId)
+                        </td>
+                        <td style="padding:10px;text-align:right">
+                            @row.Quantity
+                        </td>
+                        <td style="padding:10px">@row.Unit</td>
+                        <td style="padding:10px">@row.CreatedAt</td>
+                        <td style="padding:10px">@row.StockMovementId</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.Rows.Count == 0)
+    {
+        <p style="padding:20px;background:#f8fafc">
+            Hen?z gerçekle?tirilmi? stok aktarım? bulunmuyor.
+        </p>
+    }
+
+    <p style="margin-top:20px">
+        <a href="/MCInventoryReceiptPreparation">
+            Mal Kabul Hazırlık Ekranına Dön
+        </a>
+    </p>
+</div>
+
+@* MC_TRANSFER_INTEGRITY_LINK_V1 *@
+<p style="margin:18px 0">
+    <a asp-controller="MCReceiptTransferHistory"
+       asp-action="Integrity"
+       style="display:inline-block;padding:11px 17px;
+              background:#334155;color:white;
+              border-radius:8px;text-decoration:none">
+        Stok Aktarım Tutarlılığını Kontrol Et
+    </a>
+</p>

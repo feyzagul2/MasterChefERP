@@ -1,0 +1,15 @@
+body.mc-guest{min-height:100vh;background:#eef3f8!important;color:#173b60!important;}
+body.mc-guest .app-shell{width:100%!important;min-height:100vh!important;margin:0!important;}
+body.mc-guest .page-content{min-height:100vh!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:40px 20px!important;}
+body.mc-guest .page-content>.row{width:100%!important;max-width:920px!important;margin:0 auto!important;}
+body.mc-guest .page-heading{text-align:center!important;margin-bottom:24px!important;}
+body.mc-guest .page-heading .eyebrow{display:inline-block!important;font-size:13px!important;font-weight:800!important;letter-spacing:1.5px!important;color:#24486d!important;margin-bottom:10px!important;}
+body.mc-guest .page-heading h1{font-size:30px!important;font-weight:800!important;color:#173b60!important;margin-bottom:10px!important;}
+body.mc-guest .page-heading p{font-size:16px!important;color:#60758a!important;margin:0 auto!important;max-width:620px!important;}
+body.mc-guest .welcome-card{background:#fff!important;border:1px solid #d0dbe7!important;border-radius:16px!important;box-shadow:0 14px 34px rgba(23,59,96,.10)!important;padding:32px!important;}
+body.mc-guest .section-label{display:block!important;font-size:12px!important;font-weight:800!important;letter-spacing:1.2px!important;color:#24486d!important;margin-bottom:22px!important;}
+body.mc-guest .form-label{color:#173b60!important;}
+body.mc-guest .form-control{min-height:52px!important;border:1px solid #cbd7e3!important;border-radius:10px!important;background:#fff!important;color:#173b60!important;box-shadow:none!important;}
+body.mc-guest .form-control:focus{border-color:#24486d!important;box-shadow:0 0 0 .2rem rgba(36,72,109,.12)!important;}
+body.mc-guest .btn.btn-primary{min-height:52px!important;border-radius:10px!important;background:#17406a!important;background-color:#17406a!important;border-color:#17406a!important;color:#fff!important;font-weight:800!important;}
+body.mc-guest .btn.btn-primary:hover{background:#123552!important;background-color:#123552!important;border-color:#123552!important;color:#fff!important;}

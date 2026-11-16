@@ -1,0 +1,4 @@
+@model string
+@{ Layout = "_Layout"; ViewData["Title"] = "Mal Kabul Stok Kontrolü"; }
+<div class="mc-stock-audit-page"><div class="mc-stock-audit-nav"><a href="/RawMaterials">← Hammadde Stok</a><a href="/RawStockCounts">Stok Sayımı</a><a href="/RawMaterials/Warehouses">Depolar</a><a href="/RawMaterials?critical=true">Kritik Stoklar</a></div>@Html.Raw(Model)</div>
+<style>.mc-stock-audit-page{max-width:1250px;margin:0 auto}.mc-stock-audit-nav{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}.mc-stock-audit-nav a{display:inline-flex;align-items:center;padding:9px 13px;border:1px solid #d5e0ec;border-radius:8px;background:#fff;color:#18365f;text-decoration:none;font-size:13px;font-weight:700}.mc-stock-audit-nav a:hover,.mc-stock-audit-nav a:focus{background:#18365f;color:#fff;border-color:#18365f}</style>

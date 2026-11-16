@@ -1,0 +1,163 @@
+﻿@model MasterChefTakip.Controllers.MCBankCashTransferPage
+
+@{
+    ViewData["Title"] = "Hesaplar Arası Virman";
+}
+
+<style>
+.mc-virman {
+    max-width: 850px;
+    margin: 30px auto;
+    padding: 24px;
+    color: #193047;
+}
+
+.mc-virman .panel {
+    background: #fff;
+    border: 1px solid #e0e7ef;
+    border-radius: 16px;
+    padding: 28px;
+}
+
+.mc-virman h1 {
+    font-size: 27px;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.mc-virman p {
+    color: #64748b;
+}
+
+.mc-virman label {
+    display: block;
+    font-weight: 650;
+    margin: 18px 0;
+    color: #41586f;
+}
+
+.mc-virman input,
+.mc-virman select {
+    display: block;
+    width: 100%;
+    padding: 13px;
+    margin-top: 8px;
+    border: 1px solid #d3deea;
+    border-radius: 9px;
+}
+
+.mc-virman button {
+    background: #193752;
+    color: #fff;
+    padding: 13px 22px;
+    border: 0;
+    border-radius: 9px;
+    cursor: pointer;
+}
+
+.mc-virman .notice {
+    background: #eff6ff;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 18px 0;
+    color: #315b80;
+}
+
+.mc-virman a {
+    display: inline-block;
+    margin-bottom: 18px;
+    text-decoration: none;
+}
+</style>
+
+<div class="mc-virman">
+
+    <a href="/MCBankCash">← Kasa ve Banka Yönetimine Dön</a>
+
+    <div class="panel">
+
+        <h1>Hesaplar Arası Virman</h1>
+
+        <p>
+            Kasa veya banka hesapları arasında para aktarımı yapın.
+        </p>
+
+        <div class="notice">
+            Virman bir gelir veya gider değildir.
+            Kaynak hesaptan para düşer, hedef hesaba eklenir.
+            Kaynak bakiyenin yeterli olması zorunludur.
+        </div>
+
+        @if (Model.Accounts.Count < 2)
+        {
+            <p>
+                Virman için en az iki aktif TL hesabı oluşturulmalıdır.
+            </p>
+        }
+        else
+        {
+            <form method="post" action="/MCBankCashTransfer/Create">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="requestToken"
+                       value="@Guid.NewGuid().ToString("N")" />
+
+                <label>
+                    Paranın Çıkacağı Hesap
+                    <select name="fromAccountId" required>
+                        @foreach (var account in Model.Accounts)
+                        {
+                            <option value="@account.Id">
+                                @account.Name (@account.Code)
+                            </option>
+                        }
+                    </select>
+                </label>
+
+                <label>
+                    Paranın Gideceği Hesap
+                    <select name="toAccountId" required>
+                        @foreach (var account in Model.Accounts)
+                        {
+                            <option value="@account.Id">
+                                @account.Name (@account.Code)
+                            </option>
+                        }
+                    </select>
+                </label>
+
+                <label>
+                    Virman Tarihi
+                    <input type="date"
+                           name="transferDate"
+                           value="@DateTime.Today.ToString("yyyy-MM-dd")"
+                           required />
+                </label>
+
+                <label>
+                    Virman Tutarı (TL)
+                    <input type="number"
+                           name="amount"
+                           min="0.01"
+                           max="100000000000"
+                           step="0.01"
+                           required />
+                </label>
+
+                <label>
+                    Açıklama
+                    <input type="text"
+                           name="description"
+                           maxlength="400"
+                           placeholder="Virman açıklaması" />
+                </label>
+
+                <button type="submit">
+                    Virmanı Gerçekleştir
+                </button>
+            </form>
+        }
+
+    </div>
+</div>

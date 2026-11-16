@@ -1,0 +1,62 @@
+<!-- MC_CATALOG_RAW_CARD_CREATE_2026 -->
+@model MasterChefTakip.Controllers.CatalogRawCardInput
+
+@{
+    ViewData["Title"] = "Katalogdan Hammadde Stok Kartı";
+}
+
+<div style="max-width:760px;margin:auto">
+
+    <h1>Hammadde Stok Kartı Oluştur</h1>
+
+    <div style="background:#fff;border:1px solid #e2e8f0;
+                border-radius:12px;padding:22px;margin:20px 0">
+
+        <p><strong>Malzeme Kodu:</strong> @Model.Code</p>
+        <p><strong>Malzeme Adı:</strong> @Model.Name</p>
+        <p><strong>Malzeme Türü:</strong> @Model.MaterialType</p>
+
+        <form method="post" asp-action="Create">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   asp-for="CatalogId" />
+
+            <div asp-validation-summary="All"
+                 style="color:#b91c1c"></div>
+
+            <label for="Unit"
+                   style="display:block;font-weight:600;margin:14px 0 8px">
+                Stok Birimi
+            </label>
+
+            <select asp-for="Unit"
+                    required
+                    style="width:100%;padding:12px;
+                           border:1px solid #cbd5e1;
+                           border-radius:8px">
+                <option value="">Birim seçin</option>
+                <option value="Kg">Kilogram (Kg)</option>
+                <option value="L">Litre (L)</option>
+            </select>
+
+            <p style="color:#64748b;font-size:13px">
+                Birimi ürünün gerçek ölçü birimine göre seçin.
+                Bu işlem stok miktarını artırmaz.
+            </p>
+
+            <button type="submit"
+                    style="background:#17406a;color:white;
+                           border:0;border-radius:8px;
+                           padding:12px 20px;margin-top:12px">
+                Stok Kartını Oluştur ve Eşleştir
+            </button>
+        </form>
+    </div>
+
+    <a asp-controller="MaterialStockMapping"
+       asp-action="Index">
+        ← Eşleştirme Ekranına Dön
+    </a>
+</div>

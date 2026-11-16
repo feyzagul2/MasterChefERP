@@ -1,0 +1,115 @@
+@model MasterChefTakip.Controllers.MCInventoryAuditReportPage
+
+@{
+    ViewData["Title"] = "Stok ve Depo G?venlik Denetimi";
+}
+
+<div style="max-width:1100px;margin:24px auto;padding:22px;font:inherit">
+
+    <h2>Stok ve Depo G?venlik Denetimi</h2>
+    @* MC_AUDIT_DETAILS_LINKS_V1 *@
+    <p style="display:flex;gap:15px;flex-wrap:wrap">
+        <a href="/MCInventoryAuditDetails?tur=eksik">
+            Eksik Depo Bağlant?lar?n? Güster
+        </a>
+        <a href="/MCInventoryAuditDetails?tur=baglanti">
+            Ge?ersiz Bağlant?lar? Güster
+        </a>
+        <a href="/MCInventoryAuditDetails?tur=birim">
+            Hatal? ölçü Birimlerini Güster
+        </a>
+    </p>
+
+
+    <p style="color:#64748b">
+        Bu rapor mevcut stok kartı ve depo ba?lant?lar?n? denetler.
+        Stok miktarlar?n? veya mal kabul kayıtların? değiştirmez.
+    </p>
+
+    <div style="padding:15px;border:1px solid #cbd5e1;
+                border-radius:8px;margin:18px 0">
+        <strong>Denetim durumu:</strong> @Model.Status
+
+        @if (!string.IsNullOrWhiteSpace(Model.MissingTables))
+        {
+            <p style="color:#b91c1c">
+                Eksik tablolar: @Model.MissingTables
+            </p>
+        }
+    </div>
+
+    <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse">
+            <thead>
+                <tr style="background:#f1f5f9">
+                    <th style="padding:13px;text-align:left">Kontrol</th>
+                    <th style="padding:13px;text-align:right">Sonu?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom:1px solid #e2e8f0">
+                    <td style="padding:13px">Aktif stok kartlar?</td>
+                    <td style="padding:13px;text-align:right">
+                        @Model.ActiveCards
+                    </td>
+                </tr>
+                <tr style="border-bottom:1px solid #e2e8f0">
+                    <td style="padding:13px">Aktif depolar</td>
+                    <td style="padding:13px;text-align:right">
+                        @Model.ActiveWarehouses
+                    </td>
+                </tr>
+                <tr style="border-bottom:1px solid #e2e8f0">
+                    <td style="padding:13px">Toplam kart-depo bağlantısı</td>
+                    <td style="padding:13px;text-align:right">
+                        @Model.TotalLinks
+                    </td>
+                </tr>
+                <tr style="border-bottom:1px solid #e2e8f0">
+                    <td style="padding:13px;color:#b45309">
+                        Ge?ersiz veya pasif ba?lant?lar
+                    </td>
+                    <td style="padding:13px;text-align:right;
+                               font-weight:bold;color:#b45309">
+                        @Model.InvalidLinks
+                    </td>
+                </tr>
+                <tr style="border-bottom:1px solid #e2e8f0">
+                    <td style="padding:13px;color:#b45309">
+                        Aktif depoya ba?lanmam?? kartlar
+                    </td>
+                    <td style="padding:13px;text-align:right;
+                               font-weight:bold;color:#b45309">
+                        @Model.UnassignedCards
+                    </td>
+                </tr>
+                <tr style="border-bottom:1px solid #e2e8f0">
+                    <td style="padding:13px;color:#b45309">
+                        Tan?nmayan ölçü birimine sahip kartlar
+                    </td>
+                    <td style="padding:13px;text-align:right;
+                               font-weight:bold;color:#b45309">
+                        @Model.InvalidUnits
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p style="margin-top:24px">
+        <a href="/MCInventoryReceiptPreparation">
+            Mal Kabul Hazırlık Ekranına Dön
+        </a>
+        &nbsp; | &nbsp;
+        <a href="/MCInventoryWarehouses">
+            Depo E?le?tirmeleri
+        </a>
+    </p>
+
+    <div style="margin-top:20px;padding:14px;
+                background:#fff7ed;border-radius:8px">
+        Bu rapor yalnızca genel stok kartlar?n?n mevcut depo
+        ba?lant?lar?n? inceler. Hammadde stok hareketlerinin
+        tamam?na ili?kin bir mutabakat raporu de?ildir.
+    </div>
+</div>

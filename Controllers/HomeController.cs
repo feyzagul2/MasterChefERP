@@ -148,27 +148,15 @@ public class HomeController(
                     entry.BoxCount,
                     entry.LooseUnitCount,
                     entry.UnitsPerBox);
-
-                // Bugün paketlenip sonradan pasife alınan ürün de
-                // günlük paketleme miktarından kaybolmasın.
-                if (!productRows.TryGetValue(
+                if (productRows.TryGetValue(
                     entry.ProductId,
                     out var product))
                 {
-                    product = new DashboardProductRow
-                    {
-                        Id = entry.ProductId,
-                        Name = entry.ProductName,
-                        Code = entry.ProductCode
-                    };
-
-                    productRows.Add(product.Id, product);
+                    product.Prepared.Add(
+                        entry.BoxCount,
+                        entry.LooseUnitCount,
+                        entry.UnitsPerBox);
                 }
-
-                product.Prepared.Add(
-                    entry.BoxCount,
-                    entry.LooseUnitCount,
-                    entry.UnitsPerBox);
             }
         }
 

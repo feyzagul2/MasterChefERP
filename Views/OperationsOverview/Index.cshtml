@@ -1,0 +1,479 @@
+
+@model MasterChefTakip.Controllers.OperationsOverviewPage
+
+@{
+    ViewData["Title"] = "Operasyon Raporlari";
+}
+
+<!-- MC_OPERATIONS_OVERVIEW_2026 -->
+
+<style>
+.mc-ops{max-width:1400px;margin:auto;color:#17365b}
+.mc-ops-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.mc-ops h1{font-size:26px;margin:0}
+.mc-ops h2{font-size:17px;margin:0 0 16px}
+.mc-ops-note{font-size:12px;color:#64748b}
+.mc-ops-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.mc-ops-card{background:#fff;border:1px solid #dbe4ef;border-radius:12px;padding:18px;min-width:0}
+.mc-ops-value{font-size:31px;font-weight:750;margin:8px 0}
+.mc-ops-label{font-size:12px;color:#64748b}
+.mc-ops-section{margin-top:18px}
+.mc-ops-scroll{overflow-x:auto}
+.mc-ops-table{width:100%;min-width:750px;border-collapse:collapse}
+.mc-ops-table th{padding:12px;background:#f8fafc;text-align:left;font-size:12px;color:#475569}
+.mc-ops-table td{padding:12px;border-bottom:1px solid #edf2f7;font-size:13px}
+.mc-ops-btn{display:inline-block;padding:9px 14px;background:#17406a;color:#fff;border-radius:8px;text-decoration:none;font-size:13px}
+.mc-ops-warning{color:#b45309;font-weight:650}
+.mc-ops-danger{color:#b91c1c;font-weight:650}
+.mc-ops-good{color:#166534;font-weight:650}
+.mc-ops-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
+@@media(max-width:1000px){.mc-ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@@media(max-width:600px){.mc-ops-grid{grid-template-columns:1fr}.mc-ops-card{padding:14px}}
+</style>
+
+<div class="mc-ops">
+
+    <div class="mc-ops-head">
+        <div>
+            <h1>MASTER CHEF | Operasyon Raporlar&#305;</h1>
+            <div class="mc-ops-note">
+                Stok, &#252;retim, kalite ve sevkiyat genel g&#246;r&#252;n&#252;m&#252;
+            </div>
+        </div>
+
+        <a class="mc-ops-btn" asp-action="Index">
+            Raporlar&#305; Yenile
+        </a>
+    </div>
+
+    <div class="mc-ops-grid">
+
+        <div class="mc-ops-card">
+            <div class="mc-ops-label">&#220;r&#252;n Kartlar&#305;</div>
+            <div class="mc-ops-value">@Model.ProductCount</div>
+        </div>
+
+        <div class="mc-ops-card">
+            <div class="mc-ops-label">Palet Say&#305;s&#305;</div>
+            <div class="mc-ops-value">@Model.PalletCount</div>
+        </div>
+
+        <div class="mc-ops-card">
+            <div class="mc-ops-label">Palet &#220;r&#252;n Kay&#305;tlar&#305;</div>
+            <div class="mc-ops-value">@Model.PalletItemCount</div>
+        </div>
+
+        <div class="mc-ops-card">
+            <div class="mc-ops-label">Sevkiyat Kay&#305;tlar&#305;</div>
+            <div class="mc-ops-value">@Model.ShipmentCount</div>
+        </div>
+
+        <div class="mc-ops-card">
+            <div class="mc-ops-label">Hammadde Kartlar&#305;</div>
+            <div class="mc-ops-value">@Model.RawMaterialCount</div>
+        </div>
+
+        <div class="mc-ops-card">
+            <div class="mc-ops-label">Kritik Hammaddeler</div>
+            <div class="mc-ops-value @(Model.CriticalMaterialCount > 0 ? "mc-ops-danger" : "mc-ops-good")">
+                @Model.CriticalMaterialCount
+            </div>
+        </div>
+
+        <div class="mc-ops-card">
+            <div class="mc-ops-label">&#220;retim Emirleri</div>
+            <div class="mc-ops-value">@Model.ProductionOrderCount</div>
+            <div class="mc-ops-note">
+                Tamamlanan: @Model.CompletedProductionCount
+            </div>
+        </div>
+
+        <div class="mc-ops-card">
+            <div class="mc-ops-label">Lot / SKT Kay&#305;tlar&#305;</div>
+            <div class="mc-ops-value">@Model.LotCount</div>
+            <div class="mc-ops-note">
+                Onayl&#305;: @Model.ApprovedLotCount |
+                Reddedilen: @Model.RejectedLotCount
+            </div>
+        </div>
+
+        <div class="mc-ops-card">
+            <div class="mc-ops-label">Kalite Onay&#305; Bekleyen Lot</div>
+            <div class="mc-ops-value">@Model.PendingLotCount</div>
+        </div>
+
+        <div class="mc-ops-card">
+            <div class="mc-ops-label">SKT Ge&#231;mi&#351; Lot</div>
+            <div class="mc-ops-value @(Model.ExpiredLotCount > 0 ? "mc-ops-danger" : "")">
+                @Model.ExpiredLotCount
+            </div>
+        </div>
+
+        <div class="mc-ops-card">
+            <div class="mc-ops-label">Hammadde Say&#305;mlar&#305;</div>
+            <div class="mc-ops-value">@Model.StockCountTotal</div>
+        </div>
+
+        <div class="mc-ops-card">
+            <div class="mc-ops-label">Say&#305;m Onay&#305; Bekleyen</div>
+            <div class="mc-ops-value @(Model.PendingStockCounts > 0 ? "mc-ops-warning" : "")">
+                @Model.PendingStockCounts
+            </div>
+            <div class="mc-ops-note">
+                Onaylanan: @Model.ApprovedStockCounts |
+                Reddedilen: @Model.RejectedStockCounts
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mc-ops-card mc-ops-section mc-ops-scroll">
+        <h2>Hammadde Stok Raporu</h2>
+
+        <table class="mc-ops-table">
+            <thead>
+                <tr>
+                    <th>Kod</th>
+                    <th>Hammadde</th>
+                    <th>Mevcut</th>
+                    <th>Minimum</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var x in Model.Materials)
+            {
+                <tr>
+                    <td>@x.Code</td>
+                    <td>@x.Name</td>
+                    <td>@x.Quantity.ToString("N4") @x.Unit</td>
+                    <td>@x.MinimumStock.ToString("N4") @x.Unit</td>
+                    <td>
+                        @if (!x.IsActive)
+                        {
+                            <span>Pasif</span>
+                        }
+                        else if (x.Quantity <= x.MinimumStock)
+                        {
+                            <span class="mc-ops-warning">Kritik</span>
+                        }
+                        else
+                        {
+                            <span class="mc-ops-good">Normal</span>
+                        }
+                    </td>
+                </tr>
+            }
+            @if (!Model.Materials.Any())
+            {
+                <tr>
+                    <td colspan="5">
+                        Hen&#252;z hammadde kart&#305; bulunmuyor.
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mc-ops-card mc-ops-section mc-ops-scroll">
+        <h2>Son &#220;retim Emirleri</h2>
+
+        <table class="mc-ops-table">
+            <thead>
+                <tr>
+                    <th>Emir No</th>
+                    <th>Re&#231;ete</th>
+                    <th>Miktar</th>
+                    <th>Durum</th>
+                    <th>Tarih</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var x in Model.ProductionOrders)
+            {
+                <tr>
+                    <td>@x.OrderNumber</td>
+                    <td>@x.Recipe.Name</td>
+                    <td>@x.PlannedQuantityKg.ToString("N4") Kg</td>
+                    <td>@(x.Status == "Completed" ? "Tamamland&#305;" : "Planland&#305;")</td>
+                    <td>@x.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                </tr>
+            }
+            @if (!Model.ProductionOrders.Any())
+            {
+                <tr><td colspan="5">&#220;retim emri bulunmuyor.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mc-ops-card mc-ops-section mc-ops-scroll">
+        <h2>&#214;n&#252;m&#252;zdeki 90 G&#252;nde SKT'si Dolacak Lotlar</h2>
+
+        <table class="mc-ops-table">
+            <thead>
+                <tr>
+                    <th>Lot</th>
+                    <th>&#220;r&#252;n</th>
+                    <th>SKT</th>
+                    <th>Kalite</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var x in Model.ExpiringLots)
+            {
+                <tr>
+                    <td>@x.LotNumber</td>
+                    <td>@x.Product.Name</td>
+                    <td class="mc-ops-warning">
+                        @x.ExpiryDate.ToString("dd.MM.yyyy")
+                    </td>
+                    <td>@x.Status</td>
+                </tr>
+            }
+            @if (!Model.ExpiringLots.Any())
+            {
+                <tr>
+                    <td colspan="4">
+                        90 g&#252;n i&#231;inde SKT'si dolacak lot bulunmuyor.
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mc-ops-links">
+        <a class="mc-ops-btn" asp-controller="RawMaterials" asp-action="Index">
+            Hammadde
+        </a>
+        <a class="mc-ops-btn" asp-controller="Production" asp-action="Orders">
+            &#220;retim
+        </a>
+        <a class="mc-ops-btn" asp-controller="LotQuality" asp-action="Index">
+            Lot / Kalite
+        </a>
+        <a class="mc-ops-btn" asp-controller="RawStockCounts" asp-action="Index">
+            Stok Say&#305;m&#305;
+        </a>
+        <a class="mc-ops-btn" asp-controller="Reports" asp-action="Index">
+            Mevcut Raporlar
+        </a>
+    </div>
+
+</div>
+
+
+<!-- MC_COMPACT_METRICS_FINAL -->
+<style>
+.mc-metrics-compact-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    align-items: start !important;
+    grid-auto-rows: min-content !important;
+}
+
+.mc-metrics-compact-card {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    min-height: 90px !important;
+    height: auto !important;
+    padding: 12px 14px !important;
+    margin: 0 !important;
+    border-radius: 10px !important;
+}
+
+.mc-metrics-compact-card h1,
+.mc-metrics-compact-card h2,
+.mc-metrics-compact-card h3 {
+    margin: 6px 0 2px !important;
+    line-height: 1.1 !important;
+}
+
+@@media (max-width: 1450px) {
+    .mc-metrics-compact-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+}
+
+@@media (max-width: 1100px) {
+    .mc-metrics-compact-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+@@media (max-width: 700px) {
+    .mc-metrics-compact-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+</style>
+
+<script>
+(function () {
+    "use strict";
+
+    const labels = [
+        "\u00dcr\u00fcn Kartlar\u0131",
+        "Palet Say\u0131s\u0131",
+        "Palet \u00dcr\u00fcn Kay\u0131tlar\u0131",
+        "Sevkiyat Kay\u0131tlar\u0131",
+        "Hammadde Kartlar\u0131",
+        "Kritik Hammaddeler",
+        "\u00dcretim Emirleri",
+        "Lot / SKT Kay\u0131tlar\u0131",
+        "Kalite Onay\u0131 Bekleyen Lot",
+        "SKT Ge\u00e7mi\u015f Lot",
+        "Hammadde Say\u0131mlar\u0131",
+        "Say\u0131m Onay\u0131 Bekleyen"
+    ];
+
+    function normalize(value) {
+        return (value || "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .toLocaleLowerCase("tr-TR");
+    }
+
+    const names = new Set(labels.map(normalize));
+
+    function locateCard(element) {
+        let node = element.parentElement;
+
+        for (let i = 0; i < 7 && node; i++) {
+            const style = getComputedStyle(node);
+            const rect = node.getBoundingClientRect();
+
+            const rounded =
+                parseFloat(style.borderTopLeftRadius) >= 6;
+
+            const bordered =
+                parseFloat(style.borderTopWidth) > 0 &&
+                style.borderTopStyle !== "none";
+
+            if (
+                rounded &&
+                bordered &&
+                rect.width > 130 &&
+                rect.height > 55 &&
+                rect.height < 350 &&
+                /\d/.test(node.textContent)
+            ) {
+                return node;
+            }
+
+            node = node.parentElement;
+        }
+
+        return null;
+    }
+
+    function compact() {
+        const found = new Set();
+
+        const walker = document.createTreeWalker(
+            document.body,
+            NodeFilter.SHOW_TEXT
+        );
+
+        while (walker.nextNode()) {
+            const textNode = walker.currentNode;
+
+            if (!names.has(normalize(textNode.textContent))) {
+                continue;
+            }
+
+            const card = locateCard(textNode.parentElement);
+
+            if (card) {
+                found.add(card);
+            }
+        }
+
+        const groups = new Map();
+
+        for (const card of found) {
+            const parent = card.parentElement;
+
+            if (!parent) continue;
+
+            if (!groups.has(parent)) {
+                groups.set(parent, []);
+            }
+
+            groups.get(parent).push(card);
+        }
+
+        let changed = 0;
+
+        for (const [parent, cards] of groups) {
+            if (cards.length < 4) continue;
+
+            parent.classList.add("mc-metrics-compact-grid");
+
+            for (const card of cards) {
+                card.classList.add("mc-metrics-compact-card");
+                changed++;
+            }
+        }
+
+        console.log(
+            "MASTER CHEF - Kucultulen rapor kartlari:",
+            changed
+        );
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", compact);
+    } else {
+        compact();
+    }
+})();
+</script>
+<!-- MC_COMPACT_METRICS_FINAL_END -->
+
+
+<!-- MC_EXECUTIVE_DASHBOARD_V1 -->
+
+<link rel="stylesheet"
+      href="/css/mc-executive-dashboard.css?v=20261109-v1" />
+
+<div id="mc-executive-dashboard"
+     class="mc-exec-dashboard">`r`n    <div class="mc-exec-finance-grid">
+        
+<section class="mc-exec-finance-card">
+    <div class="mc-exec-section-title">Cari Finans Özeti</div>
+    @await Component.InvokeAsync("MCFinanceCariSummary")
+</section>
+
+<section class="mc-exec-finance-card">
+    <div class="mc-exec-section-title">Finans Veri Durumu</div>
+    @await Component.InvokeAsync("MCFinanceDataStatus")
+</section>
+
+<section class="mc-exec-finance-card">
+    <div class="mc-exec-section-title">Finans Kontrolü</div>
+    @await Component.InvokeAsync("MCFinanceAudit")
+</section>
+
+    </div>
+
+</div>
+
+
+<!-- MC_EXECUTIVE_SHIPMENT_SUMMARY_V1 --><section class="mc-shipment-summary"><div class="mc-shipment-head"><div><h3>Palet & Sevkiyat Özeti</h3><p>Palet ve sevkiyat süreçlerinin gerçek kayıtlarla güncel durumu.</p></div><span>CANLI OPERASYON</span></div><div class="mc-shipment-kpis"><article><small>Aktif Palet</small><strong>@Model.ActivePalletCount</strong><em>Toplam: @Model.PalletCount</em></article><article><small>Toplam Sevkiyat</small><strong>@Model.ShipmentCount</strong><em>Tüm sevkiyat kayıtları</em></article><article class="@(Model.DraftShipmentCount>0 ? "is-warning" : "")"><small>Taslak</small><strong>@Model.DraftShipmentCount</strong><em>Hazırlık aşamasında</em></article><article class="@(Model.ConfirmedShipmentCount>0 ? "is-info" : "")"><small>Onaylı</small><strong>@Model.ConfirmedShipmentCount</strong><em>Stok düşümü yapılmış</em></article><article class="@(Model.ShippedShipmentCount>0 ? "is-info" : "")"><small>Gönderildi</small><strong>@Model.ShippedShipmentCount</strong><em>Yolda olan sevkiyat</em></article><article><small>Teslim Edildi</small><strong>@Model.DeliveredShipmentCount</strong><em>Tamamlanan sevkiyat</em></article><article class="@(Model.CancelledShipmentCount>0 ? "is-alert" : "")"><small>İptal</small><strong>@Model.CancelledShipmentCount</strong><em>İptal edilen sevkiyat</em></article></div><div class="mc-shipment-recent"><h4>Son 5 Sevkiyat</h4>@if(Model.RecentShipments.Any()){<div class="mc-shipment-list">@foreach(var x in Model.RecentShipments){<div class="mc-shipment-row"><div><strong>@x.Number</strong><small>@x.RecipientName</small></div><div class="mc-shipment-right"><b>@(x.Status==ShipmentStatus.Draft ? "Taslak" : x.Status==ShipmentStatus.Confirmed ? "Onaylı" : x.Status==ShipmentStatus.Shipped ? "Gönderildi" : x.Status==ShipmentStatus.Delivered ? "Teslim Edildi" : "İptal")</b><small>@x.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</small></div></div>}</div>}else{<div class="mc-shipment-empty">Henüz sevkiyat kaydı bulunmuyor.</div>}</div></section><!-- MC_EXECUTIVE_SHIPMENT_SUMMARY_V1_END -->
+
+<!-- MC_EXECUTIVE_CARI_SUMMARY_V1 --><section id="mc-cari-management-summary" class="mc-cari-summary"><div class="mc-cari-summary-head"><div><h3>Cari Yönetim Özeti</h3><p>Gerçek cari hareketlerden alacak, borç, vade ve tahsilat durumu.</p></div><span id="mc-cari-summary-status">YÜKLENİYOR</span></div><div class="mc-cari-summary-grid"><article><small>Cari Alacak</small><strong id="mc-cari-summary-receivable">—</strong></article><article><small>Cari Borç</small><strong id="mc-cari-summary-payable">—</strong></article><article><small>Vadesi Geçmiş Hareket</small><strong id="mc-cari-summary-overdue">—</strong></article><article><small>7 Gün İçinde Vade</small><strong id="mc-cari-summary-due7">—</strong></article><article><small>30 Gün İçinde Vade</small><strong id="mc-cari-summary-due30">—</strong></article><article><small>Tahsilat / Ödeme</small><strong id="mc-cari-summary-cashops">—</strong></article></div><div id="mc-cari-summary-note" class="mc-cari-summary-note"></div><div class="mc-cari-summary-recent"><h4>Son Cari Hareketler</h4><div id="mc-cari-summary-recent">Yükleniyor...</div></div></section><script src="/js/mc-executive-cari-summary.js?v=20261109-v1"></script><!-- MC_EXECUTIVE_CARI_SUMMARY_V1_END -->
+<!-- MC_EXECUTIVE_BANKCASH_SUMMARY_V1 --><section id="mc-bankcash-management-summary" class="mc-bankcash-summary"><div class="mc-bankcash-head"><div><h3>Banka / Kasa & Finans Özeti</h3><p>Gerçek banka ve kasa hareketlerinden hesaplanan yönetim görünümü.</p></div><span id="mc-bankcash-status">YÜKLENİYOR</span></div><div class="mc-bankcash-grid"><article><h4>Hesap Bakiyeleri</h4><div id="mc-bankcash-accounts">Yükleniyor...</div></article><article><h4>Bugünkü Hareketler</h4><div id="mc-bankcash-today">Yükleniyor...</div></article><article><h4>Finans Kontrolü</h4><div id="mc-bankcash-issues">Yükleniyor...</div></article></div><div class="mc-bankcash-recent"><h4>Son Finans Hareketleri</h4><div id="mc-bankcash-recent">Yükleniyor...</div></div></section><script src="/js/mc-executive-bankcash-summary.js?v=20261109-v1"></script><!-- MC_EXECUTIVE_BANKCASH_SUMMARY_V1_END -->
+
+<script src="/js/mc-executive-dashboard.js?v=20261109-v1"></script>
+
+<!-- MC_EXECUTIVE_DASHBOARD_V1_END -->
+<link rel="stylesheet"
+      href="/css/mc-executive-final.css?v=20261109-v1" />
+
+<script src="/js/mc-executive-final.js?v=20261109-v1"></script>

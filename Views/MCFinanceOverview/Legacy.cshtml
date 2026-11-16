@@ -1,0 +1,773 @@
+
+<!-- MC_FINANCE_AUDIT_NAV_V12 -->
+<div style="margin:18px 0 24px;padding:20px;border:1px solid #dce6ef;border-radius:14px;background:#f5f9fd;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+    <div>
+        <div style="font-weight:800;font-size:18px;color:#173451;">
+            Finansal Bağlantı Denetimi
+        </div>
+        <div style="font-size:13px;color:#63788d;margin-top:5px;">
+            Cari, banka/kasa, mükerrer bağlantı ve mutabakat kontrolleri
+        </div>
+    </div>
+    <a href="@Url.Content("~/MCFinanceLinkAudit/Dashboard")"
+       style="display:inline-block;padding:12px 19px;border-radius:10px;background:#173451;color:white;text-decoration:none;font-weight:700;">
+        Denetim Panelini Aç
+    </a>
+</div>
+
+@model MasterChefTakip.Controllers.MCFinanceOverviewPage
+<!-- MC_FINANCE_NAV_POSITION_V2 -->
+@await Component.InvokeAsync("MCFinanceDataStatus")
+<!-- MC_FINANCE_NAV_V1 -->
+<style>
+    .mc-finance-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 20px 0;
+        padding: 16px;
+        background: #f8fafc;
+        border: 1px solid #dbe5ef;
+        border-radius: 12px;
+    }
+
+    .mc-finance-nav a {
+        display: inline-block;
+        padding: 11px 16px;
+        border-radius: 8px;
+        background: #183b59;
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .mc-finance-nav a:hover {
+        background: #245779;
+    }
+
+    .mc-finance-nav a:focus-visible {
+        outline: 3px solid #38bdf8;
+        outline-offset: 3px;
+    }
+
+    [id^="mc-finans-"] {
+        scroll-margin-top: 25px;
+    }
+</style>
+
+<nav class="mc-finance-nav" aria-label="Finans bölümleri">
+    <a href="#mc-finans-cari">Alacaklar ve Borçlar</a>
+    <a href="#mc-finans-vade">Vade Takibi</a>
+    <a href="#mc-finans-denetim">Finans Denetimi</a>
+    <a href="#mc-finans-banka">Banka ve Kasa</a>
+    <a href="/MCCariLedger">Cari Hareketler</a>
+    <a href="#mc-finans-rapor">Vade Raporları</a>
+</nav>
+
+
+@{
+    ViewData["Title"] = "Finans Kontrol Merkezi";
+
+    var cariLink = Url.Action("Index", "CariAccounts");
+    var bankLink = Url.Action("Index", "MCBankCash");
+    var reportLink = Url.Action("Index", "MCBankCashReport");
+    var operationsLink = Url.Action("Index", "MCOperations");
+}
+
+<style>
+.mc-finance {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 22px;
+    color: #193047;
+}
+.mc-finance * {
+    box-sizing: border-box;
+}
+.mc-finance h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 8px 0;
+}
+.mc-finance .subtitle {
+    color: #66798a;
+    margin-bottom: 24px;
+}
+.mc-finance .back {
+    text-decoration: none;
+    color: #245e90;
+    font-weight: 600;
+}
+.mc-finance .grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 16px;
+}
+.mc-finance .card {
+    background: #fff;
+    border: 1px solid #dee7ef;
+    border-radius: 14px;
+    padding: 22px;
+    min-width: 0;
+}
+.mc-finance .card h2 {
+    font-size: 19px;
+    margin: 0 0 16px;
+}
+.mc-finance .number {
+    font-size: 31px;
+    font-weight: 800;
+    color: #214c72;
+}
+.mc-finance .label {
+    font-size: 13px;
+    color: #647789;
+}
+.mc-finance .list {
+    margin: 20px 0;
+    padding: 0;
+    list-style: none;
+}
+.mc-finance .list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #edf1f5;
+    overflow-wrap: anywhere;
+}
+.mc-finance .button {
+    display: inline-block;
+    background: #183b59;
+    color: #fff;
+    border-radius: 9px;
+    padding: 11px 15px;
+    text-decoration: none;
+    font-weight: 650;
+}
+.mc-finance .info {
+    background: #eef5fa;
+    border: 1px solid #d8e7f3;
+    border-radius: 12px;
+    padding: 17px;
+    margin-top: 20px;
+    line-height: 1.6;
+}
+.mc-finance .warning {
+    background: #fff4e4;
+    padding: 13px;
+    border-radius: 9px;
+    margin-bottom: 18px;
+}
+@@media (max-width: 850px) {
+    .mc-finance .grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<div class="mc-finance">
+
+    @if (!string.IsNullOrWhiteSpace(operationsLink))
+    {
+        <a class="back" href="@operationsLink">
+            ← Operasyon Merkezine Dön
+        </a>
+    }
+
+    <h1>Finans Kontrol Merkezi</h1>
+
+    <p class="subtitle">
+        Müşteriler, tedarikçiler, kasa ve banka hesapları tek yerde.
+    </p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Warning))
+    {
+        <div class="warning">@Model.Warning</div>
+    }
+
+    <!-- MC_FINANCE_QUICK_START_V1 -->
+@if (Model.SupplierCount == 0 ||
+     Model.CustomerCount == 0 ||
+     Model.BankAccountCount == 0)
+{
+    <section style="background:#f0f6fb;border:1px solid #d8e5f0;
+                    border-radius:14px;padding:22px;margin-bottom:22px">
+
+        <h2 style="margin:0 0 10px;font-size:21px">
+            Finans Hesaplarını Hazırlayalım
+        </h2>
+
+        <p style="color:#52677a;line-height:1.6">
+            Müşteri ve tedarikçi kartlarını, ardından kasa ve banka
+            hesaplarını tanımlayın. Gerçek para hareketleri yalnızca
+            ilgili işlem kaydedildiğinde oluşacaktır.
+        </p>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px">
+
+            @if (Model.SupplierCount == 0 || Model.CustomerCount == 0)
+            {
+                var createCari = Url.Action("Create", "CariAccounts");
+
+                if (!string.IsNullOrWhiteSpace(createCari))
+                {
+                    <a href="@createCari"
+                       style="background:#183b59;color:white;
+                              text-decoration:none;padding:12px 18px;
+                              border-radius:9px;font-weight:650">
+                        + Yeni Müşteri / Tedarikçi
+                    </a>
+                }
+            }
+
+            @if (Model.BankAccountCount == 0)
+            {
+                var bankManagement = Url.Action("Index", "MCBankCash");
+
+                if (!string.IsNullOrWhiteSpace(bankManagement))
+                {
+                    <a href="@bankManagement"
+                       style="background:white;color:#183b59;
+                              border:1px solid #9eb6ca;
+                              text-decoration:none;padding:12px 18px;
+                              border-radius:9px;font-weight:650">
+                        + Kasa / Banka Hesabı Tanımla
+                    </a>
+                }
+            }
+
+        </div>
+
+        <p style="font-size:13px;color:#617587;margin:16px 0 0">
+            Henüz kayıt bulunmaması, borçların veya banka
+            bakiyelerinin sıfır olduğu anlamına gelmez.
+        </p>
+
+    </section>
+}
+<div class="grid">
+
+        <section class="card">
+
+            <h2>Tedarikçiler</h2>
+
+            <div class="label">Kayıtlı tedarikçi sayısı</div>
+
+            <div class="number">
+                @(Model.SupplierCount?.ToString() ?? "—")
+            </div>
+
+            <ul class="list">
+                @foreach (var item in Model.Suppliers)
+                {
+                    <li>@item</li>
+                }
+            </ul>
+
+            @if (!string.IsNullOrWhiteSpace(cariLink))
+            {
+                <a class="button" href="@cariLink">
+                    Cari Hesaplara Git →
+                </a>
+            }
+
+        </section>
+
+        <section class="card">
+
+            <h2>Müşteriler</h2>
+
+            <div class="label">Kayıtlı müşteri sayısı</div>
+
+            <div class="number">
+                @(Model.CustomerCount?.ToString() ?? "—")
+            </div>
+
+            <ul class="list">
+                @foreach (var item in Model.Customers)
+                {
+                    <li>@item</li>
+                }
+            </ul>
+
+            @if (!string.IsNullOrWhiteSpace(cariLink))
+            {
+                <a class="button" href="@cariLink">
+                    Müşteri Hesaplarına Git →
+                </a>
+            }
+
+        </section>
+
+        <section class="card">
+
+            <h2>Kasa ve Bankalar</h2>
+
+            <div class="label">Tanımlı hesap sayısı</div>
+
+            <div class="number">
+                @(Model.BankAccountCount?.ToString() ?? "—")
+            </div>
+
+            <ul class="list">
+                @foreach (var item in Model.BankAccounts)
+                {
+                    <li>@item</li>
+                }
+            </ul>
+
+            @if (!string.IsNullOrWhiteSpace(bankLink))
+            {
+                <a class="button" href="@bankLink">
+                    Kasa ve Bankaya Git →
+                </a>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(reportLink))
+            {
+                <p>
+                    <a href="@reportLink">
+                        Hesap Hareketlerini Gör →
+                    </a>
+                </p>
+            }
+
+        </section>
+
+    </div>
+
+    <!-- MC_FINANCE_ACCURACY_V2 -->
+<div class="info">
+    <strong>Finansal doğruluk:</strong><br />
+    Bu ekranda mevcut cari ve banka hesapları gösterilir.
+    Kayıtlı net hareket, tek başına gerçek banka bakiyesi değildir.
+    Açılış bakiyesi ve banka mutabakatı ayrıca dikkate alınmalıdır.
+    Müşteri alacakları ve tedarikçi borçları, cari hareketler
+    doğrulanmadan sıfır veya tahmini tutar olarak gösterilmez.
+</div>
+
+</div>
+<!-- MC_CARI_LEDGER_LINK_V1 -->
+<div style="margin:18px 0;padding:18px;background:#eef4f9;border-radius:12px">
+    <strong>Cari Borç / Alacak Hareketleri</strong>
+    <p>Müşteri ve tedarikçi hareketlerini tek listeden görüntüleyin.</p>
+    <a href="@Url.Action("Index","MCCariLedger")"
+       style="display:inline-block;background:#183b59;color:white;
+              text-decoration:none;padding:10px 16px;border-radius:8px">
+        Cari Hareketleri Aç
+    </a>
+</div>
+<!-- MC_FINANCE_CARI_COMPONENT_V1 -->
+<div id="mc-finans-cari">
+@await Component.InvokeAsync("MCFinanceCariSummary")
+</div>
+<!-- MC_DUE_MONITOR_V1 -->
+<div id="mc-finans-vade">
+@await Component.InvokeAsync("MCDueMonitor")
+</div>
+<!-- MC_FINANCE_AUDIT_V1 -->
+<div id="mc-finans-denetim">
+@await Component.InvokeAsync("MCFinanceAudit")
+</div>
+<!-- MC_BANK_LINK_SUMMARY_V1 -->
+<div id="mc-finans-banka">
+@await Component.InvokeAsync("MCBankLinkSummary")
+</div>
+<div id="mc-finans-rapor"></div>
+<!-- MC_FINANCE_DUE_CSV_V1 -->
+<section style="background:white;border:1px solid #dbe5ef;
+                border-radius:14px;padding:22px;margin:20px 0">
+
+    <h2 style="color:#183b59;margin-top:0">
+        Vade Raporları
+    </h2>
+
+    <p style="color:#64748b;line-height:1.6">
+        Müşteri satışları ve tedarikçi alışlarına girilen
+        vade tarihlerini Excel uyumlu CSV olarak aktarır.
+        Ödeme eşleştirmesi yapılmadığından bu rapor
+        kesin ödenmemiş tutarları göstermez.
+    </p>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+
+        <a href="/MCFinanceDueExport/Csv?period=overdue"
+           style="background:#b45309;color:white;padding:12px 16px;
+                  border-radius:8px;text-decoration:none">
+            Vadesi Geçen Kayıtlar
+        </a>
+
+        <a href="/MCFinanceDueExport/Csv?period=next7"
+           style="background:#1d4ed8;color:white;padding:12px 16px;
+                  border-radius:8px;text-decoration:none">
+            Gelecek 7 Gün
+        </a>
+
+        <a href="/MCFinanceDueExport/Csv?period=next30"
+           style="background:#0f766e;color:white;padding:12px 16px;
+                  border-radius:8px;text-decoration:none">
+            Gelecek 30 Gün
+        </a>
+
+        <a href="/MCFinanceDueExport/Csv?period=all"
+           style="background:#183b59;color:white;padding:12px 16px;
+                  border-radius:8px;text-decoration:none">
+            Tüm Vadeli Kayıtlar
+        </a>
+
+    </div>
+</section>
+<!-- MC_DUE_AUDIT_HISTORY_V1 -->
+<section style="background:white;border:1px solid #dbe5ef;
+                border-radius:14px;padding:20px;margin:20px 0">
+
+    <h2 style="color:#183b59;margin-top:0">
+        Vade Değişiklik Geçmişi
+    </h2>
+
+    <p style="color:#64748b">
+        Hangi hareketin vadesinin, hangi kullanıcı tarafından,
+        hangi tarihte kaydedildiğini inceleyin.
+    </p>
+
+    <a href="/MCDueAuditHistory"
+       style="display:inline-block;background:#183b59;color:white;
+              padding:11px 16px;border-radius:8px;text-decoration:none">
+        Değişiklik Geçmişini Aç
+    </a>
+
+    <a href="/MCDueAuditHistory/Csv"
+       style="display:inline-block;background:#0f766e;color:white;
+              padding:11px 16px;border-radius:8px;text-decoration:none;
+              margin-left:8px">
+        CSV Raporu
+    </a>
+</section>
+
+
+<!-- MC_FINANCE_PAGES_V3_START -->
+<style>
+.mc-fin-page-hide { display:none !important; }
+.mc-fin-page-link {
+    display:inline-flex;
+    align-items:center;
+    padding:11px 17px;
+    background:#193d5b;
+    color:white !important;
+    border-radius:9px;
+    text-decoration:none !important;
+    font-weight:600;
+    margin:5px;
+}
+.mc-fin-page-link:hover {
+    background:#087c72;
+}
+#mc-fin-page-heading {
+    padding:16px 0;
+}
+#mc-fin-page-heading h1 {
+    margin:12px 0;
+    font-size:28px;
+    color:#193d5b;
+}
+#mc-fin-page-stage {
+    width:100%;
+    min-height:120px;
+}
+</style>
+
+<script>
+(function () {
+    "use strict";
+
+    const pages = [
+        {
+            slug:"AlacaklarBorclar",
+            name:"Alacaklar ve Borçlar",
+            ids:["mc-finans-alacak","mc-finans-borc"]
+        },
+        {
+            slug:"VadeTakibi",
+            name:"Vade Takibi",
+            ids:["mc-finans-vade"]
+        },
+        {
+            slug:"FinansDenetimi",
+            name:"Finans Denetimi",
+            ids:["mc-finans-denetim"]
+        },
+        {
+            slug:"BankaKasa",
+            name:"Banka ve Kasa",
+            ids:["mc-finans-banka"]
+        },
+        {
+            slug:"CariHareketler",
+            name:"Cari Hareketler",
+            ids:["mc-finans-cari"]
+        },
+        {
+            slug:"VadeRaporlari",
+            name:"Vade Raporları",
+            ids:["mc-finans-rapor"]
+        }
+    ];
+
+    function normalize(s) {
+        return (s || "")
+            .replace(/\s+/g," ")
+            .trim()
+            .toLocaleLowerCase("tr-TR");
+    }
+
+    function init() {
+        const params = new URLSearchParams(location.search);
+        const selected = params.get("financePage") || "";
+        const pageIndex = pages.findIndex(p => p.slug === selected);
+
+        const allLinks = Array.from(document.querySelectorAll("a"));
+
+        const buttons = pages.map(function (page) {
+            return allLinks.find(function (a) {
+                return normalize(a.textContent) === normalize(page.name) &&
+                    (a.getAttribute("href") || "").includes("mc-finans-");
+            });
+        });
+
+        if (buttons.some(b => !b)) {
+            console.warn("Finans sayfa butonlari bulunamadi.");
+            return;
+        }
+
+        const toolbar = buttons[0].parentElement;
+
+        if (!toolbar || !buttons.every(b => toolbar.contains(b))) {
+            console.warn("Finans buton grubu belirlenemedi.");
+            return;
+        }
+
+        const targets = pages.map(function (page, i) {
+            const href = buttons[i].getAttribute("href") || "";
+            const hash = href.includes("#")
+                ? href.split("#").pop()
+                : "";
+
+            const candidates = [hash].concat(page.ids);
+
+            for (const id of candidates) {
+                if (!id) continue;
+                const el = document.getElementById(id);
+                if (el) return el;
+            }
+
+            return null;
+        });
+
+        const missing = targets
+            .map((t,i) => t ? null : pages[i].name)
+            .filter(Boolean);
+
+        if (missing.length) {
+            console.warn("Eksik finans bolumleri:", missing);
+        }
+
+        const root = document.querySelector("main");
+
+        if (!root || !root.contains(toolbar)) {
+            console.warn("Finans ana icerik alani bulunamadi.");
+            return;
+        }
+
+        function childUnder(parent, element) {
+            let node = element;
+            while (node && node.parentElement !== parent) {
+                node = node.parentElement;
+            }
+            return node;
+        }
+
+        const anchor = childUnder(root, toolbar);
+
+        if (!anchor) return;
+
+        const pageUrl = function (slug) {
+            return "/MCFinanceOverview?financePage=" +
+                encodeURIComponent(slug);
+        };
+
+        buttons.forEach(function (button,i) {
+            button.href = pageUrl(pages[i].slug);
+        });
+
+        /*
+          Onceki sayfa icerigi korunur.
+          Mevcut HTML bolumleri yalnizca gorunumde ayrilir.
+        */
+
+        const heading = document.createElement("div");
+        heading.id = "mc-fin-page-heading";
+
+        const stage = document.createElement("div");
+        stage.id = "mc-fin-page-stage";
+
+        /*
+          Ortak icerik kapsayicisini belirle.
+          Her bolum icin kendi baslangic noktasini kullan.
+        */
+
+        let contentRoot = root;
+
+        const available = targets.filter(Boolean);
+
+        while (contentRoot !== document.body) {
+            const direct = available.map(
+                t => childUnder(contentRoot,t)
+            );
+
+            if (new Set(direct).size > 1) break;
+
+            const next = direct[0];
+
+            if (!next || next === contentRoot ||
+                next === anchor || next.contains(toolbar)) {
+                break;
+            }
+
+            contentRoot = next;
+        }
+
+        const directTargets = targets.map(function (target) {
+            return target ? childUnder(contentRoot,target) : null;
+        });
+
+        const distinctTargets = directTargets.filter(Boolean);
+
+        if (new Set(distinctTargets).size <
+            new Set(distinctTargets.map(t => t && t.id)).size) {
+            console.warn("Finans bolum sinirlari incelenmeli.");
+        }
+
+        /*
+          Gizleme islemini sadece finans sayfasinin kendi
+          icerik alaninda yap; sol menuye dokunma.
+        */
+
+        const contentChildren = Array.from(contentRoot.children);
+
+        const toolbarBlock =
+            contentRoot.contains(toolbar)
+                ? childUnder(contentRoot,toolbar)
+                : null;
+
+        const markers = directTargets.map(function (target) {
+            return target ? contentChildren.indexOf(target) : -1;
+        });
+
+        const validMarkers = markers
+            .filter(n => n >= 0);
+
+        if (!validMarkers.length) {
+            console.warn("Finans bolum konumlari bulunamadi.");
+            return;
+        }
+
+        /*
+          Ana sayfada sadece butonlar kalir.
+          Ayrinti sayfasinda secilen bolum araligi gosterilir.
+          Son bolumun ardindaki vade degisiklik gecmisi de
+          Vade Raporlari sayfasina dahildir.
+        */
+
+        function sectionForPosition(position) {
+            let index = 0;
+
+            for (let i=0;i<markers.length;i++) {
+                if (markers[i] >= 0 && position >= markers[i]) {
+                    index = i;
+                }
+            }
+
+            return index;
+        }
+
+        const anchorIndex = toolbarBlock
+            ? contentChildren.indexOf(toolbarBlock)
+            : -1;
+
+        contentChildren.forEach(function (node,index) {
+            if (node === toolbarBlock ||
+                node.contains(toolbar)) return;
+
+            if (anchorIndex >= 0 && index <= anchorIndex) {
+                node.classList.add("mc-fin-page-hide");
+                return;
+            }
+
+            if (pageIndex < 0) {
+                node.classList.add("mc-fin-page-hide");
+                return;
+            }
+
+            const owner = sectionForPosition(index);
+
+            node.classList.toggle(
+                "mc-fin-page-hide",
+                owner !== pageIndex
+            );
+        });
+
+        /*
+          Farkli ust kapsayicilardaki genel baslik ve kartlari
+          ana sayfa gorunumunde gizle.
+        */
+
+        const rootChildren = Array.from(root.children);
+        const toolbarRootChild = childUnder(root,toolbar);
+
+        rootChildren.forEach(function (node) {
+            if (node === toolbarRootChild) return;
+            if (node.contains(contentRoot) || node === contentRoot) return;
+
+            if (pageIndex < 0) {
+                node.classList.add("mc-fin-page-hide");
+            }
+        });
+
+        if (pageIndex >= 0) {
+            heading.innerHTML =
+                '<a href="/MCFinanceOverview">' +
+                '← Finans Kontrol Merkezine Dön</a>' +
+                '<h1></h1>';
+
+            heading.querySelector("h1").textContent =
+                pages[pageIndex].name;
+
+            toolbar.insertAdjacentElement("afterend",heading);
+        } else {
+            const title = document.createElement("h2");
+            title.textContent = "Finans Kontrol Merkezi";
+            title.style.cssText =
+                "margin:8px 0 16px;color:#193d5b";
+
+            toolbar.insertAdjacentElement("beforebegin",title);
+        }
+
+        buttons.forEach(function (b,i) {
+            b.classList.toggle(
+                "mc-fin-page-link",
+                true
+            );
+
+            if (pageIndex === i) {
+                b.style.background = "#087c72";
+            }
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded",init);
+    } else {
+        init();
+    }
+})();
+</script>
+<!-- MC_FINANCE_PAGES_V3_END -->

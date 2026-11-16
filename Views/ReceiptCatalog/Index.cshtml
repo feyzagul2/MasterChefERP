@@ -1,0 +1,115 @@
+@model MasterChefTakip.Controllers.ReceiptCatalogPage
+
+@{
+    ViewData["Title"] = "Mal Kabul Malzeme Eşleştirme";
+}
+
+<style>
+.mc-rc-wrap{max-width:1200px;margin:auto}
+.mc-rc-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:14px 0}
+.mc-rc-table{width:100%;border-collapse:collapse}
+.mc-rc-table th,.mc-rc-table td{padding:12px;border-bottom:1px solid #e2e8f0;text-align:left}
+.mc-rc-table th{background:#f8fafc}
+.mc-rc-input{padding:9px;border:1px solid #cbd5e1;border-radius:7px;width:100%}
+.mc-rc-btn{background:#17406a;color:white;border:none;border-radius:7px;padding:9px 14px;cursor:pointer}
+.mc-rc-scroll{overflow-x:auto}
+@@media(max-width:700px){.mc-rc-table{min-width:750px}}
+</style>
+
+<div class="mc-rc-wrap">
+    <h1>Mal Kabul - Malzeme Eşleştirme</h1>
+
+    <p>
+        İrsaliye / Mal Kabul:
+        <strong>@Model.ReceiptNumber</strong>
+    </p>
+
+    <p>
+        <a asp-controller="PurchaseGoodsReceipt"
+           asp-action="Details"
+           asp-route-id="@Model.ReceiptId">
+            ← Mal Kabul Detayına Dön
+        </a>
+    </p>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mc-rc-card" style="color:#166534">
+            @TempData["Success"]
+        </div>
+    }
+
+    <div class="mc-rc-card mc-rc-scroll">
+        <table class="mc-rc-table">
+            <thead>
+                <tr>
+                    <th>Malzeme</th>
+                    <th>Birim</th>
+                    <th>Kabul Edilen</th>
+                    <th>Katalog Eşleştirmesi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var line in Model.Lines)
+                {
+                    <tr>
+                        <td>@line.Description</td>
+                        <td>@line.Unit</td>
+                        <td>@line.AcceptedQuantity</td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(line.MaterialCode))
+                            {
+                                <strong>@line.MaterialCode</strong>
+                                <div>@line.MaterialName</div>
+                            }
+                            else
+                            {
+                                <form asp-action="Assign" method="post">
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden" name="receiptId"
+                                           value="@Model.ReceiptId" />
+                                    <input type="hidden" name="lineId"
+                                           value="@line.Id" />
+
+                                    <input class="mc-rc-input"
+                                           name="materialCode"
+                                           placeholder="Excel malzeme kodu"
+                                           maxlength="120"
+                                           required />
+
+                                    <button class="mc-rc-btn"
+                                            type="submit"
+                                            style="margin-top:8px">
+                                        Eşleştir
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <p>
+        Malzeme kodunu bilmiyorsanız
+        <a asp-controller="MaterialCatalog" asp-action="Index">
+            Malzeme Kataloğu
+        </a>
+        ekranından arayabilirsiniz.
+    </p>
+
+    <p style="color:#64748b">
+        Bu işlem stok miktarını değiştirmez.
+    </p>
+</div>
+
+
+<!-- MC_STOCK_MAPPING_NAV_2026 -->
+<div style="margin:16px 0">
+    <a asp-controller="MaterialStockMapping"
+       asp-action="Index">
+        Hammadde - Stok Kartı Eşleştirme →
+    </a>
+</div>

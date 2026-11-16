@@ -1,0 +1,116 @@
+﻿@model MasterChefTakip.ViewComponents.MCBankLinkSummaryModel
+@{
+    var tr = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
+}
+
+<section style="background:#fff;border:1px solid #dbe5ef;
+                border-radius:14px;padding:22px;margin:20px 0">
+
+    <h2 style="color:#183b59;margin-top:0">
+        Banka ve Kasa Hareket Bağlantıları
+    </h2>
+
+    <p style="color:#64748b;line-height:1.6">
+        Bu bölüm, banka ve kasa hareketlerinin cari hareketlerle
+        ilişkilendirilme durumunu gösterir. Cari bağlantısı olmayan
+        her hareket hatalı değildir; hesaplar arası transfer veya
+        farklı bir işlem olabilir.
+    </p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Warning))
+    {
+        <p style="background:#fff7ed;color:#9a3412;padding:14px">
+            @Model.Warning
+        </p>
+    }
+    else
+    {
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0">
+
+            <div style="background:#eff6ff;border-radius:10px;padding:15px">
+                <strong>Toplam Hareket</strong><br />
+                <span style="font-size:25px">@Model.TotalMovements</span>
+            </div>
+
+            <div style="background:#ecfdf5;border-radius:10px;padding:15px">
+                <strong>Cariye Bağlı</strong><br />
+                <span style="font-size:25px">@Model.LinkedMovements</span>
+            </div>
+
+            <div style="background:#f1f5f9;border-radius:10px;padding:15px">
+                <strong>Cari Bağlantısı Olmayan</strong><br />
+                <span style="font-size:25px">@Model.UnlinkedMovements</span>
+            </div>
+
+            <div style="background:#fff7ed;border-radius:10px;padding:15px">
+                <strong>Birden Fazla Cariye Bağlı</strong><br />
+                <span style="font-size:25px">
+                    @Model.MultipleLinkedMovements
+                </span>
+            </div>
+        </div>
+
+        @if (Model.InvalidMovements > 0)
+        {
+            <p style="color:#b45309">
+                @Model.InvalidMovements hareketin tutarı geçersiz.
+                Bu hareketlerin bağlantı durumu özetlere dahil edilmedi.
+            </p>
+        }
+
+        @if (Model.Rows.Count == 0)
+        {
+            <p style="color:#64748b">
+                Listelenecek bağlantısız veya çoklu bağlantılı
+                banka/kasa hareketi bulunmuyor.
+            </p>
+        }
+        else
+        {
+            <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse">
+                    <thead>
+                        <tr style="background:#eef3f8">
+                            <th style="padding:10px;text-align:left">Hareket</th>
+                            <th style="padding:10px;text-align:left">Hesap</th>
+                            <th style="padding:10px;text-align:left">Tarih</th>
+                            <th style="padding:10px;text-align:left">Yön</th>
+                            <th style="padding:10px;text-align:right">Tutar</th>
+                            <th style="padding:10px;text-align:left">Para Birimi</th>
+                            <th style="padding:10px;text-align:left">Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model.Rows)
+                        {
+                            <tr style="border-bottom:1px solid #e5e7eb">
+                                <td style="padding:10px">@row.Id</td>
+                                <td style="padding:10px">@row.Account</td>
+                                <td style="padding:10px">@row.Date</td>
+                                <td style="padding:10px">
+                                    @(row.Direction == "In" ? "Giriş" :
+                                      row.Direction == "Out" ? "Çıkış" :
+                                      "Kontrol gerekli")
+                                </td>
+                                <td style="padding:10px;text-align:right">
+                                    @row.Amount.ToString("N2", tr)
+                                </td>
+                                <td style="padding:10px">@row.Currency</td>
+                                <td style="padding:10px">
+                                    @(row.LinkCount == 0
+                                        ? "Cari bağlantısı yok"
+                                        : "Birden fazla cari bağlantısı")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <p style="font-size:12px;color:#64748b">
+                Son 50 bağlantısız veya çoklu bağlantılı hareket gösterilir.
+                Bu ekran banka ekstresi mutabakatı değildir.
+            </p>
+        }
+    }
+</section>

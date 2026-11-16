@@ -30,11 +30,11 @@ public class Product
     [Range(1, int.MaxValue)]
     public int? DefaultUnitsPerBox { get; set; }
 
-    [Range(typeof(decimal), "0.001", "1000000000")]
+    [Range(typeof(decimal), "0.001", "1000000000", ParseLimitsInInvariantCulture = true)]
     public decimal? DefaultUnitNetWeightGrams { get; set; }
 
     // Girilen tutar; hangi fiyata ait olduğu PriceBasis ile saklanır.
-    [Range(typeof(decimal), "0", "1000000000")]
+    [Range(typeof(decimal), "0", "1000000000", ParseLimitsInInvariantCulture = true)]
     public decimal? UnitPrice { get; set; }
 
     public ProductPriceBasis PriceBasis { get; set; } = ProductPriceBasis.Unit;

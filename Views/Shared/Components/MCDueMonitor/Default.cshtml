@@ -1,0 +1,396 @@
+﻿@model MasterChefTakip.ViewComponents.MCDueMonitorModel
+@{
+    var tr = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
+
+    var overdue = Model.Rows.Count(x => x.DaysRemaining < 0);
+    var upcoming = Model.Rows.Count(x =>
+        x.DaysRemaining >= 0 && x.DaysRemaining <= 7);
+
+    var visible = Model.Rows
+        .Where(x => x.DaysRemaining <= 30)
+        .Take(50)
+        .ToList();
+}
+
+<section style="background:white;border:1px solid #dbe5ef;
+                border-radius:14px;padding:22px;margin:20px 0">
+
+    <!-- MC_DUE_MISSING_DATES_V2 -->
+@if (Model.MissingDueDateCount > 0)
+{
+    <div style="background:#fff7ed;
+                border:1px solid #fed7aa;
+                border-radius:10px;
+                padding:15px;
+                margin:15px 0">
+
+        <strong style="color:#9a3412">
+            Vade Tarihi Eksik İşlemler
+        </strong>
+
+        <div style="font-size:26px;
+                    font-weight:700;
+                    color:#9a3412;
+                    margin-top:8px">
+            @Model.MissingDueDateCount
+        </div>
+
+        <p style="margin-bottom:0;color:#78350f">
+            Bu satış ve alış hareketlerinde vade tarihi
+            bulunmadığı için işlemler vade takvimine
+            dahil edilemiyor.
+            Vade tarihi girilmesi gerekiyor.
+        </p>
+
+        <a href="@Url.Action("Index","MCCariLedger")"
+           style="display:inline-block;
+                  margin-top:12px;
+                  padding:9px 14px;
+                  background:#9a3412;
+                  color:white;
+                  text-decoration:none;
+                  border-radius:7px">
+            Cari Hareketleri İncele
+        </a>
+    </div>
+}
+
+<h2 style="color:#183b59;margin-top:0">
+        Finans Vade Takibi
+    </h2>
+
+    <p style="color:#64748b">
+        Satış ve alış hareketlerine girilmiş vade tarihleri gösterilir.
+        Tahsilat ve ödeme eşleştirmesi henüz yapılmadığından
+        bunlar kesin ödenmemiş borç veya alacak değildir.
+    </p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Warning))
+    {
+        <p style="background:#fff7ed;padding:14px;color:#9a3412">
+            @Model.Warning
+        </p>
+    }
+    else if (Model.Rows.Count == 0)
+    {
+        <p style="background:#f1f5f9;padding:14px;border-radius:8px">
+            Henüz vade tarihi bulunan satış veya alış kaydı yok.
+        </p>
+    }
+    else
+    {
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0">
+
+            <div style="padding:15px;background:#fff7ed;
+                        border-radius:10px;min-width:160px">
+                <strong>Vadesi Geçmiş Kayıt</strong><br />
+                <span style="font-size:25px">@overdue</span>
+            </div>
+
+            <div style="padding:15px;background:#eff6ff;
+                        border-radius:10px;min-width:160px">
+                <strong>7 Gün İçinde Vadesi Gelen</strong><br />
+                <span style="font-size:25px">@upcoming</span>
+            </div>
+
+        </div>
+
+        <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse">
+                <thead>
+                    <tr style="background:#eef3f8">
+                        <th style="padding:11px;text-align:left">Cari Hesap</th>
+                        <th style="padding:11px;text-align:left">İşlem</th>
+                        <th style="padding:11px;text-align:left">Vade</th>
+                        <th style="padding:11px;text-align:left">Durum</th>
+                        <th style="padding:11px;text-align:right">Kayıt Tutarı</th>
+                        <th style="padding:11px;text-align:left">Para Birimi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in visible)
+                    {
+                        var status = row.DaysRemaining < 0
+                            ? "Vadesi geçti"
+                            : row.DaysRemaining == 0
+                                ? "Bugün"
+                                : row.DaysRemaining <= 7
+                                    ? "7 gün içinde"
+                                    : "Yaklaşıyor";
+
+                        <tr style="border-bottom:1px solid #e5e7eb">
+                            <td style="padding:11px">@row.Company</td>
+                            <td style="padding:11px">
+                                @(row.Type == "Sale" ? "Satış" : "Alış")
+                            </td>
+                            <td style="padding:11px">
+                                @row.DueDate.ToString("dd.MM.yyyy")
+                            </td>
+                            <td style="padding:11px">@status</td>
+                            <td style="padding:11px;text-align:right">
+                                @row.Amount.ToString("N2", tr)
+                            </td>
+                            <td style="padding:11px">@row.Currency</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.InvalidCount > 0)
+        {
+            <p style="color:#b45309">
+                @Model.InvalidCount hatalı vade veya tutar kaydı gösterilmedi.
+            </p>
+        }
+
+        <p style="font-size:13px;color:#64748b;margin-top:12px">
+            İlk 1000 vadeli kayıttan, 30 gün içinde vadesi gelen
+            veya vadesi geçmiş en fazla 50 kayıt listelenir.
+            Liste kesin borç bakiyesi değildir.
+        </p>
+    }
+
+    <a href="@Url.Action("Index","MCCariLedger")"
+       style="display:inline-block;margin-top:16px;
+              background:#183b59;color:white;
+              padding:11px 18px;border-radius:8px;
+              text-decoration:none">
+        Cari Hareketleri Aç
+    </a>
+
+
+@if (TempData["MCFinanceDueMessage"] is string dueMessage)
+{
+    <div role="status"
+         style="background:#eff6ff;color:#1e40af;padding:12px;
+                margin:12px 0;border-radius:8px">
+        @dueMessage
+    </div>
+}
+<!-- MC_DUE_MISSING_DETAILS_V3 -->
+@if (string.IsNullOrWhiteSpace(Model.Warning) &&
+     Model.MissingDueRows.Count > 0)
+{
+    <div style="margin-top:20px">
+        <!-- MC_MISSING_DUE_EXPORT_V1 -->
+<a href="/MCMissingDueExport/Csv"
+   style="display:inline-block;
+          background:#0f766e;
+          color:white;
+          padding:10px 16px;
+          border-radius:8px;
+          text-decoration:none;
+          margin-bottom:14px">
+    Eksik Vade Listesini Excel'e Aktar
+</a>
+<h3 style="color:#9a3412">
+            Vade Tarihi Eksik İşlem Detayları
+        </h3>
+
+        <div style="overflow-x:auto">
+            
+<!-- MC_MISSING_DUE_SEARCH_V1 -->
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin:15px 0">
+
+    <input id="mcMissingDueSearch"
+           type="search"
+           placeholder="Müşteri, tedarikçi veya referans ara"
+           aria-label="Eksik vade işlemlerinde ara"
+           style="flex:2;min-width:230px;padding:11px;
+                  border:1px solid #cbd5e1;border-radius:8px" />
+
+    <select id="mcMissingDueType"
+            aria-label="İşlem türüne göre filtrele"
+            style="flex:1;min-width:150px;padding:11px;
+                   border:1px solid #cbd5e1;border-radius:8px">
+        <option value="">Tüm İşlemler</option>
+        <option value="Sale">Satış</option>
+        <option value="Purchase">Alış</option>
+    </select>
+
+    <button id="mcMissingDueClear"
+            type="button"
+            style="background:#eef2f7;color:#183b59;
+                   border:1px solid #cbd5e1;border-radius:8px;
+                   padding:11px 16px;cursor:pointer">
+        Temizle
+    </button>
+
+</div>
+
+<p id="mcMissingDueCounter"
+   role="status"
+   style="font-size:13px;color:#64748b">
+</p>
+<table id="mcMissingDueTable" style="width:100%;border-collapse:collapse">
+                <thead>
+                    <tr style="background:#fff7ed">
+                        <th style="padding:11px;text-align:left">
+                            Hareket No
+                        </th>
+                        <th style="padding:11px;text-align:left">
+                            Cari Hesap
+                        </th>
+                        <th style="padding:11px;text-align:left">
+                            İşlem
+                        </th>
+                        <th style="padding:11px;text-align:left">
+                            İşlem Tarihi
+                        </th>
+                        <th style="padding:11px;text-align:right">
+                            Tutar
+                        </th>
+                        <th style="padding:11px;text-align:left">
+                            Para Birimi
+                        </th>
+                        <th style="padding:11px;text-align:left">
+                            Referans
+                        </th>
+                        <th style="padding:10px;text-align:left">
+                            Vade Kaydı
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.MissingDueRows)
+                    {
+                        <tr style="border-bottom:1px solid #e5e7eb">
+                            <td style="padding:11px">@row.Id</td>
+
+                            <td style="padding:11px">
+                                @row.Company
+                            </td>
+
+                            <td style="padding:11px">
+                                @(row.Type == "Sale"
+                                    ? "Satış"
+                                    : "Alış")
+                            </td>
+
+                            <td style="padding:11px">
+                                @row.Date
+                            </td>
+
+                            <td style="padding:11px;text-align:right">
+                                @(row.Amount.HasValue
+                                    ? row.Amount.Value.ToString("N2", tr)
+                                    : "Kontrol gerekli")
+                            </td>
+
+                            <td style="padding:11px">
+                                @row.Currency
+                            </td>
+
+                            <td style="padding:11px">
+                                @row.Reference
+                            </td>
+                            <td style="padding:10px">
+                                <!-- MC_DUE_DATE_EDIT_V2 -->
+                                <form method="post"
+                                      action="@Url.Action("Save","MCCariDueDate")"
+                                      style="display:flex;gap:8px;align-items:center">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden"
+                                           name="movementId"
+                                           value="@row.Id" />
+                                    <input type="date"
+                                           name="dueDate"
+                                           required
+                                           min="2000-01-01"
+                                           max="2100-12-31"
+                                           aria-label="Vade tarihi"
+                                           style="padding:8px;border:1px solid #cbd5e1;border-radius:7px" />
+                                    <button type="submit"
+                                            style="background:#0f766e;color:white;border:0;border-radius:7px;padding:9px 12px;cursor:pointer">
+                                        Kaydet
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <p style="font-size:12px;color:#64748b;margin-top:12px">
+            Vade tarihi eksik en son 30 işlem gösterilir.
+            İşlemler yalnızca görüntülenir; kayıtlar değiştirilmez.
+        </p>
+    </div>
+}
+</section>
+<script>
+(function () {
+    "use strict";
+
+    const table = document.getElementById("mcMissingDueTable");
+    const search = document.getElementById("mcMissingDueSearch");
+    const type = document.getElementById("mcMissingDueType");
+    const clear = document.getElementById("mcMissingDueClear");
+    const counter = document.getElementById("mcMissingDueCounter");
+
+    if (!table || !search || !type || !clear || !counter) {
+        return;
+    }
+
+    const rows = Array.from(table.querySelectorAll("tbody tr"));
+
+    function filterRows() {
+        const term = search.value
+            .trim()
+            .toLocaleLowerCase("tr-TR");
+
+        const selectedType = type.value;
+
+        let visible = 0;
+
+        rows.forEach(function (row) {
+            const cells = Array.from(row.querySelectorAll("td"));
+
+            if (cells.length < 7) {
+                row.hidden = false;
+                return;
+            }
+
+            const company = cells[1].textContent || "";
+            const reference = cells[6].textContent || "";
+            const movement = (cells[2].textContent || "").trim();
+
+            const searchable = (
+                company + " " + reference
+            ).toLocaleLowerCase("tr-TR");
+
+            const typeMatches =
+                !selectedType ||
+                (selectedType === "Sale" && movement === "Satış") ||
+                (selectedType === "Purchase" && movement === "Alış");
+
+            const searchMatches =
+                !term || searchable.includes(term);
+
+            row.hidden = !(typeMatches && searchMatches);
+
+            if (!row.hidden) {
+                visible++;
+            }
+        });
+
+        counter.textContent =
+            visible + " / " + rows.length +
+            " listelenen işlem gösteriliyor. " +
+            "Arama yalnızca ekrandaki son 30 kayıt üzerinde çalışır.";
+    }
+
+    search.addEventListener("input", filterRows);
+    type.addEventListener("change", filterRows);
+
+    clear.addEventListener("click", function () {
+        search.value = "";
+        type.value = "";
+        filterRows();
+    });
+
+    filterRows();
+})();
+</script>

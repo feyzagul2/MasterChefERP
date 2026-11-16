@@ -1,0 +1,138 @@
+
+@model List<MasterChefTakip.Models.ProductionOrder>
+@{
+    ViewData["Title"] = "Uretim Emirleri";
+
+    var recipes = (List<MasterChefTakip.Models.ProductionRecipe>)
+        ViewBag.Recipes;
+
+    var warehouses = (List<MasterChefTakip.Models.RawMaterialWarehouse>)
+        ViewBag.Warehouses;
+}
+
+<style>
+.mc-prod{max-width:1180px;margin:auto}
+.mc-prod h1{font-size:24px;color:#17365b}
+.mc-prod h2{font-size:17px;color:#17365b}
+.mc-prod-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:15px 0}
+.mc-prod-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.mc-prod-btn{display:inline-block;padding:9px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;color:#17406a;text-decoration:none;font-size:13px;cursor:pointer}
+.mc-prod-primary{background:#17406a;color:#fff;border-color:#17406a}
+.mc-prod-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.mc-prod-field{display:flex;flex-direction:column;gap:6px}
+.mc-prod-field label{font-size:12px;font-weight:600;color:#475569}
+.mc-prod-field input,.mc-prod-field select,.mc-prod-field textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px}
+.mc-prod-tablewrap{overflow-x:auto}
+.mc-prod-table{width:100%;min-width:710px;border-collapse:collapse}
+.mc-prod-table th{text-align:left;padding:11px;font-size:12px;color:#475569;background:#f8fafc}
+.mc-prod-table td{padding:11px;font-size:13px;border-bottom:1px solid #edf2f7}
+.mc-prod-note{font-size:12px;color:#64748b}
+.mc-prod-error{padding:13px;background:#fef2f2;color:#991b1b;border-radius:8px}
+.mc-prod-success{padding:13px;background:#ecfdf5;color:#166534;border-radius:8px}
+@@media(max-width:700px){.mc-prod-grid{grid-template-columns:1fr}.mc-prod-card{padding:12px}}
+</style>
+
+<div class="mc-prod">
+    <div class="mc-prod-head">
+        <div class="mc-section-nav"><a href="/Production">Reçeteler</a><a href="/Production/Orders">Üretim Emirleri</a><a href="/ProductionPackaging">Ambalajlama</a><a href="/mc-production-pallet-transfer-screen">Palet</a></div><h1>&#220;retim Emirleri</h1>
+
+        <a class="mc-prod-btn" asp-action="Index">
+            Re&#231;eteler
+        </a>
+    </div>
+
+    @if (TempData["ProductionError"] is string error)
+    {
+        <div class="mc-prod-error">@error</div>
+    }
+
+    <div class="mc-prod-card">
+        <h2>Yeni &#220;retim Emri</h2>
+
+        <form asp-action="AddOrder" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="mc-prod-grid">
+                <div class="mc-prod-field">
+                    <label>Re&#231;ete</label>
+                    <select name="recipeId" required>
+                        <option value="">Re&#231;ete Se&#231;iniz</option>
+                        @foreach (var r in recipes)
+                        {
+                            <option value="@r.Id">
+                                @r.Code - @r.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-prod-field">
+                    <label>Hammadde Deposu</label>
+                    <select name="warehouseId" required>
+                        <option value="">Depo Se&#231;iniz</option>
+                        @foreach (var w in warehouses)
+                        {
+                            <option value="@w.Id">
+                                @w.Code - @w.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-prod-field">
+                    <label>Planlanan &#220;retim Miktar&#305; (Kg)</label>
+                    <input name="plannedQuantityKg"
+                           type="number" min="0.0001"
+                           step="0.0001" required />
+                </div>
+
+                <div class="mc-prod-field">
+                    <label>A&#231;&#305;klama</label>
+                    <textarea name="notes" rows="2"
+                              maxlength="500"></textarea>
+                </div>
+            </div>
+
+            <br />
+
+            <button class="mc-prod-btn mc-prod-primary">
+                &#220;retim Emri Olu&#351;tur
+            </button>
+        </form>
+    </div>
+
+    <div class="mc-prod-card mc-prod-tablewrap">
+        <table class="mc-prod-table">
+            <thead>
+                <tr>
+                    <th>Emir No</th><th>Re&#231;ete</th>
+                    <th>Depo</th><th>Miktar</th>
+                    <th>Durum</th><th>&#304;&#351;lem</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            @foreach (var x in Model)
+            {
+                <tr>
+                    <td>@x.OrderNumber</td>
+                    <td>@x.Recipe.Name</td>
+                    <td>@x.Warehouse.Name</td>
+                    <td>@x.PlannedQuantityKg.ToString("N4") Kg</td>
+                    <td>
+                        @(x.Status == "Completed"
+                            ? "Tamamland&#305;"
+                            : "Planland&#305;")
+                    </td>
+                    <td>
+                        <a class="mc-prod-btn" asp-action="Order"
+                           asp-route-id="@x.Id">
+                            Detay
+                        </a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

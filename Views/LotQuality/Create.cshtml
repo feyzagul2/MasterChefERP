@@ -1,0 +1,82 @@
+@model MasterChefTakip.Controllers.ProductLotInput
+@{
+    ViewData["Title"] = "Yeni Lot";
+
+    var products = (List<MasterChefTakip.Models.Product>)
+        ViewBag.Products;
+}
+
+<style>
+.mc-lot{max-width:920px;margin:22px auto 0}
+.mc-lot h1{font-size:24px;color:#17365b;margin:0}
+.mc-lot-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px;flex-wrap:wrap}
+.mc-lot-card{background:#fff;border:1px solid #dbe4ee;border-radius:14px;padding:24px;box-shadow:0 4px 16px rgba(15,23,42,.04)}
+.mc-lot-btn{display:inline-block;padding:10px 15px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;acolor:#17406a;text-decoration:none;font-size:13px;font-weight:650;cursor:pointer}
+.mc-lot-primary{background:#17406a;border-color:#17406a;color:#fff}
+.mc-lot-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.mc-lot-field{display:flex;flex-direction:column;gap:7px}
+.mc-lot-field-wide{grid-column:1/-1}
+.mc-lot-field label{font-size:13px;font-weight:700;color:#334155}
+.mc-lot-field input,.mc-lot-field select,.mc-lot-field textarea{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#fff}
+.mc-lot-field input:focus,.mc-lot-field select:focus,.mc-lot-field textarea:focus{outline:none;border-color:#17406a;box-shadow:0 0 0 3px rgba(23,64,106,.08)}
+.mc-lot-muted{font-size:13px;color:#64748b;margin-top:6px}
+.mc-lot-alert{background:#fef2f2;color:#991b1b;padding:12px;border-radius:8px;margin-bottom:14px}
+.mc-lot-actions{display:flex;justify-content:flex-end;margin-top:20px}
+@@media(max-width:700px){.mc-lot-grid{grid-template-columns:1fr}.mc-lot-field-wide{grid-column:auto}.mc-lot-card{padding:16px}.mc-lot-head{align-items:stretch}.mc-lot-head .mc-lot-btn{text-align:center}}
+</style>
+
+<div class="mc-lot">
+    <div class="mc-lot-head">
+        <div>
+            <h1>Yeni &#220;r&#252;n Lotu</h1>
+            <div class="mc-lot-muted">&#220;retim lotu ve son kullanma bilgilerini kaydedin.</div>
+        </div>
+    </div>
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="All" class="mc-lot-alert"></div>
+
+        <div class="mc-lot-card">
+            <div class="mc-lot-grid">
+                <div class="mc-lot-field">
+                    <label>&#220;r&#252;n</label>
+                    <select asp-for="ProductId" required>
+                        <option value="">&#220;r&#252;n Se&#231;iniz</option>
+                        @foreach (var p in products)
+                        {
+                            <option value="@p.Id">@p.Code - @p.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-lot-field">
+                    <label>Lot Numaras&#305;</label>
+                    <input asp-for="LotNumber" maxlength="70" required />
+                </div>
+
+                <div class="mc-lot-field">
+                    <label>&#220;retim Tarihi</label>
+                    <input asp-for="ProductionDate" type="date" required />
+                </div>
+
+                <div class="mc-lot-field">
+                    <label>Son Kullanma Tarihi</label>
+                    <input asp-for="ExpiryDate" type="date" required />
+                </div>
+
+                <div class="mc-lot-field mc-lot-field-wide">
+                    <label>A&#231;&#305;klama</label>
+                    <textarea asp-for="Notes" maxlength="500" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="mc-lot-actions">
+                <button type="submit" class="mc-lot-btn mc-lot-primary">
+                    Lot Kayd&#305;n&#305; Olu&#351;tur
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

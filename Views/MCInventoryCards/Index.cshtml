@@ -1,0 +1,55 @@
+@model List<MasterChefTakip.Controllers.MCInventoryListRow>
+
+@{
+    ViewData["Title"] = "Genel Malzeme Stok Kartlar?";
+}
+
+<section style="padding:20px">
+    <h2>Genel Malzeme Stok Kartlar?</h2>
+
+    <p>
+        Bu listede genel malzeme kartlar? gösterilir.
+        Stok miktarlar? de?i?tirilmez.
+    </p>
+
+    <div style="overflow-x:auto">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Kod</th>
+                    <th>Malzeme</th>
+                    <th>T?r</th>
+                    <th>Birim</th>
+                    <th>??lem</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Code</td>
+                        <td>@item.Name</td>
+                        <td>@item.Type</td>
+                        <td>@item.Unit</td>
+                        <td>
+                            <a asp-controller="MCInventoryCards"
+                               asp-action="Create"
+                               asp-route-catalogId="@item.CatalogId">
+                                Kart? GÜrünt?le
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <p>Hen?z oluşturulmuş genel malzeme kartı bulunmuyor.</p>
+    }
+
+    <a href="/MaterialCatalog?mcEmbed=1">
+        Malzeme Kataloğuna Dön
+    </a>
+</section>

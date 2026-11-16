@@ -476,7 +476,42 @@ public partial class ShipmentsController
             shipment.ConcurrencyStamp = Guid.NewGuid().ToString("N");
 
             // Koli içerikleri, stok ve geçmiş aynı işlemde kaydedilir.
-            await db.SaveChangesAsync();
+            
+                        // MC_SHIPMENT_SAFE_ROLLBACK_V1
+            // Sevkiyat stok kontrolu ve guvenli hata yonetimi.
+            try
+            {
+                await MCShipmentStockGuard.ValidateAsync(db);
+            }
+            catch (Exception mcStockError) when (
+                mcStockError is InvalidOperationException ||
+                mcStockError is OverflowException)
+            {
+                // Aktif transaction varsa geri al.
+                var mcActiveTransaction = db.Database.CurrentTransaction;
+
+                if (mcActiveTransaction != null)
+                {
+                    await mcActiveTransaction.RollbackAsync();
+                }
+
+                // Bekleyen sevkiyat hareketlerini kaydetme.
+                foreach (var mcPendingMovement in db.ChangeTracker
+                    .Entries<StockMovement>()
+                    .Where(x =>
+                        x.State == Microsoft.EntityFrameworkCore.EntityState.Added &&
+                        x.Entity.Type == StockMovementType.Shipment)
+                    .ToList())
+                {
+                    mcPendingMovement.State =
+                        Microsoft.EntityFrameworkCore.EntityState.Detached;
+                }
+
+                return Conflict(
+                    "SEVKIYAT DURDURULDU - " +
+                    mcStockError.Message);
+            }
+await db.SaveChangesAsync();
             await transaction.CommitAsync();
 
             var totalUnits = plans.Sum(plan =>

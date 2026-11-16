@@ -1,0 +1,366 @@
+@model MasterChefTakip.Controllers.MCVirmanAuditDetailsPage
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Virman Hareket Detayları";
+    var tr = CultureInfo.GetCultureInfo("tr-TR");
+}
+
+<style>
+.mc-virman-detail {
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 24px;
+    color: #193047;
+}
+
+.mc-virman-detail * {
+    box-sizing: border-box;
+}
+
+.mc-virman-detail h1 {
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.mc-virman-detail .back {
+    color: #235f98;
+    text-decoration: none;
+    font-weight: 650;
+}
+
+.mc-virman-detail .panel,
+.mc-virman-detail .card {
+    background: white;
+    border: 1px solid #e0e7ef;
+    border-radius: 15px;
+    padding: 22px;
+}
+
+.mc-virman-detail .panel {
+    margin: 20px 0;
+}
+
+.mc-virman-detail .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.mc-virman-detail .label {
+    font-size: 13px;
+    color: #708398;
+    margin-bottom: 10px;
+}
+
+.mc-virman-detail .value {
+    font-size: 21px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.mc-virman-detail .green {
+    color: #16865d;
+}
+
+.mc-virman-detail .red {
+    color: #bd4545;
+}
+
+.mc-virman-detail .blue {
+    color: #235f98;
+}
+
+.mc-virman-detail .badge {
+    display: inline-block;
+    padding: 9px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.mc-virman-detail .ok {
+    background: #e2f6ec;
+    color: #16865d;
+}
+
+.mc-virman-detail .bad {
+    background: #fde8e8;
+    color: #bd4545;
+}
+
+.mc-virman-detail .table-wrap {
+    overflow-x: auto;
+}
+
+.mc-virman-detail table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mc-virman-detail th,
+.mc-virman-detail td {
+    padding: 14px;
+    text-align: left;
+    border-bottom: 1px solid #e6edf3;
+    font-size: 13px;
+}
+
+.mc-virman-detail th {
+    background: #f7f9fc;
+    color: #60758a;
+}
+
+@@media(max-width: 750px) {
+    .mc-virman-detail .cards {
+        grid-template-columns: 1fr;
+    }
+
+    .mc-virman-detail {
+        padding: 15px;
+    }
+}
+/* MC_VIRMAN_DETAIL_EXPORT_PRINT_V1 */
+.mc-detail-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.mc-detail-tools a,
+.mc-detail-tools button {
+    display: inline-block;
+    padding: 13px 20px;
+    border: 0;
+    border-radius: 9px;
+    color: white;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.mc-detail-tools .excel {
+    background: #16865d;
+}
+
+.mc-detail-tools .print {
+    background: #235f98;
+}
+
+@@media print {
+    @@page {
+        size: A4 landscape;
+        margin: 12mm;
+    }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    .mc-virman-detail,
+    .mc-virman-detail * {
+        visibility: visible !important;
+    }
+
+    .mc-virman-detail {
+        position: absolute !important;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        color: black !important;
+    }
+
+    .mc-virman-detail .back,
+    .mc-detail-tools {
+        display: none !important;
+    }
+
+    .mc-virman-detail h1 {
+        font-size: 22px;
+    }
+
+    .mc-virman-detail .cards {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px;
+    }
+
+    .mc-virman-detail .card {
+        padding: 10px;
+        break-inside: avoid;
+    }
+
+    .mc-virman-detail .value {
+        font-size: 15px;
+    }
+
+    .mc-virman-detail .panel {
+        border: none !important;
+        padding: 10px 0;
+    }
+
+    .mc-virman-detail .table-wrap {
+        overflow: visible !important;
+    }
+
+    .mc-virman-detail table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .mc-virman-detail th,
+    .mc-virman-detail td {
+        font-size: 10px;
+        padding: 7px;
+    }
+
+    .mc-virman-detail thead {
+        display: table-header-group;
+    }
+
+    .mc-virman-detail tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+</style>
+
+<div class="mc-virman-detail">
+
+    <a class="back"
+       href="/MCBankCashAuditüstart=@Model.Start&amp;end=@Model.End&amp;status=@Model.Status&amp;q=@Uri.EscapeDataString(Model.Search)">
+        ← Virman Mutabakat Raporuna Dön
+    </a>
+
+    <h1>Virman Hareket Detayları</h1>
+
+    <p>
+        <strong>Virman Kodu:</strong>
+        @Model.Item.Token
+    </p>
+
+    <p>
+        @if (Model.Item.IsMatched)
+        {
+            <span class="badge ok">Eşleşti</span>
+        }
+        else
+        {
+            <span class="badge bad">@Model.Item.Issue</span>
+        }
+    </p>
+
+    <div class="mc-detail-tools">
+
+        <a class="excel"
+           href="/MCBankCashAudit/DetailsExport?token=@Uri.EscapeDataString(Model.Item.Token)&amp;start=@Model.Start&amp;end=@Model.End&amp;status=@Model.Status&amp;q=@Uri.EscapeDataString(Model.Search)">
+            Excel İndir
+        </a>
+
+        <button class="print"
+                type="button"
+                onclick="window.print()">
+            Yazdır / PDF Kaydet
+        </button>
+
+    </div>
+    <div class="cards">
+
+        <div class="card">
+            <div class="label">Çıkış Hesabı</div>
+            <div class="value">@Model.Item.Source</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Giriş Hesabı</div>
+            <div class="value">@Model.Item.Target</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Hareket Sayısı</div>
+            <div class="value">@Model.Movements.Count</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Toplam Çıkış</div>
+            <div class="value red">
+                @Model.Item.TotalOut.ToString("N2", tr) ₺
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="label">Toplam Giriş</div>
+            <div class="value green">
+                @Model.Item.TotalIn.ToString("N2", tr) ₺
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="label">Giriş / Çıkış Farkı</div>
+            <div class="value blue">
+                @((Model.Item.TotalIn - Model.Item.TotalOut).ToString("N2", tr)) ₺
+            </div>
+        </div>
+
+    </div>
+
+    <div class="panel">
+
+        <h2>Virman Hareket Kayıtları</h2>
+
+        <div class="table-wrap">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hareket No</th>
+                        <th>Tarih</th>
+                        <th>Hesap</th>
+                        <th>İşlem</th>
+                        <th>Tutar</th>
+                        <th>Kayıt Kodu</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var movement in Model.Movements)
+                    {
+                        var incoming = movement.Direction == "In";
+
+                        <tr>
+                            <td>@movement.Id</td>
+
+                            <td>@movement.Date</td>
+
+                            <td>@movement.Account</td>
+
+                            <td>
+                                @(incoming ? "Para Girişi" : "Para Çıkışı")
+                            </td>
+
+                            <td class="@(incoming ? "green" : "red")">
+                                <strong>
+                                    @(incoming ? "+" : "-")@movement.Amount.ToString("N2", tr) ₺
+                                </strong>
+                            </td>
+
+                            <td>@movement.Token</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+    <p style="font-size:13px;color:#708398">
+        Bu ekran yalnızca mevcut virman hareketlerini gösterir.
+        Finans kayıtlarını değiştirmez.
+        Virman işlemleri şirket geliri veya gideri değildir.
+    </p>
+
+</div>

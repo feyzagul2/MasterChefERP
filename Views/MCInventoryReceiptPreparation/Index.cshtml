@@ -1,0 +1,1812 @@
+@model MasterChefTakip.Controllers.MCReceiptPreparationPage
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@{
+
+
+
+
+
+
+
+
+    ViewData["Title"] = "Mal Kabul Hazırlık";
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div style="max-width:1200px;margin:20px auto;padding:20px;font:inherit">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h2>Mal Kabul Hazırlık</h2>
+    @* MC_RECEIPT_READINESS_SUMMARY_V1 *@
+    @{
+        var bagliSayisi = Model.Rows.Count;
+        var baglanmamisSayisi = Model.UnassignedCards.Count;
+
+        var birimSorunlu = Model.Rows.Count(x =>
+            !MasterChefTakip.Controllers.MCReceiptUnitSafety.IsSupported(x.Unit))
+            + Model.UnassignedCards.Count(x =>
+            !MasterChefTakip.Controllers.MCReceiptUnitSafety.IsSupported(x.Unit));
+    }
+
+    <section style="display:grid;
+                    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+                    gap:12px;margin:20px 0">
+
+        <div style="padding:18px;border:1px solid #bbf7d0;
+                    background:#f0fdf4;border-radius:9px">
+            <div style="font-size:14px">Aktif Depo Bağlant?lar?</div>
+            <strong style="font-size:28px">@bagliSayisi</strong>
+        </div>
+
+        <div style="padding:18px;border:1px solid #fed7aa;
+                    background:#fff7ed;border-radius:9px">
+            <div style="font-size:14px">Depoya Bağlanmam?? Kartlar</div>
+            <strong style="font-size:28px">@baglanmamisSayisi</strong>
+        </div>
+
+        <div style="padding:18px;border:1px solid #fecaca;
+                    background:#fef2f2;border-radius:9px">
+            <div style="font-size:14px">Birim Kontrol? Gerekenler</div>
+            <strong style="font-size:28px">@birimSorunlu</strong>
+        </div>
+    </section>
+
+    <p style="font-size:13px;color:#64748b">
+        Bu güstergeler ekranda y?klenen ve se?ili filtreye uyan kayıtları
+        sayar. Depo bağlantısı bulunmas? tek ba??na mal kabul onay? de?ildir.
+    </p>
+
+
+    @* MC_UNIT_PREVIEW_LINK_V1 *@
+    <p>
+        <a href="/MCInventoryUnitPreview"
+           style="display:inline-block;padding:10px 16px;
+                  border:1px solid #cbd5e1;border-radius:7px;
+                  text-decoration:none;font:inherit">
+            ölçü Birimi Dön???m Kontrol?
+        </a>
+    </p>
+
+    @* MC_INVENTORY_AUDIT_LINK_V1 *@
+    <p>
+        <a href="/MCInventoryAudit/Report"
+           target="_blank"
+           rel="noopener"
+           style="display:inline-block;padding:10px 16px;
+                  border:1px solid #cbd5e1;border-radius:7px;
+                  text-decoration:none;font:inherit">
+            Stok ve Depo G?venlik Denetimi
+        </a>
+    </p>
+
+
+
+
+
+
+    @* MC_RECEIPT_SEARCH_UI_V1 *@
+
+
+
+
+
+    <form method="get"
+
+
+
+
+
+          action="/MCInventoryReceiptPreparation"
+
+
+
+
+
+          style="display:flex;gap:10px;flex-wrap:wrap;
+
+
+
+
+
+                 align-items:center;margin:18px 0">
+
+
+
+
+
+
+
+
+
+
+
+        <input type="search"
+
+
+
+
+
+               name="q"
+
+
+
+
+
+               value="@Model.Search"
+
+
+
+
+
+               maxlength="100"
+
+
+
+
+
+               placeholder="Kart no, depo no veya ölçü birimi"
+
+
+
+
+
+               style="min-width:260px;min-height:42px;
+
+
+
+
+
+                      padding:8px;border:1px solid #cbd5e1;
+
+
+
+
+
+                      border-radius:7px;font:inherit" />
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+        @* MC_RECEIPT_STATUS_FILTER_UI_V1 *@
+
+
+
+
+        <select name="durum"
+
+
+
+
+                aria-label="Depo e?le?tirme durumu"
+
+
+
+
+                style="min-height:42px;padding:8px;
+
+
+
+
+                       border:1px solid #cbd5e1;
+
+
+
+
+                       border-radius:7px;font:inherit">
+
+
+
+
+            <option value="tumu"
+
+
+
+
+                    selected="@(Model.StatusFilter == "tumu")">
+
+
+
+
+                T?m Kartlar
+
+
+
+
+            </option>
+
+
+
+
+            <option value="bagli"
+
+
+
+
+                    selected="@(Model.StatusFilter == "bagli")">
+
+
+
+
+                Depoya Ba?l?
+
+
+
+
+            </option>
+
+
+
+
+            <option value="baglanmamis"
+
+
+
+
+                    selected="@(Model.StatusFilter == "baglanmamis")">
+
+
+
+
+                Depoya Bağlanmam??
+
+
+
+
+            </option>
+
+
+
+
+        </select>
+
+
+
+
+
+
+
+
+
+        <button type="submit"
+
+
+
+
+
+                style="min-height:42px;padding:8px 18px;
+
+
+
+
+
+                       border:0;border-radius:7px;
+
+
+
+
+
+                       background:#334155;color:white;
+
+
+
+
+
+                       font:inherit">
+
+
+
+
+
+            Ara
+
+
+
+
+
+        </button>
+
+
+
+
+
+
+
+
+
+
+
+        <a href="/MCInventoryReceiptPreparation">
+
+
+
+
+
+            Temizle
+
+
+
+
+
+        </a>
+
+
+
+
+
+    </form>
+
+
+
+
+
+
+
+
+
+
+
+
+    @* MC_RECEIPT_EXPORT_BUTTON_V2 *@
+
+
+
+
+
+
+    <p>
+
+
+
+
+
+
+        <a asp-controller="MCInventoryReceiptPreparation" asp-action="Export" asp-route-q="@Model.Search"
+
+
+
+
+           asp-route-durum="@Model.StatusFilter"
+
+
+
+
+
+
+           style="display:inline-block;
+
+
+
+
+
+
+                  padding:10px 16px;
+
+
+
+
+
+
+                  background:#166534;
+
+
+
+
+
+
+                  color:white;
+
+
+
+
+
+
+                  border-radius:7px;
+
+
+
+
+
+
+                  text-decoration:none;
+
+
+
+
+
+
+                  font:inherit">
+
+
+
+
+
+
+            Excel CSV ?ndir
+
+
+
+
+
+
+        </a>
+
+
+
+
+
+
+    </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <p>
+
+
+
+
+
+
+
+
+        Aktif stok kartlar? ile aktif depolar aras?ndaki
+
+
+
+
+
+
+
+
+        mevcut e?le?tirmeleri gÜrünt?leyin.
+
+
+
+
+
+
+
+
+    </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <p>
+
+
+
+
+
+
+
+
+        <a href="/MCInventoryWarehouses">
+
+
+
+
+
+
+
+
+            Depo E?le?tirmeleri
+
+
+
+
+
+
+
+
+        </a>
+
+
+
+
+
+
+
+
+        &nbsp; | &nbsp;
+
+
+
+
+
+
+
+
+        <a href="/MCInventoryCards">
+
+
+
+
+
+
+
+
+            Stok Kartlar?
+
+
+
+
+
+
+
+
+        </a>
+
+
+
+
+
+
+
+
+    </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+
+
+
+
+
+
+
+
+    {
+
+
+
+
+
+
+
+
+        <div style="padding:14px;background:#fff7ed;
+
+
+
+
+
+
+
+
+                    border:1px solid #fdba74;border-radius:8px">
+
+
+
+
+
+
+
+
+            @Model.Message
+
+
+
+
+
+
+
+
+        </div>
+
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <p>
+
+
+
+
+
+
+
+
+        <strong>Aktif kart-depo bağlantısı:</strong>
+
+
+
+
+
+
+
+
+        @Model.Rows.Count
+
+
+
+
+
+
+
+
+    </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    @if (Model.Rows.Count > 0)
+
+
+
+
+
+
+
+
+    {
+
+
+
+
+
+
+
+
+        <div style="overflow-x:auto">
+
+
+
+
+
+
+
+
+            <table style="width:100%;border-collapse:collapse">
+
+
+
+
+
+
+
+
+                <thead>
+
+
+
+
+
+
+
+
+                    <tr style="background:#f1f5f9">
+
+
+
+
+
+
+
+
+                        <th style="padding:12px;text-align:left">Stok Kart?</th>
+
+
+
+
+
+
+
+
+                        <th style="padding:12px;text-align:left">Depo</th>
+
+
+
+
+
+
+
+
+                        <th style="padding:12px;text-align:left">ölçü Birimi</th>
+
+
+
+
+
+
+
+
+                        <th style="padding:12px;text-align:left">??lem</th>
+
+
+
+
+
+
+
+
+                    </tr>
+
+
+
+
+
+
+
+
+                </thead>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <tbody>
+
+
+
+
+
+
+
+
+                    @foreach (var item in Model.Rows)
+
+
+
+
+
+
+
+
+                    {
+
+
+
+
+
+
+
+
+                        <tr style="border-bottom:1px solid #e2e8f0">
+
+
+
+
+
+
+
+
+                            <td style="padding:12px">
+
+
+
+
+
+
+
+
+                                Kart #@item.CardId
+
+
+
+
+
+
+
+
+                            </td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            <td style="padding:12px">
+
+
+
+
+
+
+
+
+                                Depo #@item.WarehouseId
+
+
+
+
+
+
+
+
+                            </td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            <td style="padding:12px">
+
+
+
+
+
+
+
+
+                                @item.Unit
+
+
+
+                                @* MC_UNIT_SAFETY_UI_V1 *@
+
+
+
+                                <small style="display:block;color:#64748b">
+
+
+
+                                    @MasterChefTakip.Controllers.MCReceiptUnitSafety.Category(item.Unit)
+
+
+
+                                </small>
+
+
+
+                                @if (!MasterChefTakip.Controllers.MCReceiptUnitSafety.IsSupported(item.Unit))
+
+
+
+                                {
+
+
+
+                                    <strong style="color:#b91c1c">
+
+
+
+                                        Birim kontrolü gerekli
+
+
+
+                                    </strong>
+
+
+
+                                }
+
+
+
+
+
+
+
+
+                            </td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            <td style="padding:12px">
+
+
+
+
+
+
+
+
+                                
+
+
+                                @* MC_QUANTITY_FORM_FIXED_V2 *@
+
+
+                                <form method="get"
+
+
+                                      action="/MCInventoryReceiptCheck/Review"
+
+
+                                      style="display:flex;gap:8px;
+
+
+                                             flex-wrap:wrap;align-items:center">
+
+
+                                    <input type="hidden"
+
+
+                                           name="cardId"
+
+
+                                           value="@item.CardId" />
+
+
+                                    <input type="hidden"
+
+
+                                           name="warehouseId"
+
+
+                                           value="@item.WarehouseId" />
+
+
+                                    <input type="hidden"
+
+
+                                           name="unit"
+
+
+                                           value="@item.Unit" />
+
+
+                                    <input type="number"
+
+
+                                           name="quantity"
+
+
+                                           min="0.0001"
+
+
+                                           step="0.0001"
+
+
+                                           required
+
+
+                                           aria-label="Mal kabul miktar?"
+
+
+                                           placeholder="Miktar"
+
+
+                                           style="width:130px;padding:8px;
+
+
+                                                  border:1px solid #cbd5e1;
+
+
+                                                  border-radius:6px;font:inherit" />
+
+
+                                    <button type="submit"
+
+
+                                            style="padding:8px 12px;
+
+
+                                                   background:#334155;
+
+
+                                                   color:white;border:0;
+
+
+                                                   border-radius:6px;font:inherit">
+
+
+                                        Uygunlu?u Kontrol Et
+
+
+                                    </button>
+
+
+                                </form>
+
+
+
+
+
+
+
+
+                            </td>
+
+
+
+
+
+
+
+
+                        </tr>
+
+
+
+
+
+
+
+
+                    }
+
+
+
+
+
+
+
+
+                </tbody>
+
+
+
+
+
+
+
+
+            </table>
+
+
+
+
+
+
+
+
+        </div>
+
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+    @* MC_UNASSIGNED_STOCK_CARDS_UI_V2 *@
+
+
+
+
+
+
+
+    <section style="margin-top:28px">
+
+
+
+
+
+
+
+        <h3>Depoya Bağlanmam?? Stok Kartlar?</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <p>
+
+
+
+
+
+
+
+            <strong>Güsterilen kart say?s?:</strong>
+
+
+
+
+
+
+
+            @Model.UnassignedCards.Count
+
+
+
+
+
+
+
+        </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        @if (Model.UnassignedCards.Count == 0)
+
+
+
+
+
+
+
+        {
+
+
+
+
+
+
+
+            <p>Aktif depo e?le?tirmesi bekleyen genel stok kartı yok.</p>
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+        else
+
+
+
+
+
+
+
+        {
+
+
+
+
+
+
+
+            <div style="overflow-x:auto">
+
+
+
+
+
+
+
+                <table style="width:100%;border-collapse:collapse">
+
+
+
+
+
+
+
+                    <thead>
+
+
+
+
+
+
+
+                        <tr style="background:#f1f5f9">
+
+
+
+
+
+
+
+                            <th style="padding:12px;text-align:left">
+
+
+
+
+
+
+
+                                Stok Kart?
+
+
+
+
+
+
+
+                            </th>
+
+
+
+
+
+
+
+                            <th style="padding:12px;text-align:left">
+
+
+
+
+
+
+
+                                ölçü Birimi
+
+
+
+
+
+
+
+                            </th>
+
+
+
+
+
+
+
+                            <th style="padding:12px;text-align:left">
+
+
+
+
+
+
+
+                                Durum
+
+
+
+
+
+
+
+                            </th>
+
+
+
+
+
+
+
+                        </tr>
+
+
+
+
+
+
+
+                    </thead>
+
+
+
+
+
+
+
+                    <tbody>
+
+
+
+
+
+
+
+                        @foreach (var card in Model.UnassignedCards)
+
+
+
+
+
+
+
+                        {
+
+
+
+
+
+
+
+                            <tr style="border-bottom:1px solid #e2e8f0">
+
+
+
+
+
+
+
+                                <td style="padding:12px">
+
+
+
+
+
+
+
+                                    Kart #@card.CardId
+
+
+
+
+
+
+
+                                </td>
+
+
+
+
+
+
+
+                                <td style="padding:12px">
+
+
+
+
+
+
+
+                                    @card.Unit
+
+
+
+                                    <small style="display:block;color:#64748b">
+
+
+
+                                        @MasterChefTakip.Controllers.MCReceiptUnitSafety.Category(card.Unit)
+
+
+
+                                    </small>
+
+
+
+                                    @if (!MasterChefTakip.Controllers.MCReceiptUnitSafety.IsSupported(card.Unit))
+
+
+
+                                    {
+
+
+
+                                        <strong style="color:#b91c1c">
+
+
+
+                                            Birim kontrolü gerekli
+
+
+
+                                        </strong>
+
+
+
+                                    }
+
+
+
+
+
+
+
+                                </td>
+
+
+
+
+
+
+
+                                <td style="padding:12px;color:#b45309">
+
+
+
+
+
+
+
+                                    Aktif depo e?le?tirmesi gerekiyor
+
+
+
+
+
+
+
+                                </td>
+
+
+
+
+
+
+
+                            </tr>
+
+
+
+
+
+
+
+                        }
+
+
+
+
+
+
+
+                    </tbody>
+
+
+
+
+
+
+
+                </table>
+
+
+
+
+
+
+
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <p style="margin-top:14px">
+
+
+
+
+
+
+
+                <a href="/MCInventoryWarehouses">
+
+
+
+
+
+
+
+                    Depo e?le?tirme ekran?
+
+
+
+
+
+
+
+                </a>
+
+
+
+
+
+
+
+            </p>
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+    </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<p style="margin-top:20px;color:#64748b">
+
+
+
+
+
+
+
+
+        Bu ekran salt okunurdur. Mal kabul kaydı olu?turmaz;
+
+
+
+
+
+
+
+
+        mevcut stok miktarlar?n? değiştirmez.
+
+
+
+
+
+
+
+
+    </p>
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+

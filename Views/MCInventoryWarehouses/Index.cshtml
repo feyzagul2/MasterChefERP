@@ -1,0 +1,181 @@
+@model MasterChefTakip.Controllers.MCWarehouseLinkPage
+
+@{
+    ViewData["Title"] = "Malzeme Depo E?le?tirme";
+}
+
+<style>
+.mc-wh {
+    max-width: 1200px;
+    margin: 18px auto;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-family: inherit;
+}
+.mc-wh h2 {
+    color: #17406a;
+    margin-bottom: 15px;
+}
+.mc-wh select {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px;
+    background: white;
+}
+.mc-wh label {
+    display: block;
+    margin: 15px 0 8px;
+    font-weight: 600;
+}
+.mc-wh button {
+    border: 0;
+    background: #17406a;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+.mc-wh .notice {
+    padding: 14px;
+    background: #f0f5fa;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+.mc-wh table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 18px;
+}
+.mc-wh td, .mc-wh th {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px;
+    text-align: left;
+}
+</style>
+
+<section class="mc-wh">
+
+    <h2>Malzeme ? Depo E?le?tirme</h2>
+
+    <div class="notice">
+        Ger?ek stok kartlar? ve mevcut depolar kullan?l?r.
+        Bu işlem stok miktar? olu?turmaz veya değiştirmez.
+    </div>
+
+    @if (TempData["WarehouseLinkMessage"] != null)
+    {
+        <div class="notice">@TempData["WarehouseLinkMessage"]</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+    {
+        <div class="notice">@Model.Message</div>
+    }
+
+    @if (Model.Cards.Count > 0 && Model.Warehouses.Count > 0)
+    {
+        <form asp-controller="MCInventoryWarehouses"
+              asp-action="Assign"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <label for="cardId">Malzeme Stok Kart?</label>
+
+            <select id="cardId" name="cardId" required>
+                <option value="">Stok kartı seçiniz</option>
+
+                @foreach (var item in Model.Cards)
+                {
+                    <option value="@item.Id">
+                        @item.Code ? @item.Name (@item.Unit)
+                    </option>
+                }
+            </select>
+
+            <label for="warehouseId">Depo</label>
+
+            <select id="warehouseId"
+                    name="warehouseId"
+                    required>
+
+                <option value="">Depo seçiniz</option>
+
+                @foreach (var warehouse in Model.Warehouses)
+                {
+                    <option value="@warehouse.Id">
+                        @warehouse.Name
+                    </option>
+                }
+            </select>
+
+            <label>
+                <input type="checkbox"
+                       name="confirmed"
+                       value="true"
+                       required />
+
+                Stok kartını ve depoyu kontrol ettim.
+            </label>
+
+            <button type="submit">
+                Depoya Bağla
+            </button>
+        </form>
+    }
+
+    <h3 style="margin-top:30px">Mevcut Depo Bağlant?lar?</h3>
+
+    @if (Model.Links.Count == 0)
+    {
+        <p>Hen?z genel malzeme depo bağlantısı bulunmuyor.</p>
+    }
+    else
+    {
+        <div style="overflow-x:auto">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Malzeme</th>
+                        <th>Depo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var link in Model.Links)
+                    {
+                        var card = Model.Cards.FirstOrDefault(
+                            x => x.Id == link.CardId);
+
+                        var warehouse = Model.Warehouses.FirstOrDefault(
+                            x => x.Id == link.WarehouseId);
+
+                        <tr>
+                            <td>
+                                @(card == null
+                                    ? link.CardId.ToString()
+                                    : card.Code + " ? " + card.Name)
+                            </td>
+                            <td>
+                                @(warehouse == null
+                                    ? link.WarehouseId.ToString()
+                                    : warehouse.Name)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <div style="margin-top:25px">
+        <a href="/MCInventoryCards">
+            Genel Malzeme Kartlarına Dön
+        </a>
+    </div>
+
+</section>

@@ -206,7 +206,7 @@
     <details id="general"
              class="help-section"
              open="@(selected == "general")">
-        <summary>Temel kullanım: Ürün, koli ve stok</summary>
+        <summary>Temel kullanım: Ürün, koli ve stok</summary><!-- MC_HELP_ROUTE_START --><div class="help-route"><strong>Bu işlem nereden yapılır?</strong><span class="route-path">Genel kullanım bilgisidir. İşlem yapmak için aşağıdaki ilgili yardım başlığından ilgili ekrana geçin.</span><span class="route-effect"><strong>İşlem etkisi:</strong> Bilgi amaçlıdır; stok veya finans kaydı oluşturmaz.</span></div><!-- MC_HELP_ROUTE_END -->
 
         <div class="help-body">
             <h2>Bu programda hangi işlemler yapılır?</h2>
@@ -240,7 +240,7 @@
                 Dış paket sayısı, ürün miktarından ayrı bir bilgidir.
             </p>
 
-            <h2>Stok ne zaman değişir?</h2>
+            <!-- MC_STOCK_HELP_V1 --><div class="help-stock"><strong>Stok nasıl eklenir?</strong><ol><li><strong>Paketleme</strong> ekranını açın.</li><li>Ürünü seçin.</li><li>Ürünlerin bulunduğu paleti seçin.</li><li>Hazırlanan koli sayısını ve koli içi ürün adedini girin.</li><li><strong>Kontrol et ve stoğa ekle</strong> işlemini onaylayın.</li></ol><strong>Önemli:</strong> Yeni ürün tanımlamak veya yeni palet oluşturmak tek başına stok oluşturmaz. Palet transferi yalnızca ürünün yerini değiştirir; toplam stok değişmez. Sevkiyat onaylandığında stok düşer.</div><h2>Stok ne zaman değişir?</h2>
 
             <ul>
                 <li>Paketleme üzerinden stok girişi kaydedildiğinde artar.</li>
@@ -257,7 +257,7 @@
     <details id="products"
              class="help-section"
              open="@(selected == "products")">
-        <summary>Ürünler</summary>
+        <summary>Ürünler</summary><!-- MC_HELP_ROUTE_START --><div class="help-route"><strong>Bu işlem nereden yapılır?</strong><span class="route-path">Sol Menü → Ürünler → ürünü bulun → Yeni Ürün veya Düzenle.</span><span class="route-effect"><strong>İşlem etkisi:</strong> Ürün tanımlamak tek başına stok oluşturmaz.</span></div><!-- MC_HELP_ROUTE_END -->
 
         <div class="help-body">
             <h2>Ne işe yarar?</h2>
@@ -287,10 +287,10 @@
     <details id="packaging"
              class="help-section"
              open="@(selected == "packaging")">
-        <summary>Paketleme ve palete stok girişi</summary>
+        <summary>Paketleme ve palete stok girişi</summary><!-- MC_HELP_ROUTE_START --><div class="help-route"><strong>Bu işlem nereden yapılır?</strong><span class="route-path">Sol Menü → Paketleme → ürünü seç → paleti seç → koli ve koli içi adedi gir → Kontrol et ve stoğa ekle.</span><span class="route-effect"><strong>İşlem etkisi:</strong> Onaylanan kayıt gerçek stoğu artırır.</span></div><!-- MC_HELP_ROUTE_END -->
 
         <div class="help-body">
-            <h2>Hazırlanan ürünleri stoğa ekleme</h2>
+            <h2>Hazırlanan ürünleri stoğa ekleme</h2><div class="help-example"><strong>Bu işlem nereden yapılır?</strong><br />Sol menüden <strong>Paketleme</strong> sekmesine girin.</div>
             <ol>
                 <li>Ürünü adı, kodu veya barkoduyla bulun ve seçin.</li>
                 <li>Ürünlerin yerleştirildiği paleti seçin.</li>
@@ -314,7 +314,7 @@
     <details id="pallets"
              class="help-section"
              open="@(selected == "pallets")">
-        <summary>Paletler ve Barkodlar</summary>
+        <summary>Paletler ve Barkodlar</summary><!-- MC_HELP_ROUTE_START --><div class="help-route"><strong>Bu işlem nereden yapılır?</strong><span class="route-path">Sol Menü → Paletler ve Barkodlar. Yeni palet için + Yeni Palet; taşıma için Palet Transferi.</span><span class="route-effect"><strong>İşlem etkisi:</strong> Yeni palet stok oluşturmaz; transfer toplam stoğu değiştirmez.</span></div><!-- MC_HELP_ROUTE_END -->
 
         <div class="help-body">
             <h2>Palet içeriğini görüntüleme</h2>
@@ -355,7 +355,7 @@
     <details id="shipments"
              class="help-section"
              open="@(selected == "shipments")">
-        <summary>Sevkiyat ve teslimat</summary>
+        <summary>Sevkiyat ve teslimat</summary><!-- MC_HELP_ROUTE_START --><div class="help-route"><strong>Bu işlem nereden yapılır?</strong><span class="route-path">Sol Menü → Sevkiyat → + Yeni sevkiyat → ürün ve çıkış stoğunu seç → onayla.</span><span class="route-effect"><strong>İşlem etkisi:</strong> Taslak stoğu değiştirmez; onay stok düşürür.</span></div><!-- MC_HELP_ROUTE_END -->
 
         <div class="help-body">
             <h2>Sevkiyat hazırlama</h2>
@@ -410,7 +410,7 @@
     <details id="returns"
              class="help-section"
              open="@(selected == "returns")">
-        <summary>İade ve Hasar</summary>
+        <summary>İade ve Hasar</summary><!-- MC_HELP_ROUTE_START --><div class="help-route"><strong>Bu işlem nereden yapılır?</strong><span class="route-path">Sol Menü → İade ve Hasar → İade → müşteri → sevkiyat → ürün → kontrol.</span><span class="route-effect"><strong>İşlem etkisi:</strong> Kontrol tamamlanınca yalnız sağlam ürünler stoğa döner.</span></div><!-- MC_HELP_ROUTE_END -->
 
         <div class="help-body">
             <h2>İade nasıl kaydedilir?</h2>
@@ -494,7 +494,7 @@
     <details id="history"
              class="help-section"
              open="@(selected == "history")">
-        <summary>İşlem Geçmişi</summary>
+        <summary>İşlem Geçmişi</summary><!-- MC_HELP_ROUTE_START --><div class="help-route"><strong>Bu işlem nereden yapılır?</strong><span class="route-path">Sol Menü → İşlem Geçmişi → filtreleri seç → Listele.</span><span class="route-effect"><strong>İşlem etkisi:</strong> Salt okunur inceleme ekranıdır.</span></div><!-- MC_HELP_ROUTE_END -->
 
         <div class="help-body">
             <h2>İşlemleri bulma</h2>
@@ -526,7 +526,7 @@
     <details id="reports"
              class="help-section"
              open="@(selected == "reports")">
-        <summary>Raporlar</summary>
+        <summary>Raporlar</summary><!-- MC_HELP_ROUTE_START --><div class="help-route"><strong>Bu işlem nereden yapılır?</strong><span class="route-path">Sol Menü → Raporlar → ilgili raporu seç → filtrele → gerekiyorsa Excel/PDF.</span><span class="route-effect"><strong>İşlem etkisi:</strong> Gerçek kayıtları raporlar; yeni hareket oluşturmaz.</span></div><!-- MC_HELP_ROUTE_END -->
 
         <div class="help-body">
             <h2>Dönem seçme</h2>
@@ -566,7 +566,7 @@
         <details id="users"
                  class="help-section"
                  open="@(selected == "users")">
-            <summary>Kullanıcılar ve yetkiler</summary>
+            <summary>Kullanıcılar ve yetkiler</summary><!-- MC_HELP_ROUTE_START --><div class="help-route"><strong>Bu işlem nereden yapılır?</strong><span class="route-path">Yönetim → Kullanıcılar → kullanıcı oluştur veya düzenle.</span><span class="route-effect"><strong>İşlem etkisi:</strong> Kullanıcının rol/yetkileri ayrıca belirlenir.</span></div><!-- MC_HELP_ROUTE_END -->
 
             <div class="help-body">
                 <h2>Kullanıcı hesapları</h2>

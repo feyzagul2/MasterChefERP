@@ -1,0 +1,153 @@
+@model MasterChefTakip.Controllers.MCReceiptReviewPage
+
+@{
+    ViewData["Title"] = "Mal Kabul Uygunluk Sonucu";
+}
+
+<div style="max-width:850px;margin:25px auto;padding:24px;font:inherit">
+
+    <h2>Mal Kabul Uygunluk Sonucu</h2>
+
+    <div style="padding:20px;border-radius:10px;
+                border:1px solid @(Model.Eligible ? "#86efac" : "#fca5a5");
+                background:@(Model.Eligible ? "#f0fdf4" : "#fef2f2")">
+
+        @if (Model.Eligible)
+        {
+            <h3 style="color:#166534">
+                ? ?n Kontrol Ba?ar?l?
+            </h3>
+        }
+        else
+        {
+            <h3 style="color:#b91c1c">
+                ?n Kontrol Ba?ar?s?z
+            </h3>
+        }
+
+        <p>@Model.Message</p>
+
+        <table style="width:100%;border-collapse:collapse">
+            <tr>
+                <th style="text-align:left;padding:10px">Stok Kart?</th>
+                <td style="padding:10px">@Model.CardId</td>
+            </tr>
+            <tr>
+                <th style="text-align:left;padding:10px">Depo</th>
+                <td style="padding:10px">@Model.WarehouseId</td>
+            </tr>
+            <tr>
+                <th style="text-align:left;padding:10px">ölçü Birimi</th>
+                <td style="padding:10px">@Model.Unit</td>
+            </tr>
+            <tr>
+                <th style="text-align:left;padding:10px">Miktar</th>
+                <td style="padding:10px">@Model.Quantity</td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin-top:20px;padding:14px;
+                background:#fff7ed;border-radius:8px">
+        <strong>?nemli:</strong>
+        Bu işlem yalnızca uygunluk kontrolüd?r.
+        Mal kabul kaydı veya stok hareketi olu?turulmam??t?r.
+    </div>
+
+    
+    @* MC_RECEIPT_UNIT_LINK_V1 *@
+    <div style="margin-top:20px;padding:16px;
+                border:1px solid #cbd5e1;border-radius:8px">
+
+        <h3 style="margin-top:0">ölçü Birimi Kontrol?</h3>
+
+        <p>
+            Girilen miktar? ba?ka bir ölçü biriminde
+            hesaplayabilirsiniz. Bu işlem stok kaydı olu?turmaz.
+        </p>
+
+        <a asp-controller="MCInventoryUnitPreview"
+           asp-action="Index"
+           asp-route-miktar="@Model.Quantity"
+           asp-route-kaynak="@Model.Unit"
+           style="display:inline-block;padding:10px 16px;
+                  background:#334155;color:white;
+                  border-radius:7px;text-decoration:none;
+                  font:inherit">
+            Bu Miktar?n Birim Dön???m?n? Hesapla
+        </a>
+    </div>
+
+<p style="margin-top:24px">
+        <a href="/MCInventoryReceiptPreparation">
+            ? Mal Kabul Hazırlık Ekranına Dön
+        </a>
+    </p>
+
+    @* MC_RECEIPT_CHECKLIST_UI_FIXED_V2 *@
+    <section style="margin-top:20px;padding:16px;
+                    border:1px solid #cbd5e1;
+                    border-radius:8px">
+
+        <h3>?n Kontrol ?zeti</h3>
+        @* MC_RECEIPT_VERIFIED_RESULT_V3 *@
+        <div style="padding:12px;margin:12px 0;
+                    border-radius:7px;
+                    background:@(Model.Eligible ? "#f0fdf4" : "#fef2f2");
+                    border:1px solid @(Model.Eligible ? "#86efac" : "#fca5a5")">
+
+            @if (Model.Eligible)
+            {
+                <strong style="color:#166534">
+                    Sunucu do?rulamas? ba?ar?l?
+                </strong>
+                <p style="margin-bottom:0">
+                    Kart, depo, e?le?tirme, ölçü birimi ve
+                    miktar ?n kontrolleri ba?ar?l?.
+                </p>
+            }
+            else
+            {
+                <strong style="color:#b91c1c">
+                    Sunucu do?rulamas? ba?ar?s?z
+                </strong>
+                <p style="margin-bottom:0">
+                    Mal kabul i?in uygunluk verilmedi.
+                    Yukar?daki hata a??klamas?n? kontrol edin.
+                </p>
+            }
+        </div>
+
+
+        <p>
+            <strong>Stok Kart?:</strong>
+            @(Model.CardId > 0 ? "Kart numaras? girildi" : "Ge?ersiz kart numaras?")
+        </p>
+
+        <p>
+            <strong>Depo:</strong>
+            @(Model.WarehouseId > 0 ? "Depo numaras? girildi" : "Ge?ersiz depo numaras?")
+        </p>
+
+        <p>
+            <strong>ölçü Birimi:</strong>
+            @MasterChefTakip.Controllers.MCReceiptChecklist.UnitStatus(Model.Unit)
+        </p>
+
+        <p>
+            <strong>Miktar:</strong>
+            @MasterChefTakip.Controllers.MCReceiptChecklist.QuantityStatus(Model.Quantity)
+        </p>
+
+        <p>
+            <strong>Genel Sonu?:</strong>
+            @(Model.Eligible ? "?n kontrol ba?ar?l?" : "?n kontrol ba?ar?s?z")
+        </p>
+
+        <small style="color:#64748b">
+            Nihai uygunluk sonucu sunucu taraf?ndaki kart,
+            depo ve ölçü birimi do?rulamalar?na dayan?r.
+        </small>
+    </section>
+
+</div>

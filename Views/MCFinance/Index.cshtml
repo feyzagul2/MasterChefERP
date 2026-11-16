@@ -1,0 +1,841 @@
+﻿@model MasterChefTakip.Controllers.MCFinancePage
+@using System.Globalization
+@using System.Linq
+
+@{
+    ViewData["Title"] = "MASTER CHEF | Finans Yönetimi";
+
+    var culture = CultureInfo.GetCultureInfo("tr-TR");
+
+    var selectedDate = DateTime.ParseExact(
+        Model.SelectedMonth + "-01",
+        "yyyy-MM-dd",
+        CultureInfo.InvariantCulture
+    );
+
+    var months = Enumerable.Range(0, 12)
+        .Select(i => selectedDate.AddMonths(i - 11))
+        .Select(date => new {
+            Date = date,
+            Key = date.ToString("yyyy-MM", CultureInfo.InvariantCulture),
+            Label = date.ToString("MMM yy", culture),
+            Income = Model.Monthly
+                .Where(x => x.Month == date.ToString("yyyy-MM", CultureInfo.InvariantCulture))
+                .Sum(x => x.Income),
+            Expense = Model.Monthly
+                .Where(x => x.Month == date.ToString("yyyy-MM", CultureInfo.InvariantCulture))
+                .Sum(x => x.Expense)
+        })
+        .ToList();
+
+    var chartMax = Math.Max(
+        1m,
+        months.Max(x => Math.Max(x.Income, x.Expense))
+    );
+
+    var expenseGroups = Model.MonthTransactions
+        .Where(x => x.Kind == "Expense")
+        .GroupBy(x => x.Category)
+        .Select(g => new {
+            Category = g.Key,
+            Amount = g.Sum(x => x.Amount)
+        })
+        .OrderByDescending(x => x.Amount)
+        .ToList();
+
+    var lastTransactions = Model.MonthTransactions
+        .OrderByDescending(x => x.Date)
+        .ThenByDescending(x => x.Id)
+        .Take(20)
+        .ToList();
+
+    var selectedMonthName = selectedDate.ToString("MMMM yyyy", culture);
+    var incomeCount = Model.MonthTransactions.Count(x => x.Kind == "Income");
+    var expenseCount = Model.MonthTransactions.Count(x => x.Kind == "Expense");
+}
+
+<style>
+.mc-fin-v2 {
+    max-width: 1520px;
+    margin: 0 auto;
+    padding: 12px 18px 48px;
+    color: #192b40;
+}
+
+.mc-fin-v2 * {
+    box-sizing: border-box;
+}
+
+.mc-fin-v2 .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 23px;
+}
+
+.mc-fin-v2 .eyebrow {
+    color: #56708b;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+}
+
+.mc-fin-v2 h1 {
+    font-size: 30px;
+    font-weight: 800;
+    margin: 5px 0 8px;
+    color: #122943;
+}
+
+.mc-fin-v2 h2 {
+    font-size: 19px;
+    font-weight: 750;
+    margin: 0;
+}
+
+.mc-fin-v2 .muted {
+    color: #73859a;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.mc-fin-v2 .toolbar {
+    display: flex;
+    align-items: end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mc-fin-v2 input,
+.mc-fin-v2 select {
+    border: 1px solid #d7e1ec;
+    border-radius: 10px;
+    background: #fff;
+    padding: 12px 13px;
+    width: 100%;
+    color: #243b53;
+    min-height: 45px;
+    outline-color: #2c638d;
+}
+
+.mc-fin-v2 label {
+    display: block;
+    color: #51677f;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.mc-fin-v2 label input,
+.mc-fin-v2 label select {
+    margin-top: 7px;
+}
+
+.mc-fin-v2 .btn-primary {
+    background: #193752;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 19px;
+    min-height: 45px;
+    cursor: pointer;
+    font-weight: 650;
+}
+
+.mc-fin-v2 .btn-primary:hover {
+    background: #285578;
+}
+
+.mc-fin-v2 .btn-light {
+    display: inline-block;
+    padding: 11px 16px;
+    background: #eef3f8;
+    border-radius: 10px;
+    color: #244a68;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.mc-fin-v2 .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 17px;
+}
+
+.mc-fin-v2 .metric {
+    background: white;
+    padding: 22px;
+    border: 1px solid #e2e9f1;
+    border-radius: 16px;
+    box-shadow: 0 3px 12px rgba(22, 46, 70, .035);
+    position: relative;
+    overflow: hidden;
+}
+
+.mc-fin-v2 .metric:before {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #7890a8;
+}
+
+.mc-fin-v2 .metric.green:before { background: #159669; }
+.mc-fin-v2 .metric.red:before { background: #cc4e4e; }
+.mc-fin-v2 .metric.blue:before { background: #3775ba; }
+
+.mc-fin-v2 .metric-title {
+    color: #60748b;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.mc-fin-v2 .metric-value {
+    font-size: clamp(23px, 2vw, 34px);
+    font-weight: 800;
+    margin: 12px 0 8px;
+    overflow-wrap: anywhere;
+    letter-spacing: -.6px;
+}
+
+.mc-fin-v2 .green-text { color: #13865e; }
+.mc-fin-v2 .red-text { color: #bd4242; }
+.mc-fin-v2 .blue-text { color: #245d9b; }
+
+.mc-fin-v2 .small-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.mc-fin-v2 .small-card {
+    background: #f9fbfd;
+    border: 1px solid #e2e9f1;
+    border-radius: 14px;
+    padding: 17px 20px;
+}
+
+.mc-fin-v2 .small-card strong {
+    display: block;
+    font-size: 23px;
+    color: #1e3953;
+    margin-top: 7px;
+}
+
+.mc-fin-v2 .panel {
+    background: white;
+    border: 1px solid #e0e9f1;
+    border-radius: 17px;
+    padding: 23px;
+    margin-bottom: 18px;
+}
+
+.mc-fin-v2 .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 21px;
+}
+
+.mc-fin-v2 .legend {
+    display: flex;
+    gap: 18px;
+    font-size: 13px;
+    color: #64768b;
+}
+
+.mc-fin-v2 .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.mc-fin-v2 .dot.income { background: #18996b; }
+.mc-fin-v2 .dot.expense { background: #ce5050; }
+
+.mc-fin-v2 .chart-scroll {
+    overflow-x: auto;
+    padding-top: 10px;
+}
+
+.mc-fin-v2 .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(55px, 1fr));
+    gap: 13px;
+    min-width: 720px;
+}
+
+.mc-fin-v2 .chart-col {
+    text-align: center;
+}
+
+.mc-fin-v2 .chart-bars {
+    height: 210px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 5px;
+    border-bottom: 1px solid #d8e3ed;
+    background: repeating-linear-gradient(
+        to top,
+        transparent 0,
+        transparent 51px,
+        #f0f4f8 52px
+    );
+}
+
+.mc-fin-v2 .chart-bar {
+    width: 20px;
+    border-radius: 5px 5px 0 0;
+    transition: height .2s ease;
+}
+
+.mc-fin-v2 .chart-bar.income {
+    background: #18996b;
+}
+
+.mc-fin-v2 .chart-bar.expense {
+    background: #ce5050;
+}
+
+.mc-fin-v2 .chart-label {
+    font-size: 11px;
+    color: #667d93;
+    margin-top: 11px;
+    text-transform: capitalize;
+}
+
+.mc-fin-v2 .grid-2 {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 18px;
+    align-items: start;
+}
+
+.mc-fin-v2 .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.mc-fin-v2 .full {
+    grid-column: 1 / -1;
+}
+
+.mc-fin-v2 .submit-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 21px;
+}
+
+.mc-fin-v2 .category-row {
+    margin-bottom: 17px;
+}
+
+.mc-fin-v2 .category-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 13px;
+    margin-bottom: 7px;
+}
+
+.mc-fin-v2 .progress {
+    height: 9px;
+    background: #eff3f8;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.mc-fin-v2 .progress-fill {
+    height: 100%;
+    background: #6386a7;
+    border-radius: 10px;
+}
+
+.mc-fin-v2 .table-wrap {
+    overflow-x: auto;
+}
+
+.mc-fin-v2 table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mc-fin-v2 th,
+.mc-fin-v2 td {
+    text-align: left;
+    padding: 13px 12px;
+    border-bottom: 1px solid #e8edf3;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+.mc-fin-v2 th {
+    color: #63788f;
+    font-weight: 750;
+    background: #f7f9fc;
+}
+
+.mc-fin-v2 td.description {
+    white-space: normal;
+    min-width: 180px;
+}
+
+.mc-fin-v2 .badge {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.mc-fin-v2 .badge.income {
+    color: #137a58;
+    background: #e9f8f1;
+}
+
+.mc-fin-v2 .badge.expense {
+    color: #aa3d3d;
+    background: #fff0f0;
+}
+
+.mc-fin-v2 .empty {
+    padding: 29px 16px;
+    text-align: center;
+    background: #f8fafc;
+    color: #708397;
+    border: 1px dashed #d7e2eb;
+    border-radius: 12px;
+    font-size: 13px;
+}
+
+.mc-fin-v2 .note {
+    font-size: 12px;
+    color: #708397;
+    line-height: 1.7;
+    margin-top: 12px;
+}
+
+@@media (max-width: 1000px) {
+    .mc-fin-v2 .metrics,
+    .mc-fin-v2 .small-metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .mc-fin-v2 .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@@media (max-width: 650px) {
+    .mc-fin-v2 {
+        padding: 10px;
+    }
+
+    .mc-fin-v2 .metrics,
+    .mc-fin-v2 .small-metrics,
+    .mc-fin-v2 .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mc-fin-v2 h1 {
+        font-size: 24px;
+    }
+}
+</style>
+
+<div style="margin:10px 18px 20px">
+    <a href="/MCBankCash"
+       style="display:inline-block;padding:12px 18px;
+              background:#193752;color:white;
+              border-radius:10px;text-decoration:none;font-weight:700">
+        Kasa ve Banka Yönetimi
+    </a>
+</div>
+<div class="mc-fin-v2">
+
+    <div class="top">
+        <div>
+            <div class="eyebrow">MASTER CHEF / FİNANS YÖNETİMİ</div>
+            <h1>Finansal Genel Bakış</h1>
+            <div class="muted">
+                Gelir, gider ve nakit hareketlerini tek ekrandan takip edin.
+            </div>
+        </div>
+
+        <form method="get"
+              action="/MCFinance"
+              class="toolbar">
+            <label>
+                Rapor Dönemi
+                <input type="month"
+                       name="month"
+                       value="@Model.SelectedMonth"
+                       required />
+            </label>
+
+            <button type="submit" class="btn-primary">
+                Raporu Göster
+            </button>
+        </form>
+    </div>
+
+    <div class="metrics">
+        <div class="metric green">
+            <div class="metric-title">Toplam Tahsilat</div>
+            <div class="metric-value green-text">
+                @Model.Income.ToString("N2", culture) ₺
+            </div>
+            <div class="muted">@selectedMonthName</div>
+        </div>
+
+        <div class="metric red">
+            <div class="metric-title">Toplam Ödeme</div>
+            <div class="metric-value red-text">
+                @Model.Expense.ToString("N2", culture) ₺
+            </div>
+            <div class="muted">@selectedMonthName</div>
+        </div>
+
+        <div class="metric blue">
+            <div class="metric-title">Net Nakit Hareketi</div>
+            <div class="metric-value blue-text">
+                @Model.Net.ToString("N2", culture) ₺
+            </div>
+            <div class="muted">
+                Tahsilatlar eksi ödemeler
+            </div>
+        </div>
+    </div>
+
+    <div class="small-metrics">
+        <div class="small-card">
+            <div class="muted">Tahsilat İşlemi</div>
+            <strong>@incomeCount</strong>
+        </div>
+
+        <div class="small-card">
+            <div class="muted">Ödeme İşlemi</div>
+            <strong>@expenseCount</strong>
+        </div>
+
+        <div class="small-card">
+            <div class="muted">Toplam Finans Hareketi</div>
+            <strong>@Model.MonthTransactions.Count</strong>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>Gelir – Gider Karşılaştırması</h2>
+                <div class="muted">
+                    Son 12 aylık tahsilat ve ödeme grafiği
+                </div>
+            </div>
+
+            <div class="legend">
+                <span>
+                    <i class="dot income"></i>
+                    Tahsilat
+                </span>
+                <span>
+                    <i class="dot expense"></i>
+                    Ödeme
+                </span>
+            </div>
+        </div>
+
+        <div class="chart-scroll">
+            <div class="chart-grid">
+                @foreach (var month in months)
+                {
+                    var incomeHeight = (double)(
+                        month.Income / chartMax * 200m
+                    );
+
+                    var expenseHeight = (double)(
+                        month.Expense / chartMax * 200m
+                    );
+
+                    var incomeCss = incomeHeight.ToString(
+                        "0.##",
+                        CultureInfo.InvariantCulture
+                    );
+
+                    var expenseCss = expenseHeight.ToString(
+                        "0.##",
+                        CultureInfo.InvariantCulture
+                    );
+
+                    <div class="chart-col">
+                        <div class="chart-bars">
+                            <div class="chart-bar income"
+                                 style="height:@(incomeCss)px"
+                                 title="Tahsilat: @month.Income.ToString("N2", culture) TL">
+                            </div>
+
+                            <div class="chart-bar expense"
+                                 style="height:@(expenseCss)px"
+                                 title="Ödeme: @month.Expense.ToString("N2", culture) TL">
+                            </div>
+                        </div>
+
+                        <div class="chart-label">@month.Label</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (!Model.Transactions.Any())
+        {
+            <div class="note">
+                Henüz finans hareketi kaydedilmedi.
+                İlk kayıtlar eklendiğinde grafik otomatik dolacak.
+            </div>
+        }
+    </div>
+
+    <div class="grid-2">
+
+        <div class="panel">
+            <div class="panel-head">
+                <div>
+                    <h2>Yeni Finans Hareketi</h2>
+                    <div class="muted">
+                        Gerçekleşen tahsilat veya ödemeyi kaydedin.
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" action="/MCFinance/Create">
+                @Html.AntiForgeryToken()
+
+                <div class="form-grid">
+
+                    <label>
+                        İşlem Türü
+                        <select id="mcFinanceKind"
+                                name="kind"
+                                required>
+                            <option value="Income">Tahsilat</option>
+                            <option value="Expense">Ödeme</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Kategori
+                        <select id="mcFinanceCategory"
+                                name="category"
+                                required>
+                            @foreach (var item in Model.IncomeCategories)
+                            {
+                                <option value="@item">@item</option>
+                            }
+                        </select>
+                    </label>
+
+                    <label>
+                        İşlem Tarihi
+                        <input type="date"
+                               name="occurredOn"
+                               value="@DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)"
+                               required />
+                    </label>
+
+                    <label>
+                        Tutar (TL)
+                        <input type="number"
+                               name="amount"
+                               min="0.01"
+                               max="100000000000"
+                               step="0.01"
+                               inputmode="decimal"
+                               placeholder="0,00"
+                               required />
+                    </label>
+
+                    <label class="full">
+                        Açıklama
+                        <input type="text"
+                               name="description"
+                               maxlength="500"
+                               placeholder="Örneğin: Tedarikçi ödemesi veya müşteri tahsilatı" />
+                    </label>
+
+                </div>
+
+                <div class="submit-row">
+                    <button class="btn-primary" type="submit">
+                        Finans Hareketini Kaydet
+                    </button>
+                </div>
+            </form>
+
+            <div class="note">
+                Bu form gerçekleşmiş tahsilat ve ödemeler içindir.
+                Bekleyen borç ve alacaklar sonraki aşamada ayrı izlenecek.
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head">
+                <div>
+                    <h2>Gider Dağılımı</h2>
+                    <div class="muted">@selectedMonthName</div>
+                </div>
+            </div>
+
+            @if (expenseGroups.Count == 0)
+            {
+                <div class="empty">
+                    Bu döneme ait gider kaydı bulunmuyor.
+                </div>
+            }
+            else
+            {
+                @foreach (var group in expenseGroups)
+                {
+                    var percentage = Model.Expense > 0
+                        ? group.Amount / Model.Expense * 100m
+                        : 0m;
+
+                    var width = percentage.ToString(
+                        "0.##",
+                        CultureInfo.InvariantCulture
+                    );
+
+                    <div class="category-row">
+                        <div class="category-top">
+                            <span>@group.Category</span>
+                            <strong>
+                                @group.Amount.ToString("N2", culture) ₺
+                            </strong>
+                        </div>
+
+                        <div class="progress">
+                            <div class="progress-fill"
+                                 style="width:@(width)%">
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+
+            <div class="note">
+                Gider dağılımı kaydedilen ödeme kategorilerine göre hesaplanır.
+            </div>
+        </div>
+
+    </div>
+
+    <div class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>Son Finans Hareketleri</h2>
+                <div class="muted">
+                    @selectedMonthName dönemindeki son 20 işlem
+                </div>
+            </div>
+        </div>
+
+        @if (lastTransactions.Count == 0)
+        {
+            <div class="empty">
+                Seçilen ayda henüz finans hareketi bulunmuyor.
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>İşlem</th>
+                            <th>Kategori</th>
+                            <th>Açıklama</th>
+                            <th>Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in lastTransactions)
+                        {
+                            var isIncome = item.Kind == "Income";
+
+                            <tr>
+                                <td>@item.Date</td>
+                                <td>
+                                    <span class="badge @(isIncome ? "income" : "expense")">
+                                        @(isIncome ? "Tahsilat" : "Ödeme")
+                                    </span>
+                                </td>
+                                <td>@item.Category</td>
+                                <td class="description">@item.Description</td>
+                                <td class="@(isIncome ? "green-text" : "red-text")">
+                                    <strong>
+                                        @(isIncome ? "+" : "-")
+                                        @item.Amount.ToString("N2", culture) ₺
+                                    </strong>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <div class="note">
+        Finans paneli şu anda gerçekleşmiş TL tahsilat ve ödemelerini gösterir.
+        Net nakit hareketi muhasebe kârı değildir.
+        Cari hesap, banka bakiyesi, bekleyen borç ve alacak bağlantıları
+        henüz oluşturulmamıştır.
+    </div>
+
+</div>
+
+<script>
+(function () {
+    const kind = document.getElementById("mcFinanceKind");
+    const category = document.getElementById("mcFinanceCategory");
+
+    if (!kind || !category) return;
+
+    const incomeCategories =
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.IncomeCategories));
+
+    const expenseCategories =
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ExpenseCategories));
+
+    function updateCategories() {
+        const values = kind.value === "Income"
+            ? incomeCategories
+            : expenseCategories;
+
+        category.replaceChildren();
+
+        values.forEach(function (value) {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = value;
+            category.appendChild(option);
+        });
+    }
+
+    kind.addEventListener("change", updateCategories);
+    updateCategories();
+})();
+</script>

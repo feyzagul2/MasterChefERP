@@ -1,0 +1,282 @@
+
+@model List<MasterChefTakip.Controllers.GoodsStockPreparationRow>
+
+@{
+    ViewData["Title"] = "Mal Kabul Stok Esletirme";
+
+    var receipt =
+        (MasterChefTakip.Models.PurchaseGoodsReceipt)ViewBag.Receipt;
+
+    var matched = Model.Count(x =>
+        x.AcceptedQuantity > 0 && x.MatchCount == 1);
+
+    var unmatched = Model.Count(x =>
+        x.AcceptedQuantity > 0 && x.MatchCount != 1);
+
+    var acceptedTotal = Model.Sum(x => x.AcceptedQuantity);
+}
+
+<!-- MC_GOODS_STOCK_PREPARATION_2026 -->
+
+<style>
+.mc-stock-prep {
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+.mc-stock-prep h1 {
+    font-size: 23px;
+    color: #17365b;
+    margin-bottom: 6px;
+}
+
+.mc-stock-subtitle {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.mc-stock-cards {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.mc-stock-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 11px;
+    padding: 17px;
+}
+
+.mc-stock-label {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.mc-stock-value {
+    font-size: 24px;
+    font-weight: 750;
+    color: #17365b;
+}
+
+.mc-stock-table-wrap {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 11px;
+    overflow-x: auto;
+}
+
+.mc-stock-table {
+    width: 100%;
+    min-width: 850px;
+    border-collapse: collapse;
+}
+
+.mc-stock-table th {
+    text-align: left;
+    font-size: 12px;
+    color: #475569;
+    background: #f8fafc;
+    padding: 13px;
+}
+
+.mc-stock-table td {
+    font-size: 13px;
+    padding: 13px;
+    border-top: 1px solid #edf2f7;
+}
+
+.mc-stock-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.mc-stock-ok {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.mc-stock-warn {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.mc-stock-muted {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.mc-stock-info {
+    margin: 16px 0;
+    padding: 15px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 9px;
+    color: #1e40af;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.mc-stock-back {
+    display: inline-block;
+    padding: 9px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #17406a;
+    font-size: 13px;
+    margin-top: 15px;
+}
+
+@@media (max-width: 700px) {
+    .mc-stock-cards {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<div class="mc-stock-prep">
+
+    <h1>Mal Kabul / Stok E&#351;le&#351;tirme</h1>
+
+    <div class="mc-stock-subtitle">
+        Mal Kabul: @receipt.ReceiptNumber
+        &nbsp; | &nbsp;
+        &#304;rsaliye: @receipt.PurchaseDispatchNote.DocumentNumber
+        &nbsp; | &nbsp;
+        Tedarik&#231;i: @receipt.PurchaseDispatchNote.Supplier.CompanyName
+    </div>
+
+    <div class="mc-stock-cards">
+
+        <div class="mc-stock-card">
+            <div class="mc-stock-label">
+                Kabul Edilen Toplam Miktar
+            </div>
+            <div class="mc-stock-value">
+                @acceptedTotal.ToString("N4")
+            </div>
+            <small>Farkl&#305; birimler birlikte toplanm&#305;&#351;t&#305;r.</small>
+        </div>
+
+        <div class="mc-stock-card">
+            <div class="mc-stock-label">
+                E&#351;le&#351;en Kalem
+            </div>
+            <div class="mc-stock-value">
+                @matched
+            </div>
+        </div>
+
+        <div class="mc-stock-card">
+            <div class="mc-stock-label">
+                Kontrol Gerektiren Kalem
+            </div>
+            <div class="mc-stock-value">
+                @unmatched
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mc-stock-table-wrap">
+
+        <table class="mc-stock-table">
+
+            <thead>
+                <tr>
+                    <th>Mal Kabul &#220;r&#252;n&#252;</th>
+                    <th>Birim</th>
+                    <th>Kabul</th>
+                    <th>Ret</th>
+                    <th>Sistemdeki &#220;r&#252;n</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            @foreach (var line in Model)
+            {
+                <tr>
+
+                    <td>@line.Description</td>
+
+                    <td>@line.Unit</td>
+
+                    <td>@line.AcceptedQuantity.ToString("N4")</td>
+
+                    <td>@line.RejectedQuantity.ToString("N4")</td>
+
+                    <td>
+                        @if (line.MatchedProductId.HasValue)
+                        {
+                            <span>
+                                @line.MatchedProductName
+                                (#@line.MatchedProductId)
+                            </span>
+                        }
+                        else
+                        {
+                            <span style="color:#64748b">
+                                Hen&#252;z e&#351;le&#351;medi
+                            </span>
+                        }
+                    </td>
+
+                    <td>
+                        @if (line.AcceptedQuantity <= 0)
+                        {
+                            <span class="mc-stock-badge mc-stock-muted">
+                                Stok Giri&#351;i Yok
+                            </span>
+                        }
+                        else if (line.MatchCount == 1)
+                        {
+                            <span class="mc-stock-badge mc-stock-ok">
+                                &#220;r&#252;n E&#351;le&#351;ti
+                            </span>
+                        }
+                        else if (line.MatchCount > 1)
+                        {
+                            <span class="mc-stock-badge mc-stock-warn">
+                                Birden Fazla E&#351;le&#351;me
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="mc-stock-badge mc-stock-warn">
+                                E&#351;le&#351;me Gerekli
+                            </span>
+                        }
+                    </td>
+
+                </tr>
+            }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <div class="mc-stock-info">
+        Bu ekran stok aktar&#305;m&#305; &#246;ncesi kontrol i&#231;indir.
+        &#220;r&#252;n ad&#305; veya koduna g&#246;re kesin metin e&#351;le&#351;mesi
+        yap&#305;l&#305;r. Birim d&#246;n&#252;&#351;&#252;m&#252; ve palet
+        uygunlu&#287;u hen&#252;z do&#287;rulanmad&#305;&#287;&#305;ndan
+        e&#351;le&#351;en kalemler de otomatik olarak sto&#287;a aktar&#305;lmaz.
+    </div>
+
+    <a class="mc-stock-back"
+       asp-action="Details"
+       asp-route-id="@receipt.Id">
+        Mal Kabul Detay&#305;na D&#246;n
+    </a>
+
+</div>

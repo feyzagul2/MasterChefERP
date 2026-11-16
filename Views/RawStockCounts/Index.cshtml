@@ -1,0 +1,254 @@
+
+@model MasterChefTakip.Controllers.RawStockCountInput
+
+@{
+    ViewData["Title"] = "Hammadde Stok Sayimi";
+
+    var materials =
+        (List<MasterChefTakip.Models.RawMaterial>)ViewBag.Materials;
+
+    var warehouses =
+        (List<MasterChefTakip.Models.RawMaterialWarehouse>)
+        ViewBag.Warehouses;
+
+
+    var approvals =
+        (Dictionary<int, string>)ViewBag.Approvals;
+
+    var counts =
+        (List<MasterChefTakip.Models.RawStockCount>)
+        ViewBag.Counts;
+}
+
+<!-- MC_RAW_STOCK_COUNT_2026 -->
+
+<style>
+.mc-count-nav{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px}.mc-count-nav a{display:inline-flex;align-items:center;padding:9px 13px;border:1px solid #d5e0ec;border-radius:8px;background:#fff;color:#18365f;text-decoration:none;font-size:13px;font-weight:700}.mc-count-nav a:hover,.mc-count-nav a:focus{background:#18365f;color:#fff;border-color:#18365f}.mc-count{max-width:1180px;margin:auto}
+.mc-count h1{font-size:24px;color:#17365b}
+.mc-count h2{font-size:17px;color:#17365b}
+.mc-count-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin:15px 0}
+.mc-count-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.mc-count-field{display:flex;flex-direction:column;gap:6px}
+.mc-count-field label{font-size:12px;font-weight:600;color:#475569}
+.mc-count-field input,.mc-count-field select,.mc-count-field textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px}
+.mc-count-btn{background:#17406a;color:#fff;border:0;padding:11px 17px;border-radius:8px;cursor:pointer;font-size:13px}
+.mc-count-tablewrap{overflow-x:auto}
+.mc-count-table{width:100%;min-width:900px;border-collapse:collapse}
+.mc-count-table th{padding:12px;background:#f8fafc;color:#475569;text-align:left;font-size:12px}
+.mc-count-table td{padding:12px;border-bottom:1px solid #e2e8f0;font-size:13px}
+.mc-count-muted{color:#64748b;font-size:12px}
+.mc-count-error{padding:12px;background:#fef2f2;color:#991b1b;border-radius:8px;margin:12px 0}
+.mc-count-success{padding:12px;background:#dcfce7;color:#166534;border-radius:8px;margin:12px 0}
+@@media(max-width:700px){.mc-count-grid{grid-template-columns:1fr}}
+</style>
+
+<div class="mc-count">
+
+    <h1>Hammadde Stok Say&#305;m&#305;</h1><div class="mc-count-nav"><a href="/RawMaterials">← Hammadde Stok</a><a href="/RawMaterials?critical=true">Kritik Stoklar</a><a href="/MCReceiptStockAudit">Stok Kontrolü</a></div>
+
+    <p class="mc-count-muted">
+        Fiziksel say&#305;m ile sistem sto&#287;u
+        kar&#351;&#305;la&#351;t&#305;r&#305;l&#305;r.
+        Bu ekranda stok miktar&#305; de&#287;i&#351;tirilmez.
+    </p>
+
+
+    @if (TempData["CountError"] is string countError)
+    {
+        <div class="mc-count-error">@countError</div>
+    }
+
+    @if (TempData["CountSuccess"] is string success)
+    {
+        <div class="mc-count-success">@success</div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All"
+             class="mc-count-error"></div>
+    }
+
+    <div class="mc-count-card">
+
+        <h2>Yeni Stok Say&#305;m&#305;</h2>
+
+        <form asp-action="Index" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="mc-count-grid">
+
+                <div class="mc-count-field">
+                    <label>Hammadde</label>
+
+                    <select asp-for="RawMaterialId" required>
+                        <option value="">Hammadde Se&#231;iniz</option>
+
+                        @foreach (var x in materials)
+                        {
+                            <option value="@x.Id">
+                                @x.Code - @x.Name (@x.Unit)
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-count-field">
+                    <label>Depo</label>
+
+                    <select asp-for="WarehouseId" required>
+                        <option value="">Depo Se&#231;iniz</option>
+
+                        @foreach (var x in warehouses)
+                        {
+                            <option value="@x.Id">
+                                @x.Code - @x.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-count-field">
+                    <label>Fiziksel Say&#305;m Miktar&#305;</label>
+
+                    <input asp-for="CountedQuantity"
+                           type="number"
+                           min="0"
+                           step="0.0001"
+                           required />
+                </div>
+
+                <div class="mc-count-field">
+                    <label>A&#231;&#305;klama</label>
+
+                    <textarea asp-for="Notes"
+                              maxlength="500"
+                              rows="2"></textarea>
+                </div>
+
+            </div>
+
+            <br />
+
+            <button type="submit"
+                    class="mc-count-btn">
+                Say&#305;m&#305; Kaydet
+            </button>
+        </form>
+    </div>
+
+    <div class="mc-count-card mc-count-tablewrap">
+
+        <h2>Say&#305;m Ge&#231;mi&#351;i</h2>
+
+        <table class="mc-count-table">
+            <thead>
+                <tr>
+                    <th>Say&#305;m No</th>
+                    <th>Tarih</th>
+                    <th>Hammadde</th>
+                    <th>Depo</th>
+                    <th>Sistem Sto&#287;u</th>
+                    <th>Fiziksel Say&#305;m</th>
+                    <th>Fark</th>
+                    <th>Onay / Karar</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            @foreach (var x in counts)
+            {
+                <tr>
+                    <td>@x.CountNumber</td>
+
+                    <td>
+                        @x.CreatedAtUtc.ToLocalTime()
+                            .ToString("dd.MM.yyyy HH:mm")
+                    </td>
+
+                    <td>@x.RawMaterial.Name</td>
+
+                    <td>@x.Warehouse.Name</td>
+
+                    <td>
+                        @x.SystemQuantity.ToString("N4")
+                        @x.Unit
+                    </td>
+
+                    <td>
+                        @x.CountedQuantity.ToString("N4")
+                        @x.Unit
+                    </td>
+
+                    <td>
+                        @if (x.Difference < 0)
+                        {
+                            <strong style="color:#b91c1c">
+                                @x.Difference.ToString("N4")
+                                @x.Unit
+                            </strong>
+                        }
+                        else if (x.Difference > 0)
+                        {
+                            <strong style="color:#b45309">
+                                +@x.Difference.ToString("N4")
+                                @x.Unit
+                            </strong>
+                        }
+                        else
+                        {
+                            <strong style="color:#166534">
+                                0 - E&#351;it
+                            </strong>
+                        }
+                    </td>
+                    <td>
+                        @if (approvals.TryGetValue(x.Id, out var decision))
+                        {
+                            <strong style="color:@(decision == "Approved" ? "#166534" : "#b91c1c")">
+                                @(decision == "Approved" ? "Onayland&#305;" : "Reddedildi")
+                            </strong>
+                        }
+                        else
+                        {
+                            <form asp-action="Decide" method="post"
+                                  style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="countId"
+                                       value="@x.Id" />
+                                <input type="text" name="notes"
+                                       maxlength="500"
+                                       placeholder="Onay a&#231;&#305;klamas&#305;"
+                                       style="min-width:130px;padding:7px;border:1px solid #cbd5e1;border-radius:6px" />
+                                <button type="submit" name="decision"
+                                        value="Approve"
+                                        class="mc-count-btn"
+                                        onclick="return confirm('Sayim farki stoga islensin mi?')">
+                                    Onayla
+                                </button>
+                                <button type="submit" name="decision"
+                                        value="Reject"
+                                        style="padding:10px;border:1px solid #dc2626;color:#b91c1c;background:#fff;border-radius:7px;cursor:pointer"
+                                        onclick="return confirm('Sayim reddedilsin mi?')">
+                                    Reddet
+                                </button>
+                            </form>
+                        }
+
+                </tr>
+            }
+
+            @if (!counts.Any())
+            {
+                <tr>
+                    <td colspan="8">
+                        Hen&#252;z say&#305;m yap&#305;lmad&#305;.
+                    </td>
+                </tr>
+            }
+
+            </tbody>
+        </table>
+    </div>
+</div>

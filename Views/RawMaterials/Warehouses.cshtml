@@ -1,0 +1,103 @@
+
+@model List<MasterChefTakip.Models.RawMaterialWarehouse>
+@{
+    ViewData["Title"] = "Hammadde Depolari";
+}
+
+<style>
+.mc-stock-nav{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px}.mc-stock-nav a{display:inline-flex;align-items:center;padding:9px 13px;border:1px solid #d5e0ec;border-radius:8px;background:#fff;color:#18365f;text-decoration:none;font-size:13px;font-weight:700}.mc-stock-nav a:hover,.mc-stock-nav a:focus{background:#18365f;color:#fff;border-color:#18365f}.mc-raw{max-width:1180px;margin:0 auto}
+.mc-raw-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.mc-raw h1{font-size:24px;color:#17365b;margin:0}
+.mc-raw h2{font-size:17px;color:#17365b}
+.mc-raw-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:14px 0}
+.mc-raw-btn{display:inline-block;background:#fff;color:#17406a;text-decoration:none;padding:10px 15px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;cursor:pointer}
+.mc-raw-primary{background:#17406a;border-color:#17406a;color:#fff}
+.mc-raw-tablewrap{overflow-x:auto}
+.mc-raw-table{width:100%;min-width:690px;border-collapse:collapse}
+.mc-raw-table th{text-align:left;padding:12px;background:#f8fafc;color:#475569;font-size:12px}
+.mc-raw-table td{padding:12px;border-bottom:1px solid #e2e8f0;font-size:13px}
+.mc-raw-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.mc-raw-field{display:flex;flex-direction:column;gap:6px}
+.mc-raw-field label{font-size:12px;font-weight:600;color:#475569}
+.mc-raw-field input,.mc-raw-field select,.mc-raw-field textarea{padding:10px;border:1px solid #cbd5e1;border-radius:8px;max-width:100%;width:100%;box-sizing:border-box}
+.mc-raw-note{color:#64748b;font-size:12px}
+.mc-raw-alert{padding:12px;border-radius:8px;background:#fef2f2;color:#991b1b;margin:12px 0}
+.mc-raw-success{padding:12px;border-radius:8px;background:#ecfdf5;color:#166534;margin:12px 0}
+@@media(max-width:700px){.mc-raw-grid{grid-template-columns:1fr}.mc-raw-card{padding:12px}}
+</style>
+
+<div class="mc-raw">
+    <div class="mc-raw-header">
+        <h1>Hammadde Depolar&#305;</h1>
+        <div class="mc-stock-nav"><a href="/RawMaterials">← Hammadde Stok</a><a href="/RawStockCounts">Stok Sayımı</a><a href="/RawMaterials?critical=true">Kritik Stoklar</a><a href="/MCReceiptStockAudit">Stok Kontrolü</a></div><a class="mc-raw-btn" asp-action="Index">
+            Hammadde Stoklar&#305;
+        </a>
+    </div>
+
+    @if (TempData["RawError"] is string error)
+    {
+        <div class="mc-raw-alert">@error</div>
+    }
+
+    <div class="mc-raw-card">
+        <h2>Yeni Depo</h2>
+
+        <form asp-action="AddWarehouse" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="mc-raw-grid">
+                <div class="mc-raw-field">
+                    <label>Depo Kodu</label>
+                    <input name="code" maxlength="40" required />
+                </div>
+                <div class="mc-raw-field">
+                    <label>Depo Ad&#305;</label>
+                    <input name="name" maxlength="150" required />
+                </div>
+                <div class="mc-raw-field">
+                    <label>Konum</label>
+                    <input name="location" maxlength="250" />
+                </div>
+            </div>
+
+            <br />
+
+            <button class="mc-raw-btn mc-raw-primary">
+                Depoyu Kaydet
+            </button>
+        </form>
+    </div>
+
+    <div class="mc-raw-card mc-raw-tablewrap">
+        <table class="mc-raw-table">
+            <thead>
+                <tr>
+                    <th>Kod</th>
+                    <th>Depo</th>
+                    <th>Konum</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var x in Model)
+            {
+                <tr>
+                    <td>@x.Code</td>
+                    <td>@x.Name</td>
+                    <td>@x.Location</td>
+                    <td>@(x.IsActive ? "Aktif" : "Pasif")</td>
+                </tr>
+            }
+
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="4">
+                        Hen&#252;z depo tan&#305;mlanmad&#305;.
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

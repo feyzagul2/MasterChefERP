@@ -1,105 +1,46 @@
-
-# MASTER CHEF TAKIP - GitHub exclusions
-
-# Build files
-**/bin/
-**/obj/
-**/TestResults/
+bin/
+obj/
 .vs/
 .idea/
-.vscode/
-
-# Databases
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-
-# Backups
+publish-check/
 Backups/
-**/Backups/
-*.bak
-
-# Secrets and local settings
-.env
-.env.*
-**/appsettings.Development.json
-**/appsettings.Production.json
-**/appsettings.Local.json
-**/secrets.json
-*.pfx
-*.pem
-*.key
-
-# Published output
-publish/
-**/publish/
-MasterChefTakip_Release_Kontrol/
-
-# OS files
-Thumbs.db
-.DS_Store
-
-# GITHUB_SIRKET_VERISI_KORUMA
-
-# Company data and imported documents
-*.xlsx
-*.xls
-*.csv
-*.pdf
-*.docx
-
-# Historical backup copies
-*.bak_*
-*.before_*
-*.draft_*
-*.fix*.bak
-*.preview_*.bak
-*.safe_*.bak
-
-# Local and generated data
+Logs/
+*.log
 *.db
-*.db-wal
 *.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
-*.bak
-**/Backups/
-**/bin/
-**/obj/
-**/TestResults/
-
-
-# MasterChefERP - private company data protection
-**/bin/
-**/obj/
-**/TestResults/
-**/Backups/
-**/.vs/
-**/.git/
-*.db
-*.db-wal
-*.db-shm
-*.sqlite
-*.sqlite3
-*.xlsx
-*.xls
-*.csv
-*.pdf
-*.docx
-*.bak
-*.bak_*
-*.before_*
-*.draft_*
-*.map
+*.user
+*.suo
 *.pfx
+*.p12
 *.pem
 *.key
 .env
 .env.*
-appsettings.json
 appsettings.Development.json
 appsettings.Production.json
-appsettings.Local.json
-dotnet-tools.json
+secrets.json
+wwwroot/uploads/
+*.zip
+
+*.xlsx
+*.xls
+*.xlsm
+*.bak
+MC_*Kontrol*.txt
+MC_*Mutabakat*.txt
+MC_*Raporu*.txt
+PaletEntegrasyonKontrol.txt
+PaletSistemAnalizi.txt
+STOK_ENTEGRASYON_INCELEME.txt
+StokGuvenligiAnalizi.txt
+islem-gecmisi-kodlar.txt
+mc-final-audit.txt
+migration-hatasi.txt
+yetki-duzenleme.txt
+yetki-ek-dosyalar.txt
+mc-server-hidden.ps1
+*.map
+*.before_restore

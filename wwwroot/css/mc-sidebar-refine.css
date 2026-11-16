@@ -1,0 +1,73 @@
+/* MASTER CHEF - TICARI YONETIM MENU DUZENI */
+
+.mc-trade-item {
+    margin-bottom: 3px;
+}
+
+.mc-trade-item > a,
+.mc-trade-item > button {
+    border-radius: 10px;
+    transition: background .15s ease, color .15s ease;
+}
+
+.mc-trade-item > a:hover,
+.mc-trade-item > button:hover {
+    background: rgba(255,255,255,.075);
+}
+
+.mc-trade-item.mc-trade-control > a,
+.mc-trade-item.mc-trade-control > button {
+    font-weight: 600;
+}
+
+.mc-trade-control .mc-trade-submenu {
+    margin: 5px 0 8px 13px;
+    padding-left: 9px;
+    border-left: 1px solid rgba(158,183,215,.24);
+}
+
+.mc-trade-control .mc-trade-submenu > li {
+    margin: 2px 0;
+}
+
+.mc-trade-control .mc-trade-submenu a {
+    display: flex;
+    align-items: center;
+    min-height: 35px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.35;
+    text-decoration: none;
+    color: inherit;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.mc-trade-control .mc-trade-submenu a:hover {
+    background: rgba(255,255,255,.08);
+}
+
+.mc-trade-control .mc-trade-submenu a[aria-current="page"],
+.mc-trade-control .mc-trade-submenu a.active {
+    background: rgba(71,132,198,.28);
+    font-weight: 600;
+}
+
+.mc-trade-control .mc-trade-submenu a:focus-visible {
+    outline: 2px solid #88baff;
+    outline-offset: 2px;
+}
+
+.mc-trade-control .mc-trade-submenu .mc-trade-divider {
+    height: 1px;
+    margin: 9px 8px;
+    background: rgba(158,183,215,.18);
+    list-style: none;
+}
+
+@media (max-width: 768px) {
+    .mc-trade-control .mc-trade-submenu a {
+        min-height: 39px;
+    }
+}

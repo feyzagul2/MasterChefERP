@@ -1,0 +1,375 @@
+﻿@model List<MasterChefTakip.Controllers.DueAuditHistoryRow>
+@{
+    ViewData["Title"] = "Vade Değişiklik Geçmişi";
+    var warning = ViewBag.Warning as string ?? "";
+}
+
+<div style="max-width:1200px;margin:25px auto;padding:20px">
+
+    <h1 style="color:#183b59">Vade Değişiklik Geçmişi</h1>
+
+    <p style="color:#64748b">
+        Vade tarihlerini kimlerin, hangi işlemler için
+        kaydettiğini gösterir. Bu ekran yalnızca görüntüleme amaçlıdır.
+    </p>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin:20px 0">
+        <a href="/MCFinanceOverview"
+           style="background:#183b59;color:white;padding:11px 16px;
+                  border-radius:8px;text-decoration:none">
+            Finans Kontrol Merkezi
+        </a>
+
+        <!-- MC_AUDIT_FILTERED_CSV_V3 -->
+<button id="mcAuditFilteredCsv"
+        type="button"
+        style="background:#2563eb;color:white;border:0;
+               border-radius:8px;padding:11px 16px;cursor:pointer">
+    Filtrelenmiş CSV
+</button>
+<a href="/MCDueAuditHistory/Csv"
+           style="background:#0f766e;color:white;padding:11px 16px;
+                  border-radius:8px;text-decoration:none">
+            Tüm Geçmişi CSV Olarak Aktar
+        </a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(warning))
+    {
+        <div style="background:#fff7ed;padding:15px;border-radius:8px">
+            @warning
+        </div>
+    }
+    else if (Model.Count == 0)
+    {
+        <p>Henüz vade değişiklik kaydı bulunmuyor.</p>
+    }
+    else
+    {
+        <div style="overflow-x:auto">
+            <!-- MC_DUE_AUDIT_FILTER_V2 -->
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin:16px 0">
+
+    <input id="mcAuditSearch"
+           type="search"
+           placeholder="Cari hesap veya hareket numarası ara"
+           aria-label="Denetim kayıtlarında ara"
+           style="flex:2;min-width:220px;padding:10px;
+                  border:1px solid #cbd5e1;border-radius:8px" />
+
+    <select id="mcAuditUser"
+            aria-label="Kullanıcı filtresi"
+            style="flex:1;min-width:160px;padding:10px;
+                   border:1px solid #cbd5e1;border-radius:8px">
+        <option value="">Tüm Kullanıcılar</option>
+        @foreach (var username in Model
+            .Select(x => x.ChangedBy)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()
+            .OrderBy(x => x))
+        {
+            <option value="@username">@username</option>
+        }
+    </select>
+
+    <label style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:12px">Başlangıç</span>
+        <input id="mcAuditFrom"
+               type="date"
+               style="padding:10px;border:1px solid #cbd5e1;
+                      border-radius:8px" />
+    </label>
+
+    <label style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:12px">Bitiş</span>
+        <input id="mcAuditTo"
+               type="date"
+               style="padding:10px;border:1px solid #cbd5e1;
+                      border-radius:8px" />
+    </label>
+
+    <button id="mcAuditClear"
+            type="button"
+            style="background:#eef2f7;color:#183b59;
+                   border:1px solid #cbd5e1;border-radius:8px;
+                   padding:10px 16px;cursor:pointer">
+        Temizle
+    </button>
+</div>
+
+
+<!-- MC_AUDIT_FULL_FILTERED_EXPORT_V1 -->
+<button id="mcAuditFullFilteredCsv"
+        type="button"
+        style="background:#0f766e;color:white;border:0;
+               border-radius:8px;padding:11px 16px;
+               margin:8px 0;cursor:pointer">
+    Tüm Geçmişte Filtreli CSV
+</button>
+<p id="mcAuditCounter"
+   role="status"
+   style="font-size:13px;color:#64748b">
+</p>
+<table id="mcAuditHistoryTable" style="width:100%;border-collapse:collapse">
+                <thead>
+                    <tr style="background:#eef3f8">
+                        <th style="padding:10px;text-align:left">Denetim No</th>
+                        <th style="padding:10px;text-align:left">Hareket No</th>
+                        <th style="padding:10px;text-align:left">Cari Hesap</th>
+                        <th style="padding:10px;text-align:left">İşlem</th>
+                        <th style="padding:10px;text-align:left">Eski Vade</th>
+                        <th style="padding:10px;text-align:left">Yeni Vade</th>
+                        <th style="padding:10px;text-align:left">UTC Zaman</th>
+                        <th style="padding:10px;text-align:left">Kullanıcı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model)
+                    {
+                        <tr style="border-bottom:1px solid #e5e7eb">
+                            <td style="padding:10px">@row.Id</td>
+                            <td style="padding:10px">@row.MovementId</td>
+                            <td style="padding:10px">@row.Company</td>
+                            <td style="padding:10px">@row.MovementType</td>
+                            <td style="padding:10px">
+                                @(string.IsNullOrWhiteSpace(row.OldDate)
+                                    ? "Boş"
+                                    : row.OldDate)
+                            </td>
+                            <td style="padding:10px">@row.NewDate</td>
+                            <td style="padding:10px">@row.ChangedAt</td>
+                            <td style="padding:10px">@row.ChangedBy</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <p style="font-size:13px;color:#64748b">
+            Son 200 denetim kaydı gösteriliyor.
+            CSV raporu en fazla 100.000 kayıt içerir.
+        </p>
+    }
+</div>
+<script>
+(function () {
+    "use strict";
+
+    const table = document.getElementById("mcAuditHistoryTable");
+    const search = document.getElementById("mcAuditSearch");
+    const user = document.getElementById("mcAuditUser");
+    const from = document.getElementById("mcAuditFrom");
+    const to = document.getElementById("mcAuditTo");
+    const clear = document.getElementById("mcAuditClear");
+    const counter = document.getElementById("mcAuditCounter");
+
+    if (!table || !search || !user || !from ||
+        !to || !clear || !counter) return;
+
+    const rows = Array.from(table.querySelectorAll("tbody tr"));
+
+    function apply() {
+        const query = search.value
+            .trim()
+            .toLocaleLowerCase("tr-TR");
+
+        const selectedUser = user.value;
+        const fromDate = from.value;
+        const toDate = to.value;
+
+        let visible = 0;
+
+        rows.forEach(row => {
+            const cells = Array.from(row.querySelectorAll("td"));
+
+            if (cells.length !== 8) {
+                row.hidden = true;
+                return;
+            }
+
+            const movementId = cells[1].textContent.trim();
+            const company = cells[2].textContent.trim();
+            const username = cells[7].textContent.trim();
+            const rawDate = cells[6].textContent.trim();
+
+            const date = /^\d{4}-\d{2}-\d{2}/.test(rawDate)
+                ? rawDate.slice(0, 10)
+                : "";
+
+            const searchable = (
+                movementId + " " + company
+            ).toLocaleLowerCase("tr-TR");
+
+            const matchesSearch =
+                !query || searchable.includes(query);
+
+            const matchesUser =
+                !selectedUser || username === selectedUser;
+
+            const matchesDates =
+                (!fromDate && !toDate) ||
+                (
+                    date !== "" &&
+                    (!fromDate || date >= fromDate) &&
+                    (!toDate || date <= toDate)
+                );
+
+            row.hidden = !(
+                matchesSearch &&
+                matchesUser &&
+                matchesDates
+            );
+
+            if (!row.hidden) visible++;
+        });
+
+        counter.textContent =
+            visible + " / " + rows.length +
+            " denetim kaydı gösteriliyor. " +
+            "Filtreler ekranda yüklü son 200 kayıt için geçerlidir.";
+    }
+
+    search.addEventListener("input", apply);
+    user.addEventListener("change", apply);
+    from.addEventListener("change", apply);
+    to.addEventListener("change", apply);
+
+    clear.addEventListener("click", function () {
+        search.value = "";
+        user.value = "";
+        from.value = "";
+        to.value = "";
+        apply();
+    });
+
+    apply();
+})();
+</script>
+<script>
+(function () {
+    "use strict";
+
+    const button = document.getElementById("mcAuditFilteredCsv");
+    const table = document.getElementById("mcAuditHistoryTable");
+
+    if (!button || !table) return;
+
+    function csvCell(input) {
+        let value = String(input ?? "")
+            .replace(/\r?\n/g, " ")
+            .trim();
+
+        const first = value.trimStart().charAt(0);
+
+        if ([
+            "=",
+            "+",
+            "-",
+            String.fromCharCode(64)
+        ].includes(first)) {
+            value = "'" + value;
+        }
+
+        return '"' + value.replace(/"/g, '""') + '"';
+    }
+
+    button.addEventListener("click", function () {
+        const rows = Array.from(
+            table.querySelectorAll("tbody tr")
+        ).filter(row => !row.hidden);
+
+        if (!rows.length) {
+            alert("Filtreye uygun denetim kaydı bulunmuyor.");
+            return;
+        }
+
+        const headers = Array.from(
+            table.querySelectorAll("thead th")
+        ).map(cell => csvCell(cell.textContent));
+
+        const output = [headers.join(";")];
+
+        rows.forEach(row => {
+            const cells = Array.from(row.querySelectorAll("td"));
+
+            if (cells.length !== 8) return;
+
+            output.push(
+                cells.map(cell => csvCell(cell.textContent)).join(";")
+            );
+        });
+
+        const blob = new Blob(
+            ["\uFEFF", output.join("\r\n")],
+            { type: "text/csv;charset=utf-8" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        const now = new Date();
+        const stamp = [
+            now.getFullYear(),
+            String(now.getMonth() + 1).padStart(2, "0"),
+            String(now.getDate()).padStart(2, "0")
+        ].join("");
+
+        link.href = url;
+        link.download =
+            "MASTER_CHEF_VADE_DENETIM_FILTRELI_" +
+            stamp + ".csv";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(function () {
+            URL.revokeObjectURL(url);
+        }, 1000);
+    });
+})();
+</script>
+<script>
+(function () {
+    "use strict";
+
+    const button =
+        document.getElementById("mcAuditFullFilteredCsv");
+
+    if (!button) return;
+
+    button.addEventListener("click", function () {
+        function value(id) {
+            const element = document.getElementById(id);
+            return element ? element.value.trim() : "";
+        }
+
+        const params = new URLSearchParams();
+
+        const filters = {
+            search: value("mcAuditSearch"),
+            username: value("mcAuditUser"),
+            dateFrom: value("mcAuditFrom"),
+            dateTo: value("mcAuditTo")
+        };
+
+        if (filters.dateFrom &&
+            filters.dateTo &&
+            filters.dateFrom > filters.dateTo) {
+            alert("Başlangıç tarihi bitişten büyük olamaz.");
+            return;
+        }
+
+        Object.entries(filters).forEach(function (entry) {
+            if (entry[1]) {
+                params.set(entry[0], entry[1]);
+            }
+        });
+
+        window.location.assign(
+            "/MCDueAuditFilteredExport/Csv?" +
+            params.toString()
+        );
+    });
+})();
+</script>

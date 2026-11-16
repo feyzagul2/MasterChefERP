@@ -1,0 +1,188 @@
+@model MasterChefTakip.Controllers.MCRawCardsPage
+
+@{
+    ViewData["Title"] = "Hammadde Kartlar?";
+}
+
+<div style="max-width:1150px;margin:24px auto;padding:20px">
+
+    <h2>MASTER CHEF ? Hammadde Kartlar?</h2>
+
+    <p>
+        Hammadde kartı oluşturun ve minimum stok seviyesini belirleyin.
+        Kart oluşturulması fiili stok miktarını artırmaz.
+    </p>
+
+    @if (TempData["MCError"] != null)
+    {
+        <div style="padding:12px;background:#fef2f2;color:#991b1b">
+            @TempData["MCError"]
+        </div>
+    }
+
+    @if (TempData["MCSuccess"] != null)
+    {
+        <div style="padding:12px;background:#f0fdf4;color:#166534">
+            @TempData["MCSuccess"]
+        </div>
+    }
+
+    <form method="post"
+          asp-controller="MCRawMaterialCards"
+          asp-action="Create"
+          style="display:flex;flex-wrap:wrap;gap:12px;
+                 align-items:end;padding:20px;
+                 background:#f8fafc;border-radius:10px;
+                 margin:20px 0">
+
+        @Html.AntiForgeryToken()
+
+        <label>
+            Hammadde Kodu
+            <input name="code" required maxlength="50"
+                   style="display:block;padding:10px" />
+        </label>
+
+        <label>
+            Hammadde Ad?
+            <input name="name" required maxlength="200"
+                   style="display:block;padding:10px" />
+        </label>
+
+        <label>
+            ölçü Birimi
+            <select name="unit" required
+                    style="display:block;padding:10px">
+                <option value="KG">KG</option>
+                <option value="L">L</option>
+                <option value="ADET">ADET</option>
+            </select>
+        </label>
+
+        <label>
+            Minimum Stok
+            <input name="minimumStock"
+                   type="number"
+                   min="0"
+                   step="0.0001"
+                   value="0"
+                   required
+                   style="display:block;padding:10px" />
+        </label>
+
+        <button type="submit"
+                style="padding:11px 18px;
+                       background:#166534;color:white;
+                       border:0;border-radius:7px">
+            Hammadde Kart?n? Kaydet
+        </button>
+    </form>
+
+    <h3>Kayıtlı Hammaddeler</h3>
+
+    <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse">
+
+            <thead style="background:#f1f5f9">
+                <tr>
+                    <th style="padding:12px;text-align:left">Kod</th>
+                    <th style="padding:12px;text-align:left">Ad</th>
+                    <th style="padding:12px;text-align:left">Birim</th>
+                    <th style="padding:12px;text-align:right">Minimum Stok</th>
+                    <th style="padding:12px;text-align:left">Durum</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model.Rows)
+                {
+                    <tr style="border-bottom:1px solid #e2e8f0">
+                        <td style="padding:11px">@item.Code</td>
+                        <td style="padding:11px">@item.Name</td>
+                        <td style="padding:11px">@item.Unit</td>
+                        <td style="padding:11px;text-align:right">
+                            @item.MinimumStock
+                        </td>
+                        <td style="padding:11px">
+                            @(item.IsActive ? "Aktif" : "Pasif")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.Rows.Count == 0)
+    {
+        <p>Hen?z kayıtlı hammadde bulunmuyor.</p>
+    }
+
+    <p style="margin-top:20px">
+        <a href="/MCReceiptTransferHistory">
+            Stok Aktarım Geçmişi
+        </a>
+    </p>
+</div>
+
+    @* MC_RAW_SEARCH_UI_SAFE_V4 *@
+
+    <form method="get"
+          action="/MCRawMaterialCards"
+          style="display:flex;flex-wrap:wrap;
+                 gap:12px;align-items:end;
+                 margin:18px 0;padding:16px;
+                 background:#f8fafc;
+                 border-radius:9px">
+
+        <label>
+            Hammadde Ara
+
+            <input type="search"
+                   name="q"
+                   value="@Model.Search"
+                   maxlength="100"
+                   placeholder="Kod, ad veya birim"
+                   style="display:block;padding:10px;
+                          min-width:260px" />
+        </label>
+
+        <label>
+            Durum
+
+            <select name="durum"
+                    style="display:block;padding:10px">
+
+                <option value="tumu"
+                        selected="@(Model.Status == "tumu")">
+                    Tümü
+                </option>
+
+                <option value="aktif"
+                        selected="@(Model.Status == "aktif")">
+                    Aktif
+                </option>
+
+                <option value="pasif"
+                        selected="@(Model.Status == "pasif")">
+                    Pasif
+                </option>
+
+            </select>
+        </label>
+
+        <button type="submit"
+                style="padding:11px 18px;
+                       background:#334155;
+                       border:0;border-radius:7px;
+                       color:white">
+            Ara
+        </button>
+
+        <a href="/MCRawMaterialCards"
+           style="padding:10px 17px;
+                  border:1px solid #cbd5e1;
+                  border-radius:7px;
+                  text-decoration:none">
+            Temizle
+        </a>
+    </form>

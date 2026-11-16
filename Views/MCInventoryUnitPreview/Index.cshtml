@@ -1,0 +1,84 @@
+@model MasterChefTakip.Controllers.MCUnitPreviewPage
+
+@{
+    ViewData["Title"] = "ölçü Birimi Dön???m Kontrol?";
+}
+
+<div style="max-width:820px;margin:24px auto;padding:22px;font:inherit">
+    <h2>ölçü Birimi Dön???m Kontrol?</h2>
+
+    <p>Mal kabul öncesinde miktar ve ölçü birimini kontrol edin.</p>
+
+    <form method="get" action="/MCInventoryUnitPreview"
+          style="display:flex;gap:12px;flex-wrap:wrap;align-items:end">
+
+        <label>
+            Miktar
+            <input name="miktar" type="number" min="0.0001"
+                   step="0.0001" required
+                   value="@Model.Quantity"
+                   style="display:block;padding:9px;font:inherit" />
+        </label>
+
+        <label>
+            Kaynak Birim
+            <select name="kaynak" required
+                    style="display:block;padding:9px;font:inherit">
+                <option value="">Se?iniz</option>
+                @foreach (var unit in new[] { "KG", "GR", "TON", "L", "ML", "ADET", "METRE" })
+                {
+                    <option value="@unit" selected="@(Model.From == unit)">@unit</option>
+                }
+            </select>
+        </label>
+
+        <label>
+            Hedef Birim
+            <select name="hedef" required
+                    style="display:block;padding:9px;font:inherit">
+                <option value="">Se?iniz</option>
+                @foreach (var unit in new[] { "KG", "GR", "TON", "L", "ML", "ADET", "METRE" })
+                {
+                    <option value="@unit" selected="@(Model.To == unit)">@unit</option>
+                }
+            </select>
+        </label>
+
+        <button type="submit"
+                style="padding:10px 16px;border:0;border-radius:7px;
+                       background:#334155;color:white;font:inherit">
+            Dön???m? Kontrol Et
+        </button>
+    </form>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Error))
+    {
+        <div style="margin-top:20px;padding:15px;background:#fef2f2;
+                    color:#991b1b;border-radius:8px">
+            @Model.Error
+        </div>
+    }
+
+    @if (Model.Success)
+    {
+        <div style="margin-top:20px;padding:18px;background:#f0fdf4;
+                    border:1px solid #86efac;border-radius:8px">
+            <strong>Dön???m Sonucu</strong>
+            <p style="font-size:22px">
+                @Model.Quantity @Model.From =
+                <strong>@Model.Result @Model.To</strong>
+            </p>
+        </div>
+    }
+
+    <p style="margin-top:22px">
+        <a href="/MCInventoryReceiptPreparation">
+            Mal Kabul Hazırlık Ekranına Dön
+        </a>
+    </p>
+
+    <p style="color:#64748b">
+        Bu hesaplama stok girişi veya mal kabul kaydı olu?turmaz.
+        Farkl? ölçü t?rleri birbirine dönüşt?r?lmez.
+    </p>
+</div>

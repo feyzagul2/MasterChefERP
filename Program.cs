@@ -88,6 +88,8 @@ builder.Services.AddScoped<UserManagementService>();
 // Bütün yetkiler tek noktadan tanımlanır.
 OperationAuthorization.Configure(builder.Services);
 
+builder.Services.AddScoped<MasterChefTakip.Controllers.MCFinanceErrorFilter>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -120,6 +122,7 @@ app.Use(async (context, next) =>
     await next(context);
 });
 
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
@@ -135,4 +138,25 @@ app.MapControllerRoute(
 app.MapRazorPages()
     .WithStaticAssets();
 
+    // MC_ATOMIC_SHIPMENT_SQLITE_V1
+    // SQLite yeni sevkiyat INSERT islemlerinde
+    // atomik stok yeterlilik kontrolu uygular.
+    using (var mcShipmentGuardScope = app.Services.CreateScope())
+    {
+        var mcShipmentGuardDb =
+            mcShipmentGuardScope.ServiceProvider
+                .GetRequiredService<
+                    global::MasterChefTakip.Data.ApplicationDbContext>();
+
+        global::MasterChefTakip.Controllers
+            .MCShipmentAtomicSqliteGuard
+            .Install(mcShipmentGuardDb);
+    }
+
+// MC_CARI_ACCOUNTS_LEGACY_REDIRECT_V1
+app.MapGet("/MCCariAccounts", context =>
+{
+    context.Response.Redirect("/CariAccounts", permanent: false);
+    return Task.CompletedTask;
+});
 app.Run();

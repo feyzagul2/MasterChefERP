@@ -1,0 +1,93 @@
+@{
+    ViewData["Title"] = "Satın Alma Fatura Durumları";
+    var report = ViewData["ReportHtml"]?.ToString() ?? "";
+    var styles = ViewData["ReportStyles"]?.ToString() ?? "";
+}
+
+<style>
+.mc-invoice-shell {
+    max-width:1450px;
+    margin:auto;
+    padding:14px 20px;
+}
+
+.mc-invoice-actions {
+    display:flex;
+    gap:9px;
+    flex-wrap:wrap;
+    margin:0 0 15px;
+}
+
+.mc-invoice-actions a {
+    display:inline-flex;
+    align-items:center;
+    padding:10px 15px;
+    border-radius:8px;
+    background:#193e5d;
+    color:white!important;
+    text-decoration:none!important;
+    font-size:13px;
+    font-weight:650;
+}
+
+.mc-invoice-actions a:hover {
+    background:#087c72;
+}
+
+.mc-invoice-report {
+    min-width:0;
+    overflow-x:auto;
+}
+
+.mc-invoice-report table {
+    width:100%;
+}
+
+@@media(max-width:700px) {
+    .mc-invoice-shell {
+        padding:10px;
+    }
+}
+/* MC_INVOICE_STATUS_FLOW_CSS_V1 */ .mc-invoice-flow-card{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 14px;padding:13px 15px;border:1px solid #dbe4ee;border-radius:10px;background:#f8fafc}.mc-invoice-flow-card strong,.mc-invoice-flow-card span{display:block}.mc-invoice-flow-card strong{color:#173b59}.mc-invoice-flow-card span{margin-top:3px;font-size:12px;color:#64748b}.mc-invoice-flow-card a{text-decoration:none!important;font-weight:700;color:#17406a!important;white-space:nowrap}
+</style>
+
+@Html.Raw(styles)
+
+<div class="mc-invoice-shell">
+
+    <div class="mc-invoice-actions"><a href="/MCPurchaseInvoiceEntry">← Fatura Girişi</a><a href="/MCPurchaseInvoiceCariPosting">Sonraki Adım: Cari Aktarım →</a><a href="/MCPurchaseInvoiceStatus/Excel">Excel / CSV Aktar</a><a href="/MCFinanceOverview">Finans Merkezi</a></div>
+
+    <div class="mc-invoice-flow-card"><div><strong>Fatura Kontrolü</strong><span>Fatura durumlarını kontrol edin. Kesinleşen kayıtlar için üstteki Sonraki Adım: Cari Aktarım düğmesini kullanın.</span></div></div><!-- MC_INVOICE_STATUS_FLOW_V2 -->
+<div class="mc-invoice-report">
+        @Html.Raw(report)
+    </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+
+    const area=document.querySelector(".mc-invoice-report");
+    if(!area)return;
+
+    const table=area.querySelector("table");
+    if(!table)return;
+
+    const tbody=table.querySelector("tbody");
+
+    if(!tbody || !tbody.querySelector("tr")){
+        const row=document.createElement("tr");
+        const cell=document.createElement("td");
+
+        cell.colSpan=6;
+        cell.textContent="Henüz fatura kaydı bulunmuyor.";
+        cell.style.cssText=
+            "padding:22px;text-align:center;color:#64748b";
+
+        row.appendChild(cell);
+
+        if(tbody)tbody.appendChild(row);
+    }
+
+});
+</script>

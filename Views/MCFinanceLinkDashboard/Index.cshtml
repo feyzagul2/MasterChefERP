@@ -1,0 +1,1017 @@
+@{
+    ViewData["Title"] = "Finansal Denetim";
+    Layout = "_Layout";
+}
+
+<style>
+.mc-audit {
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 26px 15px;
+    color: #172b45;
+}
+
+.mc-audit * {
+    box-sizing: border-box;
+}
+
+.mc-audit-hero {
+    background: linear-gradient(120deg, #142c49, #284e75);
+    border-radius: 18px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 24px;
+}
+
+.mc-audit-hero h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 8px;
+}
+
+.mc-audit-hero p {
+    margin: 0;
+    color: #dce7f2;
+}
+
+.mc-audit-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+}
+
+.mc-audit-button {
+    border: 0;
+    border-radius: 10px;
+    padding: 11px 19px;
+    background: #e7bc65;
+    color: #172b45;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.mc-audit-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 17px;
+    margin-bottom: 25px;
+}
+
+.mc-audit-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 22px;
+    background: #fff;
+    box-shadow: 0 5px 22px rgba(16, 37, 60, .05);
+}
+
+.mc-audit-card .label {
+    font-size: 14px;
+    color: #65778d;
+    margin-bottom: 12px;
+}
+
+.mc-audit-card .number {
+    font-size: 34px;
+    font-weight: 800;
+    color: #182f4c;
+    line-height: 1.2;
+}
+
+.mc-audit-card .detail {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #71839a;
+}
+
+.mc-audit-section {
+    font-size: 21px;
+    font-weight: 800;
+    margin: 28px 0 16px;
+}
+
+.mc-audit-status {
+    border-radius: 13px;
+    padding: 17px 20px;
+    margin-bottom: 22px;
+    background: #edf4fc;
+    border: 1px solid #d8e5f3;
+}
+
+.mc-audit-status.ok {
+    background: #eaf8f0;
+    border-color: #b7e4c8;
+    color: #176a3c;
+}
+
+.mc-audit-status.warn {
+    background: #fff5e5;
+    border-color: #f1d6a2;
+    color: #825210;
+}
+
+.mc-audit-status.error {
+    background: #fcecec;
+    border-color: #e8b9b9;
+    color: #9e2424;
+}
+
+.mc-audit-warning {
+    border-bottom: 1px solid #e4e9ef;
+    padding: 12px 0;
+    font-size: 14px;
+}
+
+.mc-audit-warning:last-child {
+    border-bottom: 0;
+}
+
+.mc-audit-footer {
+    margin-top: 20px;
+    color: #71839a;
+    font-size: 13px;
+}
+
+@@media (max-width: 850px) {
+    .mc-audit-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@@media (max-width: 540px) {
+    .mc-audit-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mc-audit-hero {
+        padding: 22px;
+    }
+
+    .mc-audit-hero h1 {
+        font-size: 23px;
+    }
+}
+</style>
+
+<style>
+/* MC_FINANCE_DASHBOARD_NAV_V14 */
+.mc-audit-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 22px;
+}
+.mc-audit-nav-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px;
+    border-radius: 11px;
+    background: #ffffff;
+    color: #173451;
+    border: 1px solid #dce6ef;
+    text-decoration: none;
+    font-weight: 700;
+}
+.mc-audit-nav-link:hover {
+    background: #edf4fb;
+    color: #173451;
+    text-decoration: none;
+}
+@@media (max-width: 540px) {
+    .mc-audit-navigation {
+        flex-direction: column;
+    }
+    .mc-audit-nav-link {
+        width: 100%;
+    }
+}
+</style>
+<style>
+/* MC_FINANCE_PRINT_REPORT_V15 */
+@@media print {
+    @@page {
+        size: A4 portrait;
+        margin: 12mm;
+    }
+
+    body {
+        background: white !important;
+        color: #111827 !important;
+    }
+
+    .mc-audit {
+        max-width: none !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .mc-audit-hero {
+        background: #fff !important;
+        color: #172b45 !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 15px !important;
+        margin-bottom: 12px !important;
+        box-shadow: none !important;
+    }
+
+    .mc-audit-hero h1,
+    .mc-audit-hero p {
+        color: #172b45 !important;
+    }
+
+    .mc-audit-toolbar button,
+    .mc-audit-navigation,
+    .mc-audit-footer {
+        display: none !important;
+    }
+
+    .mc-audit-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
+    }
+
+    .mc-audit-card {
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        padding: 12px !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    .mc-audit-card .number {
+        font-size: 23px !important;
+    }
+
+    .mc-audit-section {
+        font-size: 16px !important;
+        margin: 15px 0 10px !important;
+        break-after: avoid !important;
+    }
+
+    .mc-audit-status {
+        border: 1px solid #cbd5e1 !important;
+        padding: 10px !important;
+        break-inside: avoid !important;
+    }
+
+    .mc-audit-warning {
+        break-inside: avoid !important;
+    }
+}
+</style>
+<div class="mc-audit">
+
+    <div class="mc-audit-hero">
+        <h1>MASTER CHEF | Finansal Denetim</h1>
+        <p>
+            Cari hesaplar, banka/kasa hareketleri ve
+            finansal bağlantı güvenliği
+        </p>
+
+        <div class="mc-audit-toolbar">
+            <span id="mcAuditDate">Veriler yükleniyor...</span>
+
+            <button type="button"
+                    id="mcAuditRefresh"
+                    class="mc-audit-button">
+                Verileri Yenile
+            </button>
+            <button type="button"
+                    id="mcAuditAutoRefresh"
+                    class="mc-audit-button"
+                    aria-pressed="true">
+                Otomatik Yenileme: Açık
+            </button>
+<button type="button"
+        id="mcAuditExport"
+        class="mc-audit-button"
+        disabled>
+    CSV Raporu İndir
+</button>
+<button type="button"
+        id="mcAuditPrint"
+        class="mc-audit-button"
+        disabled>
+    Raporu Yazdır / PDF
+</button>
+        </div>
+    </div>
+
+    <div id="mcAuditStatus"
+         class="mc-audit-status">
+        Finansal denetim bilgileri yükleniyor.
+    </div>
+
+    <!-- MC_FINANCE_DASHBOARD_NAV_V14 -->
+<nav class="mc-audit-navigation" aria-label="Finans sayfalari">
+    <a href="@Url.Content("~/MCFinanceOverview")"
+       class="mc-audit-nav-link">
+        &larr; Finans Genel Bakış
+    </a>
+    <a href="@Url.Content("~/MCCariLedger")"
+       class="mc-audit-nav-link">
+        Cari Hareketler
+    </a>
+</nav>
+<div class="mc-audit-section">Genel Finans Durumu</div>
+
+    <div class="mc-audit-grid">
+
+        <div class="mc-audit-card">
+            <div class="label">Toplam Cari Hareket</div>
+            <div class="number" id="totalCari">—</div>
+            <div class="detail">Sistemdeki cari hareketler</div>
+        </div>
+
+        <div class="mc-audit-card">
+            <div class="label">Banka / Kasa Hareketleri</div>
+            <div class="number" id="totalBank">—</div>
+            <div class="detail">Toplam finans hareketi</div>
+        </div>
+
+        <div class="mc-audit-card">
+            <div class="label">Bağlantılı Cari Hareketler</div>
+            <div class="number" id="linkedCari">—</div>
+            <div class="detail">Banka/kasa bağlantısı bulunanlar</div>
+        </div>
+
+    </div>
+
+    <div class="mc-audit-section">Finansal Güvenlik Kontrolleri</div>
+
+    <div class="mc-audit-grid">
+
+        <div class="mc-audit-card">
+            <div class="label">Mükerrer Banka Bağlantısı</div>
+            <div class="number" id="duplicateLinks">—</div>
+            <div class="detail">Birden fazla cari harekete bağlananlar</div>
+        </div>
+
+        <div class="mc-audit-card">
+            <div class="label">Eksik Banka Hareketi</div>
+            <div class="number" id="missingBank">—</div>
+            <div class="detail">Bağlantısı bozuk cari hareketler</div>
+        </div>
+
+        <div class="mc-audit-card">
+            <div class="label">Bağlantısız Tahsilat / Ödeme</div>
+            <div class="number" id="missingPayment">—</div>
+            <div class="detail">Banka/kasa hareketine bağlı olmayanlar</div>
+        </div>
+
+        <div class="mc-audit-card">
+            <div class="label">Para Birimi Uyuşmazlığı</div>
+            <div class="number" id="currencyMismatch">—</div>
+            <div class="detail">Cari ile banka/kasa farkları</div>
+        </div>
+
+        <div class="mc-audit-card">
+            <div class="label">İşlem Yönü Uyuşmazlığı</div>
+            <div class="number" id="directionMismatch">—</div>
+            <div class="detail">Tahsilat giriş / ödeme çıkış kontrolü</div>
+        </div>
+
+        <div class="mc-audit-card">
+            <div class="label">UNIQUE İndeks</div>
+            <div class="number" id="uniqueIndex">—</div>
+            <div class="detail">Mükerrer banka bağlantısı koruması</div>
+        </div>
+
+    </div>
+
+    <div class="mc-audit-section">Denetim Uyarıları</div>
+
+    <div class="mc-audit-card">
+        <div id="mcAuditWarnings">
+            Veriler yükleniyor...
+        </div>
+    </div>
+
+    <div class="mc-audit-footer">
+        MASTER CHEF TAKİP · V11 · Yönetici Ekranı ·
+        Salt Okunur Finans Denetimi
+    </div>
+
+</div>
+
+<script>
+(() => {
+    "use strict";
+
+    const endpoint = '@Url.Content("~/MCFinanceLinkAudit")';
+    let mcLastAudit = null;
+    // MC_FINANCE_AUTO_REFRESH_V16
+    let mcAutoRefreshEnabled = true;
+    // MC_FINANCE_DATA_SAFETY_V17
+    let mcAutoRefreshBeforePrint = true;
+    let mcAuditLastSuccessfulAt = null;
+
+    function clearAuditNumbers() {
+        const ids = [
+            "totalCari",
+            "totalBank",
+            "linkedCari",
+            "duplicateLinks",
+            "missingBank",
+            "missingPayment",
+            "currencyMismatch",
+            "directionMismatch",
+            "uniqueIndex"
+        ];
+
+        for (const id of ids) {
+            element(id).textContent = "—";
+        }
+
+        element("mcAuditDate").textContent =
+            "Güncel denetim verisi bulunmuyor.";
+    }
+    let mcAuditLoading = false;
+    let mcAutoRefreshTimer = null;
+
+    const element = id => document.getElementById(id);
+
+    const number = value =>
+        Number(value ?? 0).toLocaleString("tr-TR");
+
+    const setNumber = (id, value) => {
+        element(id).textContent = number(value);
+    };
+
+    const setStatus = (message, type) => {
+        const target = element("mcAuditStatus");
+        target.className = "mc-audit-status " + type;
+        target.textContent = message;
+    };
+
+    async function loadAudit() {
+        if (mcAuditLoading) {
+            return;
+        }
+
+        mcAuditLoading = true;
+        const button = element("mcAuditRefresh");
+
+        mcLastAudit = null;
+        element("mcAuditExport").disabled = true;
+        element("mcAuditPrint").disabled = true;
+        clearAuditNumbers();
+        element("mcAuditPrint").disabled = true;
+        button.disabled = true;
+        button.textContent = "Yükleniyor...";
+
+        try {
+            const response = await fetch(endpoint, {
+                credentials: "same-origin",
+                cache: "no-store",
+                signal: AbortSignal.timeout(15000),
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+
+            if (!response.ok || response.redirected) {
+                throw new Error(
+                    "Denetim verileri okunamadı. Oturum veya yetki kontrolü gerekli."
+                );
+            }
+
+            const contentType =
+                response.headers.get("content-type") || "";
+
+            if (!contentType.includes("application/json")) {
+                throw new Error(
+                    "Finans bilgileri şu anda yüklenemedi. Sayfayı yenileyip tekrar deneyin."
+                );
+            }
+
+            const data = await response.json();
+
+            if (data.version !== "MC_FINANCE_LINK_AUDIT_V10") {
+                throw new Error("Beklenmeyen denetim veri sürümü.");
+            }
+
+                        // MC_FINANCE_RESPONSE_VALIDATION_V18
+            // Reject incomplete, malformed or implausible audit responses.
+            const validCount = value =>
+                Number.isSafeInteger(value) && value >= 0;
+
+            const overviewKeys = [
+                "totalCariMovements",
+                "totalBankMovements",
+                "linkedCariMovements"
+            ];
+
+            const integrityKeys = [
+                "duplicateBankLinks",
+                "missingBankMovements",
+                "missingPaymentLinks",
+                "accountMismatches",
+                "directionMismatches"
+            ];
+
+            const validOverview =
+                data.overview &&
+                overviewKeys.every(key =>
+                    validCount(data.overview[key])
+                );
+
+            const validIntegrity =
+                data.integrity &&
+                integrityKeys.every(key =>
+                    validCount(data.integrity[key])
+                );
+
+            const validIndex =
+                data.uniqueIndex &&
+                typeof data.uniqueIndex.exists === "boolean";
+
+            const validWarnings =
+                Array.isArray(data.warnings) &&
+                data.warnings.every(item =>
+                    typeof item === "string"
+                );
+
+            const validDate =
+                typeof data.checkedAtUtc === "string" &&
+                Number.isFinite(
+                    Date.parse(data.checkedAtUtc)
+                );
+
+            const validStatus =
+                data.status === "OK" ||
+                data.status === "ReviewRequired";
+
+            if (!validOverview ||
+                !validIntegrity ||
+                !validIndex ||
+                !validWarnings ||
+                !validDate ||
+                !validStatus ||
+                data.mode !== "ReadOnly" ||
+                data.overview.linkedCariMovements >
+                    data.overview.totalCariMovements ||
+                (data.status === "OK" &&
+                    data.warnings.length !== 0)) {
+                throw new Error(
+                    "Finans denetim verisi eksik veya tutarsız. " +
+                    "Hatalı değerler ekranda gösterilmedi."
+                );
+            }
+                        // MC_FINANCE_FRESHNESS_GUARD_V19
+            // Only accept recently generated, internally consistent audits.
+            const mcV19Timestamp = Date.parse(data.checkedAtUtc);
+            const mcV19Now = Date.now();
+
+            const mcV19Fresh =
+                Number.isFinite(mcV19Timestamp) &&
+                mcV19Timestamp <= mcV19Now + 120000 &&
+                mcV19Timestamp >= mcV19Now - 300000;
+
+            const mcV19WarningsConsistent =
+                (data.status === "OK" &&
+                 data.warnings.length === 0) ||
+                (data.status === "ReviewRequired" &&
+                 data.warnings.length > 0);
+
+            const mcV19IndexConsistent =
+                data.uniqueIndex.exists ||
+                data.status === "ReviewRequired";
+
+            const mcV19TotalsConsistent =
+                data.overview.linkedCariMovements <=
+                    data.overview.totalCariMovements &&
+                data.integrity.missingPaymentLinks <=
+                    data.overview.totalCariMovements &&
+                data.integrity.missingBankMovements <=
+                    data.overview.linkedCariMovements &&
+                data.integrity.accountMismatches <=
+                    data.overview.linkedCariMovements &&
+                data.integrity.directionMismatches <=
+                    data.overview.linkedCariMovements;
+
+            if (!mcV19Fresh ||
+                !mcV19WarningsConsistent ||
+                !mcV19IndexConsistent ||
+                !mcV19TotalsConsistent) {
+                throw new Error(
+                    "Finans denetim verisi güncel veya tutarlı değil. " +
+                    "Ekran ve rapor verileri güvenlik nedeniyle yenilenmedi."
+                );
+            }
+            mcLastAudit = data;
+            mcAuditLastSuccessfulAt = new Date();
+            element("mcAuditExport").disabled = false;
+            element("mcAuditPrint").disabled = false;
+            setNumber("totalCari", data.overview.totalCariMovements);
+            setNumber("totalBank", data.overview.totalBankMovements);
+            setNumber("linkedCari", data.overview.linkedCariMovements);
+
+            setNumber("duplicateLinks", data.integrity.duplicateBankLinks);
+            setNumber("missingBank", data.integrity.missingBankMovements);
+            setNumber("missingPayment", data.integrity.missingPaymentLinks);
+            setNumber("currencyMismatch", data.integrity.accountMismatches);
+            setNumber("directionMismatch", data.integrity.directionMismatches);
+
+            element("uniqueIndex").textContent =
+                data.uniqueIndex.exists ? "AKTİF" : "YOK";
+
+            element("mcAuditDate").textContent =
+                "Son kontrol: " +
+                new Date(data.checkedAtUtc).toLocaleString("tr-TR");
+
+            const warnings = element("mcAuditWarnings");
+            warnings.replaceChildren();
+
+            if (data.warnings.length === 0) {
+                const item = document.createElement("div");
+                item.textContent =
+                    "Kontrol edilen finansal bağlantılarda uyarı bulunmadı.";
+                warnings.appendChild(item);
+            } else {
+                for (const message of data.warnings) {
+                    const item = document.createElement("div");
+                    item.className = "mc-audit-warning";
+                    item.textContent = message;
+                    warnings.appendChild(item);
+                }
+            }
+
+            setStatus(
+                data.status === "OK"
+                    ? "Denetim tamamlandı. Kontrol edilen alanlarda uyarı bulunmadı."
+                    : "Denetim tamamlandı. İncelenmesi gereken kayıtlar veya eksik korumalar var.",
+                data.status === "OK" ? "ok" : "warn"
+            );
+
+        } catch (error) {
+            setStatus(
+                error.name === "TimeoutError" ||
+                error.name === "AbortError"
+                    ? "Finans servisi 15 saniye içinde yanıt vermedi. Veriler güncellenemedi."
+                    : (error.message || "Finans denetim verileri alınamadı."),
+                "error"
+            );
+            clearAuditNumbers();
+
+            element("mcAuditWarnings").textContent =
+                "Denetim sonuçları alınamadı. Gösterilen eski değerler varsa güncel kabul etmeyin.";
+        } finally {
+            mcAuditLoading = false;
+            button.disabled = false;
+            button.textContent = "Verileri Yenile";
+        }
+    }
+
+        // MC_FINANCE_AUDIT_CSV_V13_FIXED
+        // MC_FINANCE_EXPORT_FRESHNESS_V20
+    function mcAuditIsFreshForExport() {
+        if (!mcLastAudit ||
+            mcLastAudit.version !== "MC_FINANCE_LINK_AUDIT_V10" ||
+            typeof mcLastAudit.checkedAtUtc !== "string") {
+            return false;
+        }
+
+        const timestamp = Date.parse(mcLastAudit.checkedAtUtc);
+        const age = Date.now() - timestamp;
+
+        return Number.isFinite(age) &&
+               age >= -120000 &&
+               age <= 300000;
+    }
+
+    function mcAuditRejectStaleExport() {
+        if (mcAuditIsFreshForExport()) {
+            return false;
+        }
+
+        mcLastAudit = null;
+
+        element("mcAuditExport").disabled = true;
+        element("mcAuditPrint").disabled = true;
+
+        clearAuditNumbers();
+
+        setStatus(
+            "Denetim raporu güncel değil. " +
+            "CSV veya PDF oluşturmak için verileri yeniden yükleyin.",
+            "error"
+        );
+
+        return true;
+    }
+    function exportAuditCsv() {
+        if (mcAuditRejectStaleExport()) {
+            return;
+        }
+
+        const data = mcLastAudit;
+
+        if (!data || data.version !== "MC_FINANCE_LINK_AUDIT_V10") {
+            setStatus("Güncel denetim verisi bulunamadı.", "error");
+            return;
+        }
+
+        const rows = [
+            ["MASTER CHEF TAKIP", "Finansal Denetim"],
+            ["Rapor Tarihi (UTC)", data.checkedAtUtc],
+            ["Veri Modu", data.mode],
+            ["Denetim Durumu", data.status],
+            ["", ""],
+            ["Gösterge", "Değer"],
+            ["Toplam Cari Hareket", data.overview.totalCariMovements],
+            ["Toplam Banka/Kasa Hareketi", data.overview.totalBankMovements],
+            ["Bağlantılı Cari Hareket", data.overview.linkedCariMovements],
+            ["Mükerrer Banka Bağlantısı", data.integrity.duplicateBankLinks],
+            ["Eksik Banka Hareketi", data.integrity.missingBankMovements],
+            ["Bağlantısız Tahsilat/Ödeme", data.integrity.missingPaymentLinks],
+            ["Para Birimi Uyuşmazlığı", data.integrity.accountMismatches],
+            ["İşlem Yönü Uyuşmazlığı", data.integrity.directionMismatches],
+            ["UNIQUE İndeks", data.uniqueIndex.exists ? "Aktif" : "Yok"],
+            ["", ""],
+            ["Denetim Uyarıları", ""]
+        ];
+
+        for (const warning of (data.warnings || [])) {
+            rows.push(["Uyarı", warning]);
+        }
+
+        if (!data.warnings || data.warnings.length === 0) {
+            rows.push(["Uyarı", "Bulunmadı"]);
+        }
+
+        const escapeCsv = value => {
+            let text = String(value ?? "");
+
+            // CSV formula injection protection:
+            // Build the special prefix character dynamically
+            // so Razor does not interpret it as server-side syntax.
+            const dangerous = [
+                61, 43, 45, 64
+            ].map(code => String.fromCharCode(code));
+
+            const first = text.trimStart().charAt(0);
+
+            if (dangerous.includes(first)) {
+                text = "'" + text;
+            }
+
+            return '"' + text.replace(/"/g, '""') + '"';
+        };
+
+        const csv = "\uFEFFsep=;\r\n" +
+            rows.map(row => row.map(escapeCsv).join(";")).join("\r\n");
+
+        const blob = new Blob(
+            [csv],
+            { type: "text/csv;charset=utf-8;" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        const date = new Date().toISOString().slice(0, 10);
+
+        link.href = url;
+        link.download = "MASTER_CHEF_Finans_Denetim_" + date + ".csv";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    element("mcAuditExport").addEventListener(
+        "click",
+        exportAuditCsv
+    );
+
+        // MC_FINANCE_PRINT_REPORT_V15
+    element("mcAuditPrint").addEventListener("click", () => {
+        if (mcAuditRejectStaleExport()) {
+            return;
+        }
+
+        if (!mcLastAudit ||
+            mcLastAudit.version !== "MC_FINANCE_LINK_AUDIT_V10") {
+            setStatus(
+                "Rapor için güncel denetim verisi yüklenmelidir.",
+                "error"
+            );
+            return;
+        }
+
+        window.print();
+    });
+
+        const autoButton = element("mcAuditAutoRefresh");
+
+    function updateAutoButton() {
+        autoButton.textContent = mcAutoRefreshEnabled
+            ? "Otomatik Yenileme: Açık"
+            : "Otomatik Yenileme: Kapalı";
+
+        autoButton.setAttribute(
+            "aria-pressed",
+            mcAutoRefreshEnabled ? "true" : "false"
+        );
+    }
+
+    function startAutoRefresh() {
+        if (mcAutoRefreshTimer !== null) {
+            clearInterval(mcAutoRefreshTimer);
+        }
+
+        mcAutoRefreshTimer = setInterval(() => {
+            if (!mcAutoRefreshEnabled ||
+                mcAuditLoading ||
+                document.hidden) {
+                return;
+            }
+
+            loadAudit();
+        }, 60000);
+    }
+
+    autoButton.addEventListener("click", () => {
+        mcAutoRefreshEnabled = !mcAutoRefreshEnabled;
+        updateAutoButton();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden &&
+            mcAutoRefreshEnabled &&
+            !mcAuditLoading) {
+            loadAudit();
+        }
+    });
+
+    window.addEventListener("beforeprint", () => {
+        mcAutoRefreshBeforePrint = mcAutoRefreshEnabled;
+        mcAutoRefreshEnabled = false;
+        updateAutoButton();
+    });
+
+    window.addEventListener("afterprint", () => {
+        mcAutoRefreshEnabled = mcAutoRefreshBeforePrint;
+        updateAutoButton();
+    });
+
+    updateAutoButton();
+    startAutoRefresh();
+
+    // MC_FINANCE_CONNECTION_MONITOR_V22
+    const mcConnectionLabel = document.createElement("div");
+    mcConnectionLabel.id = "mcAuditConnection";
+    mcConnectionLabel.setAttribute("role", "status");
+    mcConnectionLabel.setAttribute("aria-live", "polite");
+    mcConnectionLabel.style.cssText =
+        "padding:10px 14px;margin:10px 0;border-radius:10px;" +
+        "border:1px solid #dce6ef;font-size:13px;font-weight:600;";
+
+    element("mcAuditRefresh").parentElement.insertAdjacentElement(
+        "afterend", mcConnectionLabel
+    );
+
+    function mcConnectionInvalidate() {
+        mcLastAudit = null;
+        element("mcAuditExport").disabled = true;
+        element("mcAuditPrint").disabled = true;
+        clearAuditNumbers();
+    }
+
+    function mcConnectionUpdate() {
+        if (!navigator.onLine) {
+            mcConnectionLabel.textContent =
+                "Ağ bağlantısı yok. Finans raporları durduruldu.";
+            mcConnectionLabel.style.background = "#fff1f2";
+            mcConnectionLabel.style.color = "#991b1b";
+            mcConnectionInvalidate();
+            return;
+        }
+
+        mcConnectionLabel.textContent =
+            "Ağ bağlantısı mevcut. Finans servisi ayrıca denetlenir.";
+        mcConnectionLabel.style.background = "#ecfdf5";
+        mcConnectionLabel.style.color = "#065f46";
+    }
+
+    window.addEventListener("offline", () => {
+        mcConnectionUpdate();
+        setStatus(
+            "Ağ bağlantısı kesildi. Güncel finans verileri alınamıyor.",
+            "error"
+        );
+    });
+
+    window.addEventListener("online", () => {
+        mcConnectionUpdate();
+        if (!mcAuditLoading) {
+            loadAudit();
+        }
+    });
+
+    mcConnectionUpdate();
+
+
+    // MC_FINANCE_LIVE_FRESHNESS_V21
+    const mcFreshnessLabel = document.createElement("div");
+
+    mcFreshnessLabel.id = "mcAuditFreshness";
+    mcFreshnessLabel.setAttribute("role", "status");
+    mcFreshnessLabel.setAttribute("aria-live", "off");
+
+    mcFreshnessLabel.style.cssText =
+        "padding:10px 14px;margin:12px 0;" +
+        "border-radius:10px;border:1px solid #dce6ef;" +
+        "background:#f5f9fd;color:#173451;" +
+        "font-size:13px;font-weight:600;";
+
+    const mcRefreshButton = element("mcAuditRefresh");
+
+    mcRefreshButton.parentElement.insertAdjacentElement(
+        "afterend",
+        mcFreshnessLabel
+    );
+
+    function mcUpdateFreshness() {
+        if (!mcLastAudit ||
+            !mcLastAudit.checkedAtUtc) {
+            mcFreshnessLabel.textContent =
+                "Güncel denetim verisi bekleniyor.";
+
+            return;
+        }
+
+        const timestamp = Date.parse(
+            mcLastAudit.checkedAtUtc
+        );
+
+        const age = Date.now() - timestamp;
+
+        if (!Number.isFinite(age) || age > 300000) {
+            mcAuditRejectStaleExport();
+
+            mcFreshnessLabel.textContent =
+                "Denetim süresi doldu. Verileri yenileyin.";
+
+            mcFreshnessLabel.style.background = "#fff1f2";
+            mcFreshnessLabel.style.color = "#991b1b";
+
+            return;
+        }
+
+        if (age < -120000) {
+            mcAuditRejectStaleExport();
+
+            mcFreshnessLabel.textContent =
+                "Denetim zamanı geçersiz. Yeniden yükleyin.";
+
+            mcFreshnessLabel.style.background = "#fff1f2";
+            mcFreshnessLabel.style.color = "#991b1b";
+
+            return;
+        }
+
+        const seconds = Math.max(
+            0,
+            Math.floor(age / 1000)
+        );
+
+        mcFreshnessLabel.textContent =
+            "Son finans denetimi: " +
+            seconds +
+            " saniye önce.";
+
+        mcFreshnessLabel.style.background = "#ecfdf5";
+        mcFreshnessLabel.style.color = "#065f46";
+    }
+
+    mcUpdateFreshness();
+
+    setInterval(() => {
+        if (!document.hidden) {
+            mcUpdateFreshness();
+        }
+    }, 1000);
+
+    document.addEventListener(
+        "visibilitychange",
+        mcUpdateFreshness
+    );
+
+
+    element("mcAuditRefresh").addEventListener("click", loadAudit);
+
+    loadAudit();
+})();
+</script>
+<style>/* MC_FINANCE_DASHBOARD_NAV_STANDARD_V1 */.mc-audit-navigation{display:flex;gap:10px;flex-wrap:wrap}.mc-audit-navigation .mc-audit-nav-link{display:inline-flex;align-items:center;padding:9px 13px;border:1px solid #d5e0ec;border-radius:8px;background:#fff!important;color:#18365f!important;text-decoration:none!important;font-weight:700}.mc-audit-navigation .mc-audit-nav-link:hover,.mc-audit-navigation .mc-audit-nav-link:focus{background:#18365f!important;color:#fff!important;border-color:#18365f!important}</style>

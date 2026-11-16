@@ -1,0 +1,121 @@
+@model MasterChefTakip.Controllers.MCAuditDetailsPage
+
+@{
+    ViewData["Title"] = "Stok G?venlik Denetimi Detaylar?";
+}
+
+<div style="max-width:1150px;margin:24px auto;padding:22px;font:inherit">
+
+    <h2>@Model.Title</h2>
+    @* MC_AUDIT_SEARCH_UI_V1 *@
+    <form method="get"
+          action="/MCInventoryAuditDetails"
+          style="display:flex;gap:10px;flex-wrap:wrap;
+                 align-items:center;margin:18px 0">
+
+        <input type="hidden" name="tur" value="@Model.Type" />
+
+        <input type="search"
+               name="q"
+               value="@Model.Search"
+               maxlength="100"
+               placeholder="Kart, depo, birim veya sorun ara"
+               style="min-width:280px;padding:10px;
+                      border:1px solid #cbd5e1;
+                      border-radius:7px;font:inherit" />
+
+        <button type="submit"
+                style="padding:10px 16px;background:#334155;
+                       color:white;border:0;border-radius:7px;
+                       font:inherit">
+            Ara
+        </button>
+
+        <a asp-controller="MCInventoryAuditDetails"
+           asp-action="Export"
+           asp-route-tur="@Model.Type"
+           asp-route-q="@Model.Search"
+           style="padding:10px 16px;background:#166534;
+                  color:white;border-radius:7px;
+                  text-decoration:none;font:inherit">
+            Excel CSV ?ndir
+        </a>
+    </form>
+
+
+    <p>
+        <a href="/MCInventoryAudit/Report">
+            Güvenlik Raporuna Dön
+        </a>
+        &nbsp; | &nbsp;
+        <a href="/MCInventoryWarehouses">
+            Depo E?le?tirmeleri
+        </a>
+    </p>
+
+    <nav style="display:flex;gap:12px;flex-wrap:wrap;margin:20px 0">
+        <a href="/MCInventoryAuditDetails?tur=eksik">
+            Depoya Bağlanmam??
+        </a>
+        <a href="/MCInventoryAuditDetails?tur=baglanti">
+            Ge?ersiz Bağlant?lar
+        </a>
+        <a href="/MCInventoryAuditDetails?tur=birim">
+            ölçü Birimi Hatalar?
+        </a>
+    </nav>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+    {
+        <p style="padding:12px;background:#fff7ed">
+            @Model.Message
+        </p>
+    }
+    else
+    {
+        <p>
+            <strong>Güsterilen sorunlu kay?t:</strong>
+            @Model.Rows.Count
+            <small>(Arama t?m kay?tlar ?zerinde yap?l?r; en fazla 500 sonu? gösterilir.)
+            @* MC_AUDIT_SEARCH_INFO_V2 *@</small>
+        </p>
+
+        @if (Model.Rows.Count == 0)
+        {
+            <p>Bu kategoride sorunlu kay?t bulunamadı.</p>
+        }
+        else
+        {
+            <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse">
+                    <thead>
+                        <tr style="background:#f1f5f9">
+                            <th style="padding:12px;text-align:left">Kart ID</th>
+                            <th style="padding:12px;text-align:left">Depo ID</th>
+                            <th style="padding:12px;text-align:left">Birim</th>
+                            <th style="padding:12px;text-align:left">Sorun</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Rows)
+                        {
+                            <tr style="border-bottom:1px solid #e2e8f0">
+                                <td style="padding:12px">@item.CardId</td>
+                                <td style="padding:12px">@item.WarehouseId</td>
+                                <td style="padding:12px">@item.Unit</td>
+                                <td style="padding:12px;color:#b45309">
+                                    @item.Problem
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+
+    <p style="margin-top:22px;color:#64748b">
+        Bu ekran yalnızca mevcut kayıtları okur.
+        Stok miktarlar?n? ve depo ba?lant?lar?n? değiştirmez.
+    </p>
+</div>

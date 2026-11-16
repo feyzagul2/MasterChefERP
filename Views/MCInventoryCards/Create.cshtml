@@ -1,0 +1,255 @@
+
+<style>
+.mc-catalog-detail {
+    margin: 22px 0;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-family: inherit;
+}
+.mc-catalog-detail h3 {
+    color: #17406a;
+    margin-bottom: 12px;
+    font-family: inherit;
+}
+.mc-catalog-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: inherit;
+}
+.mc-catalog-table th,
+.mc-catalog-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+.mc-catalog-table th {
+    background: #f1f5f9;
+    color: #17406a;
+}
+.mc-catalog-table td:first-child {
+    width: 35%;
+    font-weight: 600;
+}
+</style>
+@model MasterChefTakip.Controllers.MCInventoryCardInput
+
+@{
+    ViewData["Title"] = "Malzeme Stok Kartı Oluştur";
+}
+
+<style>
+.mc-inventory {
+    max-width: 100%;
+    margin: 18px auto;
+    padding: 22px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-family: inherit;
+}
+.mc-inventory h2 {
+    margin: 0 0 18px;
+    color: #17406a;
+    font-family: inherit;
+    font-size: 30px;
+    font-weight: 600;
+}
+.mc-inventory .info {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    line-height: 2;
+}
+.mc-inventory label {
+    display: block;
+    margin: 14px 0 7px;
+    font-weight: 600;
+    font-family: inherit;
+}
+.mc-inventory select {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px;
+    background: white;
+    font-family: inherit;
+}
+.mc-inventory button {
+    background: #17406a;
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin-top: 18px;
+    cursor: pointer;
+    font-family: inherit;
+}
+.mc-inventory .warning {
+    margin-top: 12px;
+    padding: 12px;
+    background: #fff7ed;
+    color: #9a3412;
+    border-radius: 8px;
+}
+</style>
+
+<section class="mc-inventory">
+
+    <h2>Malzeme Stok Kartı Oluştur</h2>
+
+    @if (TempData["MCInventorySuccess"] != null)
+    {
+        <div class="info">
+            @TempData["MCInventorySuccess"]
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.Error))
+    {
+        <div class="warning">@Model.Error</div>
+    }
+
+    <div class="info">
+        <div>
+            <strong>Malzeme Kodu:</strong> @Model.Code
+        </div>
+        <div>
+            <strong>Malzeme Adı:</strong> @Model.Name
+        </div>
+        <div>
+            <strong>Malzeme Türü:</strong> @Model.Type
+        </div>
+    </div>
+
+    
+    @* MC_FULL_CATALOG_UI_V2 *@
+
+    <div class="mc-catalog-detail">
+        <h3>Katalogdaki T&#252;m Bilgiler</h3>
+
+        <p>
+            A&#351;a&#287;&#305;daki bilgiler katalogdaki
+            ger&#231;ek kay&#305;ttan okunur.
+        </p>
+
+        @if (Model.CatalogFields.Count == 0)
+        {
+            <div class="warning">
+                Katalog ayr&#305;nt&#305;lar&#305; okunamad&#305;.
+            </div>
+        }
+        else
+        {
+            <div style="overflow-x:auto">
+                <table class="mc-catalog-table">
+                    <thead>
+                        <tr>
+                            <th>Alan</th>
+                            <th>Kay&#305;tl&#305; Bilgi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var field in Model.CatalogFields)
+                        {
+                            <tr>
+                                <td>@field.Key</td>
+                                <td>
+                                    @if (string.IsNullOrWhiteSpace(field.Value))
+                                    {
+                                        <span style="color:#b45309">
+                                            Bilgi girilmemi&#351;
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        @field.Value
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+@if (Model.HasExistingCard)
+    {
+        <div class="warning">
+            <strong>Stok kartı zaten mevcut.</strong><br />
+            @Model.ExistingCardInfo
+        </div>
+    }
+    else
+    {
+        <form method="post"
+              asp-controller="MCInventoryCards"
+              asp-action="Create">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   name="catalogId"
+                   value="@Model.CatalogId" />
+
+            <label for="unit">
+                Gerçek Ölçü Birimi
+            </label>
+
+            <select id="unit" name="unit" required>
+                <option value="">
+                    Ölçü birimi seçiniz
+                </option>
+
+                @foreach (var u in new[] {
+                    "KG", "L", "ADET", "GR", "ML",
+                    "TON", "METRE", "M2", "M3"
+                })
+                {
+                    <option value="@u" selected="@(Model.Unit == u)">
+                        @u
+                    </option>
+                }
+            </select>
+
+            <label>
+                <input type="checkbox"
+                       name="confirmed"
+                       value="true"
+                       required />
+
+                Malzeme bilgilerini ve ölçü birimini
+                doğruladım.
+            </label>
+
+            <div class="warning">
+                Bu işlem yalnızca stok kartı oluşturur.
+                Stok miktarı veya depo hareketi oluşturmaz.
+            </div>
+
+            <button type="submit">
+                Stok Kartını Kaydet
+            </button>
+        </form>
+    }
+
+    
+    @* MC_CARD_DETAILS_LINK_V2 *@
+    <div style="margin:18px 0">
+        <a asp-controller="MCInventoryDetails"
+           asp-action="Edit"
+           asp-route-catalogId="@Model.CatalogId"
+           class="btn btn-outline-primary">
+            Stok Kart? Ek Bilgileri
+        </a>
+    </div>
+<div style="margin-top:18px">
+        <a href="/MaterialCatalog?mcEmbed=1">
+            Malzeme Kataloğuna Dön
+        </a>
+    </div>
+
+</section>

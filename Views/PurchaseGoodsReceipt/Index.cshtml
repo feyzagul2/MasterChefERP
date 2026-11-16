@@ -1,0 +1,63 @@
+
+@model List<MasterChefTakip.Models.PurchaseGoodsReceipt>
+@{
+    ViewData["Title"] = "Mal Kabul";
+}
+
+<style>
+.mc-gr{max-width:1160px;margin:auto}
+.mc-gr-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.mc-gr-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:15px 0}
+.mc-gr-btn{display:inline-block;border:1px solid #cbd5e1;border-radius:8px;padding:9px 13px;background:#fff;color:#17406a;text-decoration:none;font-size:13px;cursor:pointer}
+.mc-gr-primary{background:#17406a;color:#fff;border-color:#17406a}
+.mc-gr-scroll{overflow-x:auto}
+.mc-gr-table{width:100%;min-width:800px;border-collapse:collapse}
+.mc-gr-table th{text-align:left;background:#f8fafc;color:#475569;font-size:12px;padding:11px}
+.mc-gr-table td{padding:10px;border-bottom:1px solid #edf2f7;font-size:13px}
+.mc-gr-table input{max-width:125px;width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:7px}
+.mc-gr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.mc-gr-field{display:flex;flex-direction:column;gap:5px}
+.mc-gr-field label{font-size:12px;font-weight:650}
+.mc-gr-field input,.mc-gr-field textarea{width:100%;max-width:none;box-sizing:border-box;padding:9px;border:1px solid #cbd5e1;border-radius:7px}
+.mc-gr-hint{font-size:12px;color:#64748b}
+@@media(max-width:700px){.mc-gr-grid{grid-template-columns:1fr}.mc-gr-card{padding:12px}}
+.mc-purchase-flow-nav{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}.mc-purchase-flow-nav a{display:inline-flex;align-items:center;padding:9px 12px;border:1px solid #d5e0ec;border-radius:8px;background:#fff;color:#18365f!important;text-decoration:none!important;font-size:13px;font-weight:700}.mc-purchase-flow-nav a:hover,.mc-purchase-flow-nav a:focus{background:#18365f;color:#fff!important;border-color:#18365f}/* MC_PURCHASE_FLOW_NAV_V1 */</style>
+
+<div class="mc-gr">
+    <div class="mc-gr-head">
+        <div><h1>Mal Kabul Kay&#305;tlar&#305;</h1><div class="mc-purchase-flow-nav"><a href="/Purchasing">1. Satın Alma</a><a href="/PurchaseDispatch">2. Alış İrsaliyeleri</a><a href="/PurchaseGoodsReceipt">3. Mal Kabul</a><a href="/MCPurchaseInvoiceEntry">4. Fatura Girişi</a><a href="/MCPurchaseInvoiceStatus">5. Fatura Kontrolü</a><a href="/MCPurchaseInvoiceCariPosting">6. Cari Aktarım</a><a href="/MCPurchaseInvoiceCariCheck">7. Cari Kontrol</a><a href="/MCPurchaseCariAudit">8. Mutabakat</a></div></div>
+    </div>
+
+    <div class="mc-gr-card mc-gr-scroll">
+        <table class="mc-gr-table">
+            <thead><tr>
+                <th>Mal Kabul No</th>
+                <th>Al&#305;&#351; &#304;rsaliyesi</th>
+                <th>Tedarik&#231;i</th>
+                <th>Tarih</th>
+                <th>Durum</th>
+                <th>&#304;&#351;lem</th>
+            </tr></thead>
+            <tbody>
+            @foreach (var x in Model)
+            {
+                <tr>
+                    <td>@x.ReceiptNumber</td>
+                    <td>@x.PurchaseDispatchNote.DocumentNumber</td>
+                    <td>@x.PurchaseDispatchNote.Supplier.CompanyName</td>
+                    <td>@x.ReceiptDate.ToString("dd.MM.yyyy")</td>
+                    <td>Kaydedildi</td>
+                    <td>
+                        <a class="mc-gr-btn" asp-action="Details"
+                           asp-route-id="@x.Id">Detay</a>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="6">Hen&#252;z kay&#305;t bulunmuyor.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

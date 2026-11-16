@@ -1,0 +1,184 @@
+<!-- MC_MATERIAL_STOCK_MAPPING_2026 -->
+@model MasterChefTakip.Controllers.MaterialStockMappingPage
+
+@{
+    ViewData["Title"] = "Malzeme - Stok Kartı Eşleştirme";
+}
+
+<style>
+.mc-sm{max-width:1280px;margin:auto}
+.mc-sm-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:14px 0}
+.mc-sm-table{width:100%;border-collapse:collapse}
+.mc-sm-table th,.mc-sm-table td{padding:12px;text-align:left;border-bottom:1px solid #e2e8f0}
+.mc-sm-table th{background:#f8fafc}
+.mc-sm-input{padding:9px;border:1px solid #cbd5e1;border-radius:7px;max-width:100%}
+.mc-sm-btn{padding:9px 14px;background:#17406a;color:#fff;border:0;border-radius:7px;cursor:pointer}
+.mc-sm-flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.mc-sm-scroll{overflow-x:auto}
+@@media(max-width:700px){.mc-sm-table{min-width:850px}}
+.mc-stock-nav{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 18px}.mc-stock-nav a{display:inline-flex;align-items:center;padding:9px 13px;border:1px solid #d5e0ec;border-radius:8px;background:#fff;color:#18365f!important;text-decoration:none!important;font-size:13px;font-weight:700}.mc-stock-nav a:hover,.mc-stock-nav a:focus{background:#18365f;color:#fff!important;border-color:#18365f}/* MC_STOCK_NAV_STANDARD_V1 */</style>
+
+<div class="mc-sm">
+
+    <h1>Malzeme - Hammadde Stok Kartı Eşleştirme</h1><div class="mc-stock-nav"><a href="/RawMaterials">Hammadde Stok</a><a href="/RawStockCounts">Stok Sayımı</a><a href="/RawMaterials?critical=true">Kritik Stoklar</a><a href="/RawMaterials/Warehouses">Depolar</a><a href="/MCReceiptStockAudit">Stok Kontrolü</a></div>
+
+    <div class="mc-sm-card">
+        <strong>Hammadde kataloğu:</strong> @Model.RawCatalogCount
+        &nbsp; | &nbsp;
+        <strong>Stok kartı:</strong> @Model.StockCardCount
+        &nbsp; | &nbsp;
+        <strong>Eşleştirme:</strong> @Model.MatchedCount
+    </div>
+
+    @if (TempData["MCStockMappingSuccess"] != null)
+    {
+        <div class="mc-sm-card" style="color:#166534">
+            @TempData["MCStockMappingSuccess"]
+        </div>
+    }
+
+    @if (Model.StockCardCount == 0)
+    {
+        <div class="mc-sm-card" style="background:#fffbeb;color:#92400e">
+            Henüz gerçek hammadde stok kartı bulunmuyor.
+            Önce hammadde stok kartlarının tanımlanması gerekiyor.
+            Otomatik veya tahmini stok kartı oluşturulmadı.
+        </div>
+    }
+
+    <form method="get" class="mc-sm-card mc-sm-flex">
+        <input class="mc-sm-input"
+               type="search"
+               name="q"
+               value="@Model.Search"
+               placeholder="Malzeme kodu veya adı"
+               style="min-width:300px" />
+
+        <button class="mc-sm-btn" type="submit">Ara</button>
+    </form>
+
+    <div class="mc-sm-card mc-sm-scroll">
+        <table class="mc-sm-table">
+            <thead>
+                <tr>
+                    <th>Malzeme Kodu</th>
+                    <th>Malzeme Adı</th>
+                    <th>Stok Kartı</th>
+                    <th>İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Materials)
+                {
+                    <tr>
+                        
+<td>
+    <strong>@item.Code</strong>
+
+    @if (!item.IsMatched)
+    {
+        <div style="margin-top:7px">
+            <a asp-controller="CatalogRawMaterialCards"
+               asp-action="Create"
+               asp-route-catalogId="@item.CatalogId"
+               style="font-size:12px;color:#17406a">
+                Bu malzemeden stok kartı oluştur
+            </a>
+        </div>
+    }
+</td>
+
+                        <td>@item.Name</td>
+                        <td>
+                            @if (item.IsMatched)
+                            {
+                                <strong>@item.StockCode</strong>
+                                <div>@item.StockName</div>
+                                <small>@item.StockUnit</small>
+                            }
+                            else
+                            {
+                                <form id="mc-stock-@item.CatalogId"
+                                      asp-action="Assign"
+                                      method="post">
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="catalogId"
+                                           value="@item.CatalogId" />
+
+                                    <select class="mc-sm-input"
+                                            name="rawMaterialId"
+                                            required>
+                                        <option value="">
+                                            Stok kartı seçin
+                                        </option>
+
+                                        @foreach (var stock in Model.StockCards)
+                                        {
+                                            <option value="@stock.Id">
+                                                @stock.Code - @stock.Name (@stock.Unit)
+                                            </option>
+                                        }
+                                    </select>
+                                </form>
+                            }
+                        </td>
+                        <td>
+                            @if (item.IsMatched)
+                            {
+                                <span style="color:#166534">
+                                    Eşleştirildi
+                                </span>
+                            }
+                            else
+                            {
+                                <button class="mc-sm-btn"
+                                        type="submit"
+                                        form="mc-stock-@item.CatalogId"
+                                        disabled="@(Model.StockCardCount == 0)">
+                                    Eşleştir
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mc-sm-flex">
+        @if (Model.Page > 1)
+        {
+            <a asp-action="Index"
+               asp-route-q="@Model.Search"
+               asp-route-page="@(Model.Page - 1)">
+                ← Önceki
+            </a>
+        }
+
+        <span>Sayfa @Model.Page</span>
+
+        @if (Model.Materials.Count == 50)
+        {
+            <a asp-action="Index"
+               asp-route-q="@Model.Search"
+               asp-route-page="@(Model.Page + 1)">
+                Sonraki →
+            </a>
+        }
+    </div>
+
+    <p style="margin-top:20px;color:#64748b">
+        Bu ekran sadece HM türündeki hammadde katalog
+        kayıtlarını eşleştirir. Mamul, ambalaj ve diğer
+        malzeme türleri otomatik olarak hammaddeye dönüştürülmez.
+        Stok miktarı değiştirilmez.
+    </p>
+</div>
+
+
+
+
+
+

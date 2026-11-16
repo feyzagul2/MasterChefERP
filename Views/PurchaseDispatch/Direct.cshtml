@@ -1,0 +1,372 @@
+@model MasterChefTakip.Controllers.DirectPurchaseDispatchInput
+@{
+    ViewData["Title"] = "Siparissiz Alis Irsaliyesi";
+    var suppliers = ViewBag.DirectSuppliers
+        as List<MasterChefTakip.Models.CariAccount>
+        ?? new List<MasterChefTakip.Models.CariAccount>();
+}
+
+<style>
+.mc-direct-wrap{max-width:1100px;margin:auto}
+.mc-direct-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin:14px 0}
+.mc-direct-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.mc-direct-field{display:flex;flex-direction:column;gap:6px}
+.mc-direct-field label{font-weight:600;font-size:13px}
+.mc-direct-field input,.mc-direct-field select,.mc-direct-field textarea{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;box-sizing:border-box}
+.mc-direct-table{width:100%;border-collapse:collapse;min-width:660px}
+.mc-direct-table th,.mc-direct-table td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left}
+.mc-direct-table input,.mc-direct-table select{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:7px;box-sizing:border-box}
+.mc-direct-scroll{overflow-x:auto}
+.mc-direct-btn{background:#17406a;color:white;border:0;border-radius:8px;padding:11px 18px;cursor:pointer}
+.mc-direct-link{display:inline-block;margin:12px 0;color:#17406a}
+@@media(max-width:700px){.mc-direct-grid{grid-template-columns:1fr}.mc-direct-card{padding:13px}}
+</style>
+
+<div class="mc-direct-wrap">
+    <h1>Siparişsiz Alış İrsaliyesi</h1>
+    <p>Satın alma siparişi olu?turmadan gerçek tedarikçi irsaliyesi kaydedin.</p>
+
+    <a class="mc-direct-link" asp-action="Create">
+        ? Sipari?li irsaliye ekran?na d?n
+    </a>
+
+    <form asp-action="Direct" method="post">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="All"
+             style="color:#b91c1c;margin:12px 0"></div>
+
+        <div class="mc-direct-card">
+            <h3>Tedarikçi ve Belge Bilgileri</h3>
+
+            <div class="mc-direct-grid">
+                <div class="mc-direct-field">
+                    <label asp-for="SupplierId">Tedarikçi</label>
+                    <select asp-for="SupplierId" required>
+                        <option value="">Tedarikçi seçiniz</option>
+                        @foreach (var supplier in suppliers)
+                        {
+                            <option value="@supplier.Id">
+                                @supplier.CompanyName
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-direct-field">
+                    <label asp-for="SupplierDocumentNumber">
+                        Tedarikçi İrsaliye Numarası
+                    </label>
+                    <input asp-for="SupplierDocumentNumber"
+                           maxlength="60" required />
+                </div>
+
+                <div class="mc-direct-field">
+                    <label asp-for="DocumentDate">İrsaliye Tarihi</label>
+                    <input asp-for="DocumentDate" type="date" required />
+                </div>
+
+                <div class="mc-direct-field">
+                    <label asp-for="Notes">A??klama</label>
+                    <textarea asp-for="Notes" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="mc-direct-card mc-direct-scroll">
+            <h3>İrsaliye Kalemleri</h3>
+
+            <table class="mc-direct-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Ürün / Hammadde</th>
+                        <th>Birim</th>
+                        <th>Gelen Miktar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for (var i = 0; i < Model.Lines.Count; i++)
+                {
+                    <tr>
+                        <td>@(i + 1)</td>
+                        <td>
+                            <input asp-for="Lines[i].ProductDescription"
+                                   maxlength="250"
+                                   placeholder="Ürün veya hammadde adı" />
+                        </td>
+                        <td>
+                            <select asp-for="Lines[i].Unit">
+                                <option value="Kg">Kg</option>
+                                <option value="L">Litre</option>
+                                <option value="Adet">Adet</option>
+                                <option value="Koli">Koli</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input asp-for="Lines[i].Quantity"
+                                   type="number"
+                                   min="0"
+                                   max="999999999"
+                                   step="0.0001" />
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+            <p style="font-size:12px;color:#64748b">
+                Kullanılmayan satırları boş bırakabilirsiniz.
+                İrsaliye kaydı stok miktarını değiştirmez.
+                Stok girişi ayrıca mal kabul üzerinden yap?l?r.
+            </p>
+        </div>
+
+        <div class="mc-direct-card">
+            <button type="submit" class="mc-direct-btn">
+                İrsaliyeyi Kaydet
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- MC_MATERIAL_PICKER_2026 -->
+<script src="/js/mc-material-picker.js" asp-append-version="true"></script>
+
+<!-- MC_DIRECT_MATERIAL_AUTOCOMPLETE_V1 -->
+<style>
+.mc-material-results {
+    position: absolute;
+    z-index: 1050;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    max-height: 260px;
+    overflow-y: auto;
+    min-width: 320px;
+    max-width: 550px;
+}
+.mc-material-result {
+    display: block;
+    width: 100%;
+    padding: 9px 12px;
+    text-align: left;
+    background: white;
+    border: 0;
+    border-bottom: 1px solid #e5e7eb;
+    cursor: pointer;
+}
+.mc-material-result:hover {
+    background: #eff6ff;
+}
+.mc-material-code {
+    font-weight: 700;
+    color: #1d4ed8;
+}
+.mc-material-note {
+    font-size: 12px;
+    color: #64748b;
+}
+</style>
+
+<script>
+(function () {
+    "use strict";
+
+    let activeInput = null;
+    let requestNumber = 0;
+    let debounceTimer = null;
+
+    const results = document.createElement("div");
+    results.className = "mc-material-results";
+    results.style.display = "none";
+    document.body.appendChild(results);
+
+    function isMaterialInput(element) {
+        if (!element || element.tagName !== "INPUT") return false;
+
+        const name = element.getAttribute("name") || "";
+
+        return /^Lines\[\d+\]\.ProductDescription$/i.test(name);
+    }
+
+    function closeResults() {
+        results.style.display = "none";
+        results.replaceChildren();
+    }
+
+    function positionResults(input) {
+        const rect = input.getBoundingClientRect();
+
+        results.style.left =
+            (rect.left + window.scrollX) + "px";
+
+        results.style.top =
+            (rect.bottom + window.scrollY + 3) + "px";
+
+        results.style.width =
+            Math.max(320, rect.width) + "px";
+    }
+
+    function addResult(material) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "mc-material-result";
+
+        const code = document.createElement("div");
+        code.className = "mc-material-code";
+        code.textContent = material.code || "";
+
+        const name = document.createElement("div");
+        name.textContent = material.name || "";
+
+        const note = document.createElement("div");
+        note.className = "mc-material-note";
+
+        let details = material.category || material.originalType || "";
+
+        if (material.vatRate !== null &&
+            material.vatRate !== undefined &&
+            String(material.vatRate) !== "") {
+            details += (details ? " | " : "") +
+                "Kaynak KDV: %" + material.vatRate;
+        }
+
+        if (material.requiresClassification) {
+            details += " | Siniflandirma eksik";
+        }
+
+        note.textContent = details;
+
+        button.appendChild(code);
+        button.appendChild(name);
+        button.appendChild(note);
+
+        button.addEventListener("mousedown", function (event) {
+            event.preventDefault();
+
+            if (!activeInput) return;
+
+            // Existing server model continues receiving ProductDescription.
+            // Do not modify quantities, units or stock records.
+            activeInput.value = (material.code || "") + " - " + (material.name || "");
+            activeInput.dispatchEvent(
+                new Event("input", { bubbles: true })
+            );
+            activeInput.dispatchEvent(
+                new Event("change", { bubbles: true })
+            );
+
+            closeResults();
+        });
+
+        results.appendChild(button);
+    }
+
+    async function search(input, query) {
+        const myRequest = ++requestNumber;
+
+        try {
+            const response = await fetch(
+                "/api/materials/search?q=" + encodeURIComponent(query),
+                {
+                    method: "GET",
+                    credentials: "same-origin",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                closeResults();
+                return;
+            }
+
+            const contentType =
+                response.headers.get("content-type") || "";
+
+            if (!contentType.includes("application/json")) {
+                closeResults();
+                return;
+            }
+
+            const data = await response.json();
+
+            if (myRequest !== requestNumber ||
+                activeInput !== input ||
+                input.value.trim() !== query) {
+                return;
+            }
+
+            results.replaceChildren();
+
+            if (!Array.isArray(data) || data.length === 0) {
+                closeResults();
+                return;
+            }
+
+            data.forEach(addResult);
+            positionResults(input);
+            results.style.display = "block";
+
+        } catch (_) {
+            closeResults();
+        }
+    }
+
+    document.addEventListener("input", function (event) {
+        const input = event.target;
+
+        if (!isMaterialInput(input)) return;
+
+        activeInput = input;
+
+        clearTimeout(debounceTimer);
+        ++requestNumber;
+        closeResults();
+
+        const query = input.value.trim();
+
+        if (query.length < 2) return;
+
+        debounceTimer = setTimeout(function () {
+            search(input, query);
+        }, 250);
+    });
+
+    document.addEventListener("focusin", function (event) {
+        if (isMaterialInput(event.target)) {
+            activeInput = event.target;
+        }
+    });
+
+    document.addEventListener("click", function (event) {
+        if (!results.contains(event.target) &&
+            !isMaterialInput(event.target)) {
+            closeResults();
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeResults();
+        }
+    });
+
+    window.addEventListener("resize", function () {
+        if (activeInput &&
+            results.style.display !== "none") {
+            positionResults(activeInput);
+        }
+    });
+
+    window.addEventListener("scroll", function () {
+        if (activeInput &&
+            results.style.display !== "none") {
+            positionResults(activeInput);
+        }
+    }, true);
+})();
+</script>

@@ -1,0 +1,1875 @@
+@model MasterChefTakip.Controllers.MCVirmanAuditPage
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Virman Mutabakat Kontrolü";
+    var tr = CultureInfo.GetCultureInfo("tr-TR");
+}
+
+<style>
+.mc-audit {
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 24px;
+    color: #193047;
+}
+.mc-audit * { box-sizing: border-box; }
+.mc-audit h1 {
+    font-size: 28px;
+    font-weight: 800;
+}
+.mc-audit .back {
+    color: #235f98;
+    text-decoration: none;
+}
+.mc-audit .muted {
+    color: #708398;
+    font-size: 13px;
+}
+.mc-audit .panel,
+.mc-audit .card {
+    background: white;
+    border: 1px solid #e0e7ef;
+    border-radius: 15px;
+    padding: 22px;
+    margin: 20px 0;
+}
+.mc-audit .filters {
+    display: flex;
+    align-items: end;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.mc-audit label {
+    font-size: 13px;
+    font-weight: 650;
+    color: #50677d;
+}
+.mc-audit input {
+    display: block;
+    padding: 12px;
+    margin-top: 7px;
+    border: 1px solid #d5e0eb;
+    border-radius: 9px;
+    min-height: 45px;
+}
+.mc-audit button {
+    background: #193752;
+    color: white;
+    border: 0;
+    border-radius: 9px;
+    padding: 12px 20px;
+    min-height: 45px;
+    cursor: pointer;
+}
+.mc-audit .cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+.mc-audit .card { margin: 0; }
+.mc-audit .card strong {
+    display: block;
+    margin-top: 12px;
+    font-size: 25px;
+    overflow-wrap: anywhere;
+}
+.mc-audit .green { color: #16865d; }
+.mc-audit .red { color: #bd4545; }
+.mc-audit .blue { color: #235f98; }
+.mc-audit .table-wrap { overflow-x: auto; }
+.mc-audit table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.mc-audit th,
+.mc-audit td {
+    padding: 13px;
+    text-align: left;
+    border-bottom: 1px solid #e6edf3;
+    font-size: 13px;
+}
+.mc-audit th {
+    background: #f7f9fc;
+    color: #60758a;
+}
+.mc-audit .badge {
+    display: inline-block;
+    padding: 7px 11px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 750;
+}
+.mc-audit .ok {
+    background: #e2f6ec;
+    color: #16865d;
+}
+.mc-audit .bad {
+    background: #fde8e8;
+    color: #bd4545;
+}
+.mc-audit .empty {
+    padding: 25px;
+    text-align: center;
+    background: #f8fafc;
+    border-radius: 10px;
+}
+@@media(max-width: 900px) {
+    .mc-audit .cards {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+@@media(max-width: 600px) {
+    .mc-audit .cards {
+        grid-template-columns: 1fr;
+    }
+    .mc-audit .filters label,
+    .mc-audit .filters input,
+    .mc-audit .filters button {
+        width: 100%;
+    }
+}
+</style>
+
+<!-- MC_VIRMAN_PRINT_V1 -->
+<style>
+.mc-audit-print-actions {
+    margin: 18px 0;
+}
+.mc-audit-print-actions button {
+    background: #235f98;
+    color: white;
+    border: 0;
+    border-radius: 9px;
+    padding: 13px 20px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.mc-audit-print-meta {
+    display: none;
+}
+
+@@media print {
+    @@page {
+        size: A4 landscape;
+        margin: 12mm;
+    }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    .mc-audit,
+    .mc-audit * {
+        visibility: visible !important;
+    }
+
+    .mc-audit {
+        position: absolute !important;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        color: black !important;
+    }
+
+    .mc-audit .back,
+    .mc-audit .filters,
+    .mc-audit-print-actions,
+    .mc-audit a[href*="/Export"] {
+        display: none !important;
+    }
+
+    .mc-audit-print-meta {
+        display: block !important;
+        font-size: 12px;
+        margin: 12px 0;
+    }
+
+    .mc-audit h1 {
+        font-size: 22px;
+    }
+
+    .mc-audit h2 {
+        font-size: 16px;
+    }
+
+    .mc-audit .panel {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 10px 0;
+        margin: 10px 0;
+    }
+
+    .mc-audit .cards {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 8px;
+    }
+
+    .mc-audit .card {
+        padding: 10px;
+        border: 1px solid #ddd;
+        margin: 0;
+    }
+
+    .mc-audit .card strong {
+        font-size: 16px;
+    }
+
+    .mc-audit .table-wrap {
+        overflow: visible !important;
+    }
+
+    .mc-audit table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .mc-audit th,
+    .mc-audit td {
+        font-size: 9px;
+        padding: 5px;
+        border-bottom: 1px solid #ddd;
+        overflow-wrap: anywhere;
+    }
+
+    .mc-audit tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .mc-audit .badge {
+        font-size: 9px;
+        padding: 4px;
+    }
+}
+</style>
+<div class="mc-audit">
+
+    <a href="/MCBankCashReport" class="back">
+        ← Hesap Hareketleri Raporuna Dön
+    </a>
+
+    <h1>Virman Mutabakat Kontrolü</h1>
+<!-- MC_FINANCE_QUICK_ACCESS_V1 -->
+
+@{
+    var mcFirstDay = new DateTime(
+        DateTime.Today.Year,
+        DateTime.Today.Month,
+        1);
+
+    var mcToday = DateTime.Today.ToString("yyyy-MM-dd");
+
+    var mcThreeMonths =
+        mcFirstDay.AddMonths(-2).ToString("yyyy-MM-dd");
+
+    var mcSixMonths =
+        mcFirstDay.AddMonths(-5).ToString("yyyy-MM-dd");
+
+    var mcTwelveMonths =
+        mcFirstDay.AddMonths(-11).ToString("yyyy-MM-dd");
+
+    var mcYearStart =
+        new DateTime(DateTime.Today.Year, 1, 1)
+            .ToString("yyyy-MM-dd");
+}
+
+<style>
+.mc-finance-shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.mc-finance-shortcuts a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 43px;
+    padding: 11px 17px;
+    border-radius: 9px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 750;
+    background: #edf3f9;
+    color: #235f98;
+    border: 1px solid #dce7f2;
+}
+
+.mc-finance-shortcuts a:hover {
+    background: #dfeaf7;
+}
+
+.mc-finance-shortcuts .primary {
+    background: #235f98;
+    color: white;
+}
+
+.mc-finance-shortcuts .success {
+    background: #16865d;
+    color: white;
+}
+
+@@media(max-width:600px) {
+    .mc-finance-shortcuts {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .mc-finance-shortcuts a {
+        text-align: center;
+        padding: 10px;
+        font-size: 12px;
+    }
+}
+
+@@media print {
+    .mc-finance-shortcuts {
+        display: none !important;
+    }
+}
+</style>
+
+<div class="mc-finance-shortcuts">
+
+    <a href="/MCBankCashReport?start=@Model.Start&amp;end=@Model.End"
+       class="primary">
+        Hesap Hareketleri
+    </a>
+
+    <a href="/MCBankCashAudit?start=@mcThreeMonths&amp;end=@mcToday&amp;status=@Model.FilterStatus&amp;q=@Uri.EscapeDataString(Model.Search)">
+        Son 3 Ay
+    </a>
+
+    <a href="/MCBankCashAudit?start=@mcSixMonths&amp;end=@mcToday&amp;status=@Model.FilterStatus&amp;q=@Uri.EscapeDataString(Model.Search)">
+        Son 6 Ay
+    </a>
+
+    <a href="/MCBankCashAudit?start=@mcTwelveMonths&amp;end=@mcToday&amp;status=@Model.FilterStatus&amp;q=@Uri.EscapeDataString(Model.Search)">
+        Son 12 Ay
+    </a>
+
+    <a href="/MCBankCashAudit?start=@mcYearStart&amp;end=@mcToday&amp;status=@Model.FilterStatus&amp;q=@Uri.EscapeDataString(Model.Search)">
+        Bu Yıl
+    </a>
+
+    <a href="#mc-virman-monthly" class="success">
+        Aylık Rapor
+    </a>
+
+</div>
+    <p class="mc-audit-print-meta">
+        Dönem: @Model.Start - @Model.End |
+        Filtre: @(Model.FilterStatus == "matched" ? "Eşleşen" :
+                  Model.FilterStatus == "issues" ? "Kontrol Gerektiren" :
+                  "Tüm Virmanlar")
+    </p>
+
+
+    <p class="muted">
+        Kasa ve banka hesapları arasındaki transferlerin
+        karşılıklı kayıtlarını kontrol eder.
+        Bu ekran kayıtları değiştirmez.
+    </p>
+
+    <div class="panel">
+        <form method="get"
+              action="/MCBankCashAudit"
+              class="filters">
+
+            <label>
+                Başlangıç Tarihi
+                <input type="date"
+                       name="start"
+                       value="@Model.Start"
+                       required />
+            </label>
+
+            <label>
+                Bitiş Tarihi
+                <input type="date"
+                       name="end"
+                       value="@Model.End"
+                       required />
+            </label>
+
+                        <!-- MC_VIRMAN_SEARCH_V1 -->
+            <label>
+                Virman Kodu / Hesap Ara
+                <input type="search"
+                       name="q"
+                       value="@Model.Search"
+                       maxlength="100"
+                       placeholder="Virman kodu veya hesap adı" />
+            </label>
+
+            <!-- MC_VIRMAN_STATUS_FILTER_V2 -->
+            <label>
+                Virman Durumu
+                <select name="status"
+                        style="display:block;width:100%;
+                               min-height:45px;margin-top:7px;
+                               padding:10px;border:1px solid #d5e0eb;
+                               border-radius:9px">
+
+                    <option value="all"
+                            selected="@(Model.FilterStatus == "all")">
+                        Tüm Virmanlar
+                    </option>
+
+                    <option value="matched"
+                            selected="@(Model.FilterStatus == "matched")">
+                        Eşleşen Virmanlar
+                    </option>
+
+                    <option value="issues"
+                            selected="@(Model.FilterStatus == "issues")">
+                        Kontrol Gerektirenler
+                    </option>
+                </select>
+            </label>
+
+            <button type="submit">
+                Mutabakatı Kontrol Et
+            </button>
+        </form>
+    </div>
+
+    <!-- MC_VIRMAN_AUDIT_CSV_V1 -->
+    <div style="margin:18px 0">
+        <a href="/MCBankCashAudit/Export?start=@Model.Start&amp;end=@Model.End&amp;status=@Model.FilterStatus&amp;q=@Uri.EscapeDataString(Model.Search)"
+           style="display:inline-block;padding:13px 20px;
+                  background:#16865d;color:white;
+                  border-radius:9px;text-decoration:none;
+                  font-weight:700">
+            Excel Raporunu İndir
+        </a>
+    </div>
+
+    <div class="mc-audit-print-actions">
+        <button type="button" onclick="window.print()">
+            Yazdır / PDF Olarak Kaydet
+        </button>
+    </div>
+    <div class="cards">
+
+        <div class="card">
+            <div class="muted">Toplam Virman</div>
+            <strong>@Model.Items.Count</strong>
+        </div>
+
+        <div class="card">
+            <div class="muted">Eşleşen Virman</div>
+            <strong class="green">@Model.Matched</strong>
+        </div>
+
+        <div class="card">
+            <div class="muted">Kontrol Gerektiren</div>
+            <strong class="red">@Model.Problematic</strong>
+        </div>
+
+        <div class="card">
+            <div class="muted">Eşleşen Virman Tutarı</div>
+            <strong class="blue">
+                @Model.MatchedAmount.ToString("N2", tr) ₺
+            </strong>
+        </div>
+
+    </div>
+
+    <div class="panel">
+
+        <!-- MC_VIRMAN_FINANCIAL_SUMMARY_V1 -->
+
+@{
+    var mcShownRows = Model.SearchedItems;
+
+    var mcShownIn = mcShownRows.Sum(x => x.TotalIn);
+    var mcShownOut = mcShownRows.Sum(x => x.TotalOut);
+
+    var mcShownDifference = mcShownIn - mcShownOut;
+
+    var mcShownIssues = mcShownRows.Count(x => !x.IsMatched);
+}
+
+<style>
+.mc-virman-finance-summary {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.mc-virman-finance-card {
+    background: #ffffff;
+    border: 1px solid #e0e7ef;
+    border-radius: 12px;
+    padding: 18px;
+    min-width: 0;
+}
+
+.mc-virman-finance-card .label {
+    color: #708398;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.mc-virman-finance-card strong {
+    display: block;
+    font-size: 19px;
+    font-weight: 800;
+    margin-top: 10px;
+    overflow-wrap: anywhere;
+}
+
+.mc-virman-finance-card .green {
+    color: #16865d;
+}
+
+.mc-virman-finance-card .red {
+    color: #bd4545;
+}
+
+.mc-virman-finance-card .blue {
+    color: #235f98;
+}
+
+.mc-virman-finance-card .alert {
+    color: #bd4545;
+}
+
+.mc-virman-finance-card .neutral {
+    color: #16865d;
+}
+
+.mc-virman-finance-note {
+    padding: 12px 15px;
+    background: #f2f6fb;
+    border-radius: 9px;
+    color: #50677d;
+    font-size: 12px;
+    margin-bottom: 18px;
+}
+
+@@media(max-width: 1100px) {
+    .mc-virman-finance-summary {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@@media(max-width: 650px) {
+    .mc-virman-finance-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mc-virman-finance-card {
+        padding: 12px;
+    }
+
+    .mc-virman-finance-card strong {
+        font-size: 16px;
+    }
+}
+
+@@media print {
+    .mc-virman-finance-summary {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 6px;
+    }
+
+    .mc-virman-finance-card {
+        padding: 8px;
+    }
+
+    .mc-virman-finance-card strong {
+        font-size: 12px;
+    }
+
+    .mc-virman-finance-note {
+        font-size: 10px;
+    }
+}
+</style>
+
+<h3>Filtrelenmiş Virman Finansal Özeti</h3>
+
+<div class="mc-virman-finance-summary">
+
+    <div class="mc-virman-finance-card">
+        <div class="label">Gösterilen Virman</div>
+        <strong class="blue">@mcShownRows.Count</strong>
+    </div>
+
+    <div class="mc-virman-finance-card">
+        <div class="label">Toplam Para Girişi</div>
+        <strong class="green">
+            @mcShownIn.ToString("N2", tr) ₺
+        </strong>
+    </div>
+
+    <div class="mc-virman-finance-card">
+        <div class="label">Toplam Para Çıkışı</div>
+        <strong class="red">
+            @mcShownOut.ToString("N2", tr) ₺
+        </strong>
+    </div>
+
+    <div class="mc-virman-finance-card">
+        <div class="label">Giriş / Çıkış Farkı</div>
+        <strong class="@(mcShownDifference == 0 ? "neutral" : "alert")">
+            @mcShownDifference.ToString("N2", tr) ₺
+        </strong>
+    </div>
+
+    <div class="mc-virman-finance-card">
+        <div class="label">Kontrol Gerektiren</div>
+        <strong class="@(mcShownIssues == 0 ? "neutral" : "alert")">
+            @mcShownIssues
+        </strong>
+    </div>
+
+</div>
+
+<div class="mc-virman-finance-note">
+    Bu özet yalnızca seçilen filtredeki virman hareketlerini kapsar.
+    Virmanlar şirket geliri veya gideri değildir.
+    Giriş ve çıkış farkının sıfır olması bütün virmanların
+    hatasız olduğu anlamına gelmez.
+</div>
+
+<!-- MC_VIRMAN_ACCOUNT_PAIRS_V1 -->
+
+@{
+    var mcAccountPairs = Model.SearchedItems
+        .GroupBy(x => new { x.Source, x.Target })
+        .Select(g => new
+        {
+            Source = g.Key.Source,
+            Target = g.Key.Target,
+            Count = g.Count(),
+            Matched = g.Count(x => x.IsMatched),
+            Issues = g.Count(x => !x.IsMatched),
+            TotalOut = g.Sum(x => x.TotalOut),
+            TotalIn = g.Sum(x => x.TotalIn),
+            Difference = g.Sum(x =>
+                System.Math.Abs(x.TotalIn - x.TotalOut))
+        })
+        .OrderByDescending(x => x.Count)
+        .ThenBy(x => x.Source)
+        .ThenBy(x => x.Target)
+        .ToList();
+}
+
+<style>
+.mc-account-pairs {
+    background: #fff;
+    border: 1px solid #e0e7ef;
+    border-radius: 14px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.mc-account-pairs h3 {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.mc-account-pairs .description {
+    color: #708398;
+    font-size: 13px;
+    margin-bottom: 18px;
+}
+
+.mc-account-pairs .table-wrap {
+    overflow-x: auto;
+}
+
+.mc-account-pairs table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mc-account-pairs th,
+.mc-account-pairs td {
+    padding: 12px;
+    border-bottom: 1px solid #e6edf3;
+    text-align: left;
+    font-size: 13px;
+}
+
+.mc-account-pairs th {
+    background: #f7f9fc;
+    color: #60758a;
+}
+
+.mc-account-pairs .green {
+    color: #16865d;
+    font-weight: 800;
+}
+
+.mc-account-pairs .red {
+    color: #bd4545;
+    font-weight: 800;
+}
+
+.mc-account-pairs .blue {
+    color: #235f98;
+    font-weight: 800;
+}
+
+.mc-account-pairs .total {
+    background: #f8fafc;
+    font-weight: 800;
+}
+
+.mc-account-pairs .empty {
+    padding: 18px;
+    background: #f8fafc;
+    border-radius: 9px;
+    color: #708398;
+}
+
+@@media(max-width:650px) {
+    .mc-account-pairs {
+        padding: 12px;
+    }
+
+    .mc-account-pairs th,
+    .mc-account-pairs td {
+        padding: 8px;
+        font-size: 11px;
+    }
+}
+
+@@media print {
+    .mc-account-pairs {
+        padding: 10px;
+    }
+
+    .mc-account-pairs .table-wrap {
+        overflow: visible !important;
+    }
+
+    .mc-account-pairs th,
+    .mc-account-pairs td {
+        padding: 5px;
+        font-size: 9px;
+    }
+
+    .mc-account-pairs thead {
+        display: table-header-group;
+    }
+
+    .mc-account-pairs tr {
+        break-inside: avoid;
+    }
+}
+</style>
+
+<div class="mc-account-pairs">
+
+    <h3>Hesaplar Arası Virman Analizi</h3>
+
+<!-- MC_VIRMAN_PAIR_EXPORT_V1 -->
+<div class="mc-pair-export" style="margin:15px 0">
+    <a href="/MCBankCashAudit/PairsExport?start=@Model.Start&amp;end=@Model.End&amp;status=@Model.FilterStatus&amp;q=@Uri.EscapeDataString(Model.Search)"
+       style="display:inline-block;padding:12px 20px;
+              background:#16865d;color:white;
+              border-radius:9px;text-decoration:none;
+              font-weight:750">
+        Hesaplar Arası Virmanları Excel'e Aktar
+    </a>
+</div>
+
+<style>
+@@media print {
+    .mc-pair-export {
+        display: none !important;
+    }
+}
+</style>
+
+    <p class="description">
+        Seçilen tarih, durum ve arama filtrelerine göre
+        kaynak ve hedef hesap çiftleri gruplanır.
+        Hatalı virmanların hesap bilgileri detaylı olarak
+        kontrol edilmelidir.
+    </p>
+
+    @if (mcAccountPairs.Count == 0)
+    {
+        <div class="empty">
+            Seçilen filtrede virman bulunmuyor.
+        </div>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Çıkış Hesabı</th>
+                        <th>Giriş Hesabı</th>
+                        <th>Virman Sayısı</th>
+                        <th>Eşleşen</th>
+                        <th>Sorunlu</th>
+                        <th>Çıkış Toplamı</th>
+                        <th>Giriş Toplamı</th>
+                        <th>Mutlak Tutar Farkı</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var pair in mcAccountPairs)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@pair.Source</strong>
+                            </td>
+
+                            <td>
+                                <strong>@pair.Target</strong>
+
+                                <!-- MC_VIRMAN_PAIR_DETAILS_V1 -->
+                                <div style="margin-top:8px">
+                                    <a href="/MCBankCashAudit/PairDetails?source=@Uri.EscapeDataString(pair.Source)&amp;target=@Uri.EscapeDataString(pair.Target)&amp;start=@Model.Start&amp;end=@Model.End&amp;status=@Model.FilterStatus&amp;q=@Uri.EscapeDataString(Model.Search)"
+                                       style="color:#235f98;
+                                              font-weight:750;
+                                              text-decoration:none">
+                                        Virmanları Gör →
+                                    </a>
+                                </div>
+                            </td>
+
+                            <td class="blue">
+                                @pair.Count
+                            </td>
+
+                            <td class="green">
+                                @pair.Matched
+                            </td>
+
+                            <td class="red">
+                                @pair.Issues
+                            </td>
+
+                            <td>
+                                @pair.TotalOut.ToString("N2", tr) ₺
+                            </td>
+
+                            <td>
+                                @pair.TotalIn.ToString("N2", tr) ₺
+                            </td>
+
+                            <td class="red">
+                                @pair.Difference.ToString("N2", tr) ₺
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+                <tfoot>
+                    <tr class="total">
+                        <td colspan="2">TOPLAM</td>
+
+                        <td>
+                            @mcAccountPairs.Sum(x => x.Count)
+                        </td>
+
+                        <td class="green">
+                            @mcAccountPairs.Sum(x => x.Matched)
+                        </td>
+
+                        <td class="red">
+                            @mcAccountPairs.Sum(x => x.Issues)
+                        </td>
+
+                        <td>
+                            @mcAccountPairs.Sum(x => x.TotalOut).ToString("N2", tr) ₺
+                        </td>
+
+                        <td>
+                            @mcAccountPairs.Sum(x => x.TotalIn).ToString("N2", tr) ₺
+                        </td>
+
+                        <td class="red">
+                            @mcAccountPairs.Sum(x => x.Difference).ToString("N2", tr) ₺
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
+
+    <p class="description">
+        Virmanlar şirket geliri veya gideri değildir.
+        Bu analiz hesap çiftlerine göre gruplanır.
+        Tutar farkının sıfır olması bütün virmanların
+        doğru eşleştiği anlamına gelmez.
+    </p>
+
+</div>
+<!-- MC_VIRMAN_MONTHLY_SUMMARY_V1 -->
+
+@{
+    var mcMonthlyRows = Model.SearchedItems
+        .GroupBy(x =>
+            x.Date.Length >= 7
+                ? x.Date.Substring(0, 7)
+                : "Tarihsiz")
+        .Select(g => new
+        {
+            Month = g.Key,
+            Count = g.Count(),
+            Matched = g.Count(x => x.IsMatched),
+            Issues = g.Count(x => !x.IsMatched),
+            TotalIn = g.Sum(x => x.TotalIn),
+            TotalOut = g.Sum(x => x.TotalOut),
+            Difference = g.Sum(x =>
+                System.Math.Abs(x.TotalIn - x.TotalOut))
+        })
+        .OrderByDescending(x => x.Month)
+        .ToList();
+}
+
+<style>
+.mc-monthly-report {
+    background: #fff;
+    border: 1px solid #e0e7ef;
+    border-radius: 14px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.mc-monthly-report h3 {
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.mc-monthly-report p {
+    color: #708398;
+    font-size: 13px;
+}
+
+.mc-monthly-report .table-wrap {
+    overflow-x: auto;
+}
+
+.mc-monthly-report table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mc-monthly-report th,
+.mc-monthly-report td {
+    padding: 12px;
+    border-bottom: 1px solid #e6edf3;
+    text-align: left;
+    font-size: 13px;
+}
+
+.mc-monthly-report th {
+    background: #f7f9fc;
+    color: #60758a;
+}
+
+.mc-monthly-report .green {
+    color: #16865d;
+    font-weight: 800;
+}
+
+.mc-monthly-report .red {
+    color: #bd4545;
+    font-weight: 800;
+}
+
+.mc-monthly-report .blue {
+    color: #235f98;
+    font-weight: 800;
+}
+
+.mc-monthly-report tfoot {
+    background: #f8fafc;
+    font-weight: 800;
+}
+
+@@media(max-width:650px) {
+    .mc-monthly-report {
+        padding: 12px;
+    }
+
+    .mc-monthly-report th,
+    .mc-monthly-report td {
+        padding: 8px;
+        font-size: 11px;
+    }
+}
+
+@@media print {
+    .mc-monthly-report th,
+    .mc-monthly-report td {
+        padding: 5px;
+        font-size: 9px;
+    }
+
+    .mc-monthly-report thead {
+        display: table-header-group;
+    }
+
+    .mc-monthly-report tr {
+        break-inside: avoid;
+    }
+}
+</style>
+
+<div class="mc-monthly-report" id="mc-virman-monthly">
+
+    <h3>Aylık Virman Mutabakat Özeti</h3>
+
+<!-- MC_VIRMAN_MONTHLY_EXPORT_V1 -->
+<div class="mc-monthly-export-btn" style="margin:15px 0">
+    <a href="/MCBankCashAudit/MonthlyExport?start=@Model.Start&amp;end=@Model.End&amp;status=@Model.FilterStatus&amp;q=@Uri.EscapeDataString(Model.Search)"
+       style="display:inline-block;padding:12px 20px;
+              background:#16865d;color:white;
+              border-radius:9px;text-decoration:none;
+              font-weight:750">
+        Aylık Raporu Excel'e Aktar
+    </a>
+</div>
+
+<style>
+@@media print {
+    .mc-monthly-export-btn {
+        display: none !important;
+    }
+}
+</style>
+
+    <p>
+        Seçilen tarih, durum ve arama filtrelerine göre
+        aylık virman hareketleri gösterilir.
+        Virmanlar son hareket tarihinin ayına göre gruplanır.
+    </p>
+
+    @if (mcMonthlyRows.Count == 0)
+    {
+        <p>Seçilen dönemde virman bulunmuyor.</p>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ay</th>
+                        <th>Virman Sayısı</th>
+                        <th>Eşleşen</th>
+                        <th>Sorunlu</th>
+                        <th>Para Girişi</th>
+                        <th>Para Çıkışı</th>
+                        <th>Mutlak Tutar Farkı</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var month in mcMonthlyRows)
+                    {
+                        <tr>
+                            <td><strong>@month.Month</strong></td>
+
+                            <td class="blue">@month.Count</td>
+
+                            <td class="green">@month.Matched</td>
+
+                            <td class="red">@month.Issues</td>
+
+                            <td>
+                                @month.TotalIn.ToString("N2", tr) ₺
+                            </td>
+
+                            <td>
+                                @month.TotalOut.ToString("N2", tr) ₺
+                            </td>
+
+                            <td class="red">
+                                @month.Difference.ToString("N2", tr) ₺
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <td>TOPLAM</td>
+
+                        <td>
+                            @mcMonthlyRows.Sum(x => x.Count)
+                        </td>
+
+                        <td class="green">
+                            @mcMonthlyRows.Sum(x => x.Matched)
+                        </td>
+
+                        <td class="red">
+                            @mcMonthlyRows.Sum(x => x.Issues)
+                        </td>
+
+                        <td>
+                            @mcMonthlyRows.Sum(x => x.TotalIn).ToString("N2", tr) ₺
+                        </td>
+
+                        <td>
+                            @mcMonthlyRows.Sum(x => x.TotalOut).ToString("N2", tr) ₺
+                        </td>
+
+                        <td class="red">
+                            @mcMonthlyRows.Sum(x => x.Difference).ToString("N2", tr) ₺
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
+
+    <p>
+        Virmanlar şirket geliri veya gideri değildir.
+        Tutar farkının sıfır olması bütün virmanların
+        hatasız olduğunu göstermez.
+    </p>
+
+</div>
+<!-- MC_VIRMAN_PRIORITY_REVIEW_V1 -->
+
+@{
+    var mcPriorityAll = Model.SearchedItems
+        .Where(x => !x.IsMatched)
+        .Select(x => new
+        {
+            Item = x,
+
+            Priority =
+                x.InCount != 1 ||
+                x.OutCount != 1 ||
+                x.Issue.Contains(
+                    "Kaynak ve hedef",
+                    System.StringComparison.OrdinalIgnoreCase) ||
+                x.Issue.Contains(
+                    "yönü",
+                    System.StringComparison.OrdinalIgnoreCase)
+                    ? 1
+                    : x.TotalIn != x.TotalOut
+                        ? 2
+                        : 3,
+
+            Difference = System.Math.Abs(
+                x.TotalIn - x.TotalOut)
+        })
+        .OrderBy(x => x.Priority)
+        .ThenByDescending(x => x.Difference)
+        .ThenByDescending(x => x.Item.Date)
+        .ToList();
+
+    var mcPriorityRows = mcPriorityAll.Take(20).ToList();
+
+    var mcPriorityOne = mcPriorityAll.Count(x => x.Priority == 1);
+    var mcPriorityTwo = mcPriorityAll.Count(x => x.Priority == 2);
+    var mcPriorityThree = mcPriorityAll.Count(x => x.Priority == 3);
+}
+
+<style>
+.mc-priority-review {
+    background: #fff;
+    border: 1px solid #e0e7ef;
+    border-radius: 14px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.mc-priority-review h3 {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.mc-priority-review .description {
+    font-size: 13px;
+    color: #708398;
+    margin-bottom: 18px;
+}
+
+.mc-priority-review .stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.mc-priority-review .stat {
+    border-radius: 11px;
+    padding: 16px;
+    background: #f7f9fc;
+}
+
+.mc-priority-review .stat strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 24px;
+}
+
+.mc-priority-review .stat.one {
+    background: #fde8e8;
+    color: #a32929;
+}
+
+.mc-priority-review .stat.two {
+    background: #fff2de;
+    color: #9a5c0a;
+}
+
+.mc-priority-review .stat.three {
+    background: #edf3f9;
+    color: #235f98;
+}
+
+.mc-priority-review .table-wrap {
+    overflow-x: auto;
+}
+
+.mc-priority-review table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mc-priority-review th,
+.mc-priority-review td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e6edf3;
+    font-size: 13px;
+}
+
+.mc-priority-review th {
+    background: #f7f9fc;
+    color: #60758a;
+}
+
+.mc-priority-review .badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 750;
+    font-size: 12px;
+}
+
+.mc-priority-review .p1 {
+    background: #fde8e8;
+    color: #a32929;
+}
+
+.mc-priority-review .p2 {
+    background: #fff2de;
+    color: #9a5c0a;
+}
+
+.mc-priority-review .p3 {
+    background: #edf3f9;
+    color: #235f98;
+}
+
+.mc-priority-review .amount {
+    color: #bd4545;
+    font-weight: 800;
+}
+
+.mc-priority-review .detail {
+    color: #235f98;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.mc-priority-review .empty {
+    background: #e2f6ec;
+    color: #16865d;
+    border-radius: 9px;
+    padding: 18px;
+    font-weight: 700;
+}
+
+@@media(max-width:650px) {
+    .mc-priority-review {
+        padding: 12px;
+    }
+
+    .mc-priority-review .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .mc-priority-review th,
+    .mc-priority-review td {
+        padding: 8px;
+        font-size: 11px;
+    }
+}
+
+@@media print {
+    .mc-priority-review .detail {
+        display: none !important;
+    }
+
+    .mc-priority-review thead {
+        display: table-header-group;
+    }
+
+    .mc-priority-review tr {
+        break-inside: avoid;
+    }
+
+    .mc-priority-review th,
+    .mc-priority-review td {
+        font-size: 9px;
+        padding: 5px;
+    }
+}
+</style>
+
+<div class="mc-priority-review">
+
+    <h3>Öncelikli Virman Kontrol Listesi</h3>
+
+<!-- MC_VIRMAN_PRIORITY_PAGING_V1 -->
+
+<div class="mc-priority-all-link" style="margin:12px 0">
+    <a href="/MCBankCashAudit/PriorityList?start=@Uri.EscapeDataString(Model.Start)&amp;end=@Uri.EscapeDataString(Model.End)&amp;status=@Uri.EscapeDataString(Model.FilterStatus)&amp;q=@Uri.EscapeDataString(Model.Search)"
+       style="display:inline-block;
+              background:#235f98;
+              color:#fff;
+              padding:12px 20px;
+              border-radius:9px;
+              text-decoration:none;
+              font-weight:750">
+        Tüm Sorunlu Virmanları Gör →
+    </a>
+</div>
+
+<style>
+@@media print {
+    .mc-priority-all-link {
+        display:none !important;
+    }
+}
+</style>
+
+<!-- MC_PRIORITY_REVIEW_EXPORT_V1 -->
+<div class="mc-priority-excel" style="margin:15px 0 20px">
+    <a href="/MCBankCashAudit/PriorityExport?start=@Model.Start&amp;end=@Model.End&amp;status=@Model.FilterStatus&amp;q=@Uri.EscapeDataString(Model.Search)"
+       style="display:inline-block;
+              background:#16865d;
+              color:white;
+              padding:12px 20px;
+              border-radius:9px;
+              text-decoration:none;
+              font-weight:750">
+        Öncelikli Virmanları Excel'e Aktar
+    </a>
+</div>
+
+<style>
+@@media print {
+    .mc-priority-excel {
+        display: none !important;
+    }
+}
+</style>
+
+    <p class="description">
+        Seçilen filtrelerdeki sorunlu virmanlar
+        kontrol önceliğine göre sıralanır.
+        İlk 20 kayıt gösterilir.
+    </p>
+
+    <div class="stats">
+
+        <div class="stat one">
+            <div>Öncelik 1 — Kayıt Sorunu</div>
+            <strong>@mcPriorityOne</strong>
+        </div>
+
+        <div class="stat two">
+            <div>Öncelik 2 — Tutar Farkı</div>
+            <strong>@mcPriorityTwo</strong>
+        </div>
+
+        <div class="stat three">
+            <div>Öncelik 3 — Diğer Kontroller</div>
+            <strong>@mcPriorityThree</strong>
+        </div>
+
+    </div>
+
+    @if (mcPriorityRows.Count == 0)
+    {
+        <div class="empty">
+            Seçilen filtrede sorunlu virman bulunmuyor.
+        </div>
+    }
+    else
+    {
+        <div class="table-wrap">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Öncelik</th>
+                        <th>Tarih</th>
+                        <th>Virman Kodu</th>
+                        <th>Çıkış Hesabı</th>
+                        <th>Giriş Hesabı</th>
+                        <th>Tutar Farkı</th>
+                        <th>Sorun</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var entry in mcPriorityRows)
+                    {
+                        <tr>
+                            <td>
+                                <span class="badge p@(entry.Priority)">
+                                    Öncelik @entry.Priority
+                                </span>
+                            </td>
+
+                            <td>@entry.Item.Date</td>
+
+                            <td>@entry.Item.Token</td>
+
+                            <td>@entry.Item.Source</td>
+
+                            <td>@entry.Item.Target</td>
+
+                            <td class="amount">
+                                @entry.Difference.ToString("N2", tr) ₺
+                            </td>
+
+                            <td>@entry.Item.Issue</td>
+
+                            <td>
+                                <a class="detail"
+                                   href="/MCBankCashAudit/Details?token=@Uri.EscapeDataString(entry.Item.Token)&amp;start=@Model.Start&amp;end=@Model.End&amp;status=@Model.FilterStatus&amp;q=@Uri.EscapeDataString(Model.Search)">
+                                    Detayları İncele
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+        </div>
+
+        @if (mcPriorityAll.Count > 20)
+        {
+            <p class="description">
+                Toplam @mcPriorityAll.Count sorunlu virmanın
+                ilk 20 tanesi gösteriliyor.
+                Tam liste için hata analizi Excel raporunu kullanın.
+            </p>
+        }
+    }
+
+    <p class="description">
+        Öncelik sıralaması otomatik kontrol önerisidir.
+        Finansal risk tutarı değildir.
+        Tutar farkı sıfır olsa bile kayıt sorunu bulunabilir.
+    </p>
+
+</div>
+<!-- MC_VIRMAN_ISSUE_BREAKDOWN_V1 -->
+
+@{
+    var mcIssueBreakdown = Model.SearchedItems
+        .Where(x => !x.IsMatched)
+        .GroupBy(x => x.Issue)
+        .Select(g => new
+        {
+            Reason = g.Key,
+            Count = g.Count(),
+            TotalIn = g.Sum(x => x.TotalIn),
+            TotalOut = g.Sum(x => x.TotalOut),
+            Difference = g.Sum(x =>
+                System.Math.Abs(x.TotalIn - x.TotalOut))
+        })
+        .OrderByDescending(x => x.Count)
+        .ThenBy(x => x.Reason)
+        .ToList();
+}
+
+<style>
+.mc-issue-analysis {
+    background: #ffffff;
+    border: 1px solid #e0e7ef;
+    border-radius: 14px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.mc-issue-analysis h3 {
+    font-size: 19px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.mc-issue-analysis .description {
+    color: #708398;
+    font-size: 13px;
+    margin-bottom: 18px;
+}
+
+.mc-issue-analysis .table-wrap {
+    overflow-x: auto;
+}
+
+.mc-issue-analysis table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mc-issue-analysis th,
+.mc-issue-analysis td {
+    padding: 12px;
+    border-bottom: 1px solid #e6edf3;
+    text-align: left;
+    font-size: 13px;
+}
+
+.mc-issue-analysis th {
+    background: #f7f9fc;
+    color: #60758a;
+}
+
+.mc-issue-analysis .amount {
+    font-weight: 800;
+    color: #bd4545;
+}
+
+.mc-issue-analysis .count {
+    font-weight: 800;
+    color: #235f98;
+}
+
+.mc-issue-analysis .total {
+    background: #f8fafc;
+    font-weight: 800;
+}
+
+.mc-issue-analysis .success {
+    padding: 15px;
+    background: #e2f6ec;
+    color: #16865d;
+    border-radius: 9px;
+    font-weight: 700;
+}
+
+@@media(max-width: 650px) {
+    .mc-issue-analysis {
+        padding: 12px;
+    }
+
+    .mc-issue-analysis th,
+    .mc-issue-analysis td {
+        font-size: 11px;
+        padding: 8px;
+    }
+}
+
+@@media print {
+    .mc-issue-analysis {
+        break-inside: avoid;
+        border: 1px solid #ddd;
+        padding: 10px;
+    }
+
+    .mc-issue-analysis th,
+    .mc-issue-analysis td {
+        font-size: 9px;
+        padding: 5px;
+    }
+}
+</style>
+
+<div class="mc-issue-analysis">
+
+    <h3>Virman Hata Analizi</h3>
+
+<!-- MC_VIRMAN_ISSUE_EXPORT_V1 -->
+<div class="mc-issue-export" style="margin:15px 0 20px">
+    <a href="/MCBankCashAudit/IssuesExport?start=@Model.Start&amp;end=@Model.End&amp;status=@Model.FilterStatus&amp;q=@Uri.EscapeDataString(Model.Search)"
+       style="display:inline-block;padding:12px 18px;
+              background:#16865d;color:white;
+              border-radius:9px;text-decoration:none;
+              font-size:13px;font-weight:750">
+        Hata Analizini Excel'e Aktar
+    </a>
+</div>
+
+<style>
+@@media print {
+    .mc-issue-export {
+        display: none !important;
+    }
+}
+</style>
+
+    <p class="description">
+        Seçilen tarih, durum ve arama filtrelerine göre
+        kontrol gerektiren virmanlar hata nedenlerine ayrılır.
+    </p>
+
+    @if (mcIssueBreakdown.Count == 0)
+    {
+        <div class="success">
+            Seçilen filtrede kontrol gerektiren virman bulunmuyor.
+        </div>
+    }
+    else
+    {
+        <div class="table-wrap">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hata Nedeni</th>
+                        <th>Virman Sayısı</th>
+                        <th>Giriş Toplamı</th>
+                        <th>Çıkış Toplamı</th>
+                        <th>Mutlak Tutar Farkı</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var issue in mcIssueBreakdown)
+                    {
+                        <tr>
+                            <td>@issue.Reason</td>
+
+                            <td class="count">
+                                @issue.Count
+                            </td>
+
+                            <td>
+                                @issue.TotalIn.ToString("N2", tr) ₺
+                            </td>
+
+                            <td>
+                                @issue.TotalOut.ToString("N2", tr) ₺
+                            </td>
+
+                            <td class="amount">
+                                @issue.Difference.ToString("N2", tr) ₺
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+                <tfoot>
+                    <tr class="total">
+                        <td>TOPLAM</td>
+
+                        <td>
+                            @mcIssueBreakdown.Sum(x => x.Count)
+                        </td>
+
+                        <td>
+                            @mcIssueBreakdown.Sum(x => x.TotalIn).ToString("N2", tr) ₺
+                        </td>
+
+                        <td>
+                            @mcIssueBreakdown.Sum(x => x.TotalOut).ToString("N2", tr) ₺
+                        </td>
+
+                        <td class="amount">
+                            @mcIssueBreakdown.Sum(x => x.Difference).ToString("N2", tr) ₺
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+
+        </div>
+    }
+
+    <p class="description">
+        Mutlak tutar farkı, her sorunlu virmanın giriş ve
+        çıkış farkının mutlak değerleri toplamıdır.
+        Tutar farkının sıfır olması, bütün kayıtların
+        doğru eşleştiği anlamına gelmez.
+    </p>
+
+</div>
+<h2>Virman Eşleşme Listesi</h2>
+
+<!-- MC_VIRMAN_QUICK_FILTER_V1 -->
+<style>
+.mc-virman-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0 20px;
+}
+
+.mc-virman-quick a {
+    display: inline-block;
+    padding: 11px 16px;
+    border-radius: 9px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 750;
+    background: #edf3f9;
+    color: #235f98;
+}
+
+.mc-virman-quick a.success {
+    background: #e2f6ec;
+    color: #16865d;
+}
+
+.mc-virman-quick a.danger {
+    background: #fde8e8;
+    color: #bd4545;
+}
+
+.mc-audit .mc-virman-row-issue td {
+    background: #fff1ef;
+}
+
+.mc-audit .mc-virman-row-issue:hover td {
+    background: #ffe5e1;
+}
+</style>
+
+<div class="mc-virman-quick">
+
+    <a href="/MCBankCashAudit?start=@Model.Start&amp;end=@Model.End&amp;status=all&amp;q=@Uri.EscapeDataString(Model.Search)">
+        Tüm Virmanlar
+    </a>
+
+    <a class="success"
+       href="/MCBankCashAudit?start=@Model.Start&amp;end=@Model.End&amp;status=matched&amp;q=@Uri.EscapeDataString(Model.Search)">
+        Eşleşen Virmanlar
+    </a>
+
+    <a class="danger"
+       href="/MCBankCashAudit?start=@Model.Start&amp;end=@Model.End&amp;status=issues&amp;q=@Uri.EscapeDataString(Model.Search)">
+        Kontrol Gerektirenler
+    </a>
+
+</div>
+        <p class="muted">
+            Gösterilen: @Model.SearchedItems.Count /
+            Toplam: @Model.Items.Count
+        </p>
+
+        @if (Model.SearchedItems.Count == 0)
+        {
+            <div class="empty">
+                Seçilen dönemde virman kaydı bulunamadı.
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Virman Kodu</th>
+                            <th>Çıkış Hesabı</th>
+                            <th>Giriş Hesabı</th>
+                            <th>Çıkış Tutarı</th>
+                            <th>Giriş Tutarı</th>
+                            <th>Tutar Farkı</th>
+                            <th>Hareket</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in Model.SearchedItems)
+                        {
+                            <tr class="@(item.IsMatched ? "" : "mc-virman-row-issue")">
+                                <td>@item.Date</td>
+
+                                <td>
+                                    <small>@item.Token</small>
+                                    <!-- MC_VIRMAN_DETAILS_V1 -->
+                                    <div style="margin-top:7px">
+                                        <a href="/MCBankCashAudit/Details?token=@Uri.EscapeDataString(item.Token)&amp;start=@Model.Start&amp;end=@Model.End&amp;status=@Model.FilterStatus&amp;q=@Uri.EscapeDataString(Model.Search)"
+                                           style="color:#235f98;font-weight:700;text-decoration:none">
+                                            Detay →
+                                        </a>
+                                    </div>
+                                </td>
+
+                                <td>@item.Source</td>
+
+                                <td>@item.Target</td>
+
+                                <td>
+                                    @item.TotalOut.ToString("N2", tr) ₺
+                                </td>
+
+                                <td>
+                                    @item.TotalIn.ToString("N2", tr) ₺
+                                </td>
+                            <!-- MC_VIRMAN_ROW_DIFFERENCE_V1 -->
+                            <td class="@(item.TotalIn == item.TotalOut ? "green" : "red")">
+                                <strong>
+                                    @((item.TotalIn - item.TotalOut).ToString("N2", tr)) ₺
+                                </strong>
+                            </td>
+
+                                <td>
+                                    @item.OutCount çıkış /
+                                    @item.InCount giriş
+                                </td>
+
+                                <td>
+                                    @if (item.IsMatched)
+                                    {
+                                        <span class="badge ok">
+                                            Eşleşti
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bad">
+                                            @item.Issue
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+        }
+    </div>
+
+    <p class="muted">
+        Her virman için bir çıkış ve bir giriş hareketi aranır.
+        Tutarlar ve hesaplar karşılaştırılır.
+        Dönem içinde en az bir hareketi bulunan virmanların
+        karşılıkları, farklı tarihte olsa bile kontrol edilir.
+        Virmanlar şirket geliri veya gideri değildir.
+    </p>
+
+</div>
+<style>/* MC_FINANCE_BACK_STANDARD_V1 */.mc-bank-report .back,.mc-audit .back{display:inline-flex!important;align-items:center;padding:9px 13px;border:1px solid #d5e0ec;border-radius:8px;background:#fff!important;color:#18365f!important;text-decoration:none!important;font-weight:700}.mc-bank-report .back:hover,.mc-bank-report .back:focus,.mc-audit .back:hover,.mc-audit .back:focus{background:#18365f!important;color:#fff!important;border-color:#18365f!important}</style>

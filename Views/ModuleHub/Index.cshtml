@@ -1,0 +1,748 @@
+
+@* MC_RAW_WORKSPACE_REDIRECT_2026 *@
+@if (string.Equals(
+    Context.Request.Query["section"].ToString(),
+    "hammadde",
+    StringComparison.OrdinalIgnoreCase))
+{
+    <script>
+        window.location.replace("/RawWorkspace");
+    </script>
+}
+
+@{
+    ViewData["Title"] = "Mod\u00fcl Y\u00f6netimi";
+}
+
+<div style="padding:10px 4px 30px;">
+    <h1 id="mc-module-hub-title"
+        style="font-size:26px;font-weight:700;margin-bottom:8px;">
+        Modül Yönetimi
+    </h1>
+
+    <p class="mc-hub-intro">&#304;&#351;lem yapmak istedi&#287;iniz b&#246;l&#252;m&#252; se&#231;in.</p>
+
+    
+    
+
+<!-- MC_HAMMADDE_FINAL_TABS_2026 -->
+@if (string.Equals(Context.Request.Query["section"].ToString(),
+                   "hammadde", StringComparison.OrdinalIgnoreCase))
+{
+    <style>
+        .mc-final-nav {
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            background:#e9eff6;
+            padding:8px;
+            border-radius:12px;
+            margin:18px 0;
+        }
+        .mc-final-nav a {
+            text-decoration:none;
+            padding:13px 17px;
+            border-radius:9px;
+            color:#24486d;
+            font-weight:600;
+        }
+        .mc-final-nav a:hover {
+            background:#dce7f2;
+        }
+        .mc-final-nav a.active {
+            background:#183f69;
+            color:white;
+        }
+    </style>
+
+    
+
+
+<nav class="mc-final-nav" aria-label="Hammadde Yönetimi">
+    <a class="active" href="/MaterialCatalog">Malzeme Katalo&#287;u</a>
+    <a href="/RawMaterials">Hammadde Stok Kartlar&#305;</a>
+    <a href="/MaterialStockMapping">Stok Kart&#305; E&#351;le&#351;tirme</a>
+    <a href="/MCRawWarehouses">Hammadde Depolar&#305;</a>
+</nav>
+
+
+
+
+<!-- MC_HAMMADDE_DEFAULT_CATALOG_2026 -->
+<div id="mc-hammadde-content"
+     style="margin-top:16px;background:#fff;
+            border:1px solid #dbe3ec;
+            border-radius:12px;overflow:hidden">
+
+    <iframe id="mc-hammadde-content-frame"
+            src="/MaterialCatalog"
+            title="Hammadde Yönetimi - Malzeme Kataloğu"
+            style="width:100%;height:900px;
+                   border:0;display:block">
+    </iframe>
+</div>
+
+<script>
+(function () {
+    function init() {
+        const nav = document.querySelector(".mc-final-nav");
+        const frame = document.getElementById(
+            "mc-hammadde-content-frame"
+        );
+
+        if (!nav || !frame) return;
+
+        nav.querySelectorAll("a[href]").forEach(function (link) {
+            link.addEventListener("click", function (event) {
+                event.preventDefault();
+
+                nav.querySelectorAll("a").forEach(function (item) {
+                    item.classList.remove("active");
+                });
+
+                link.classList.add("active");
+
+                frame.src = link.getAttribute("href");
+            });
+        });
+
+        frame.addEventListener("load", function () {
+            try {
+                const doc = frame.contentDocument;
+                if (!doc) return;
+
+                if (doc.getElementById("mc-embedded-style")) return;
+
+                const style = doc.createElement("style");
+                style.id = "mc-embedded-style";
+
+                style.textContent = `
+                    aside,
+                    header,
+                    .sidebar,
+                    .topbar,
+                    .app-sidebar,
+                    .app-header {
+                        display: none !important;
+                    }
+
+                    main,
+                    .main-content,
+                    .content-wrapper {
+                        margin-left: 0 !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                    }
+                `;
+
+                doc.head.appendChild(style);
+            } catch (e) {
+                console.warn("Icerik gorunumu:", e);
+            }
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+    } else {
+        init();
+    }
+})();
+</script>
+
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const hub = document.getElementById("mc-module-hub");
+
+        if (hub) hub.style.display = "none";
+
+        const nav = document.querySelector(".mc-final-nav");
+
+        if (!nav) return;
+
+        const main = nav.closest("main") || nav.parentElement;
+
+        if (!main) return;
+
+        // Eski özel kartlar? yalnızca bu sayfada gizle.
+        main.querySelectorAll("a[href]").forEach(function (a) {
+            if (nav.contains(a)) return;
+
+            const href = a.getAttribute("href") || "";
+
+            if ([
+                "/MaterialCatalog",
+                "/MaterialStockMapping",
+                "/RawMaterials",
+                "/MCRawWarehouses",
+                "/PurchaseGoodsReceipt",
+                "/Purchasing"
+            ].some(x => href.startsWith(x))) {
+                const parent = a.closest("div");
+                if (parent && !parent.contains(nav)) {
+                    parent.style.display = "none";
+                }
+            }
+        });
+    });
+    </script>
+}
+
+
+<!-- MC_RAW_ALIGNMENT_FIX_2026 -->
+@if (string.Equals(
+    Context.Request.Query["section"].ToString(),
+    "hammadde",
+    StringComparison.OrdinalIgnoreCase))
+{
+    <script src="/js/mc-raw-layout-fix.js"
+            asp-append-version="true"></script>
+}
+
+
+<!-- MC_EMBED_FRAME_ACTIVATION_2026 -->
+@if (string.Equals(
+    Context.Request.Query["section"].ToString(),
+    "hammadde",
+    StringComparison.OrdinalIgnoreCase))
+{
+    <script>
+    (function () {
+        "use strict";
+
+        function init() {
+            const frame = document.getElementById(
+                "mc-hammadde-content-frame"
+            );
+
+            const nav = document.querySelector(".mc-final-nav");
+
+            if (!frame || !nav) return;
+
+            function embeddedUrl(url) {
+                const parsed = new URL(url, window.location.origin);
+                parsed.searchParams.set("mcEmbed", "1");
+                return parsed.pathname + parsed.search;
+            }
+
+            nav.querySelectorAll("a[href]").forEach(function (link) {
+                const original = link.getAttribute("href");
+
+                if (!original) return;
+
+                const url = new URL(original, window.location.origin);
+
+                if (url.origin !== window.location.origin) return;
+
+                link.setAttribute(
+                    "href",
+                    embeddedUrl(original)
+                );
+
+                link.addEventListener("click", function (event) {
+                    event.preventDefault();
+
+                    nav.querySelectorAll("a").forEach(function (a) {
+                        a.classList.remove("active");
+                    });
+
+                    link.classList.add("active");
+
+                    frame.src = embeddedUrl(original);
+                });
+            });
+
+            const current = new URL(
+                frame.getAttribute("src") || "/MaterialCatalog",
+                window.location.origin
+            );
+
+            if (!current.searchParams.has("mcEmbed")) {
+                frame.src = embeddedUrl(current.pathname + current.search);
+            }
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init);
+        } else {
+            init();
+        }
+    })();
+    </script>
+}
+
+
+<!-- MC_RAW_STABLE_TRANSITIONS_2026 -->
+@if (string.Equals(
+    Context.Request.Query["section"].ToString(),
+    "hammadde",
+    StringComparison.OrdinalIgnoreCase))
+{
+    <style>
+        #mc-hammadde-content {
+            position: relative;
+            width: 100%;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        #mc-hammadde-content-frame {
+            display: block;
+            width: 100%;
+            border: 0;
+            min-height: 500px;
+            transition: opacity .12s ease;
+        }
+
+        #mc-hammadde-content-frame.mc-loading {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .mc-raw-loading {
+            display: none;
+            padding: 28px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        #mc-hammadde-content.mc-is-loading .mc-raw-loading {
+            display: block;
+        }
+
+        @@media (max-width: 700px) {
+            #mc-hammadde-content-frame {
+                min-height: 420px;
+            }
+        }
+    </style>
+
+    <script>
+    (function () {
+        "use strict";
+
+        function initialize() {
+            const frame = document.getElementById(
+                "mc-hammadde-content-frame"
+            );
+
+            const holder = document.getElementById(
+                "mc-hammadde-content"
+            );
+
+            const nav = document.querySelector(".mc-final-nav");
+
+            if (!frame || !holder || !nav) return;
+
+            if (window.mcRawStableTransitions) return;
+            window.mcRawStableTransitions = true;
+
+            const loading = document.createElement("div");
+
+            loading.className = "mc-raw-loading";
+            loading.textContent = "Bölüm yükleniyor...";
+
+            holder.prepend(loading);
+
+            let sequence = 0;
+
+            function beginLoad() {
+                sequence++;
+
+                holder.classList.add("mc-is-loading");
+                frame.classList.add("mc-loading");
+
+                frame.style.height = "500px";
+            }
+
+            function endLoad() {
+                const current = sequence;
+
+                window.requestAnimationFrame(function () {
+                    if (current !== sequence) return;
+
+                    try {
+                        const doc = frame.contentDocument;
+
+                        if (doc && doc.body) {
+                            const height = Math.max(
+                                doc.body.scrollHeight,
+                                doc.documentElement.scrollHeight,
+                                500
+                            );
+
+                            frame.style.height = (height + 20) + "px";
+                        }
+                    } catch (error) {
+                        frame.style.height = "800px";
+                    }
+
+                    holder.classList.remove("mc-is-loading");
+                    frame.classList.remove("mc-loading");
+                });
+            }
+
+            // Bu dinleyici hem ilk a?ölçüta hem de
+            // sekmeler aras?nda geçişte çalışır.
+            frame.addEventListener("load", endLoad);
+
+            // Önceki kodlar?n tıklama olaylar?yla çakışmamak i?in
+            // navigasyona tek bir yeni olay dinleyicisi ekliyoruz.
+            nav.addEventListener("click", function (event) {
+                const link = event.target.closest("a[href]");
+
+                if (!link || !nav.contains(link)) return;
+
+                beginLoad();
+            }, true);
+
+            // İlk a?ölçüta içerik y?klenmesini bekle.
+            if (frame.contentDocument?.readyState === "complete") {
+                endLoad();
+            } else {
+                beginLoad();
+            }
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener(
+                "DOMContentLoaded", initialize
+            );
+        } else {
+            initialize();
+        }
+    })();
+    </script>
+}
+
+
+<!-- MC_RAW_TYPOGRAPHY_2026 -->
+@if (string.Equals(
+    Context.Request.Query["section"].ToString(),
+    "hammadde",
+    StringComparison.OrdinalIgnoreCase))
+{
+    <script src="/js/mc-raw-typography.js"
+            asp-append-version="true"></script>
+}
+
+
+<!-- MC_RAW_FINAL_TEXT_FIX_2026 -->
+<style>
+.mc-final-nav,
+.mc-final-nav a {
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    letter-spacing: normal !important;
+}
+.mc-final-nav a {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 1.45 !important;
+}
+</style>
+<script>
+(function () {
+    function fix() {
+        const frame = document.getElementById("mc-hammadde-content-frame");
+        if (!frame) return;
+
+        const doc = frame.contentDocument;
+        if (!doc || !doc.body) return;
+
+        doc.querySelectorAll("a,button").forEach(function (el) {
+            const text = (el.textContent || "")
+                .trim().toLocaleLowerCase("tr-TR");
+
+            if (text.includes("Önceki sayfaya d?n")) {
+                el.style.setProperty("display", "none", "important");
+            }
+        });
+    }
+
+    window.addEventListener("load", fix);
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const frame = document.getElementById("mc-hammadde-content-frame");
+        if (frame) frame.addEventListener("load", fix);
+        fix();
+    });
+})();
+</script>
+
+<div id="mc-module-hub"></div>
+</div>
+
+
+<!-- MC_RAW_RESPONSIVE_LAYOUT_2026 -->
+@if (string.Equals(
+    Context.Request.Query["section"].ToString(),
+    "hammadde",
+    StringComparison.OrdinalIgnoreCase))
+{
+    <style>
+        #mc-hammadde-content,
+        #mc-raw-workspace,
+        .mc-final-nav {
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .mc-final-nav {
+            display: flex;
+            align-items: stretch;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 8px;
+            margin: 16px auto;
+            background: #e9eff6;
+            border: 1px solid #dbe3ec;
+            border-radius: 12px;
+        }
+
+        .mc-final-nav a {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 46px;
+            padding: 11px 18px;
+            box-sizing: border-box;
+            border-radius: 9px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #24486d;
+            text-decoration: none;
+            white-space: normal;
+        }
+
+        .mc-final-nav a.active {
+            background: #183f69;
+            color: white;
+        }
+
+        #mc-hammadde-content {
+            margin: 12px auto 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            overflow: hidden !important;
+            background: transparent !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+        }
+
+        #mc-hammadde-content-frame {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            height: 900px;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            overflow: hidden !important;
+            background: transparent;
+        }
+
+        @@media (max-width: 768px) {
+            .mc-final-nav {
+                display: grid;
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+                gap: 7px;
+                padding: 7px;
+            }
+
+            .mc-final-nav a {
+                width: 100%;
+                min-width: 0;
+                padding: 11px 8px;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+        }
+
+        @@media (max-width: 420px) {
+            .mc-final-nav {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+
+    <script>
+    (function () {
+        "use strict";
+
+        function initialize() {
+            const frame = document.getElementById(
+                "mc-hammadde-content-frame"
+            );
+
+            const nav = document.querySelector(".mc-final-nav");
+
+            if (!frame || !nav) return;
+
+            // Eski tekrarlanan kartlar gÜrünmesin.
+            const hub = document.getElementById("mc-module-hub");
+            if (hub) hub.style.display = "none";
+
+            // ?nceden oluşturulmuş sekme dinleyicileriyle
+            // çakışmamak i?in yeni olaylar eklemiyoruz.
+
+            function arrangeFrame() {
+                try {
+                    const doc = frame.contentDocument;
+
+                    if (!doc || !doc.body) return;
+
+                    if (!doc.getElementById("mc-inner-fix")) {
+                        const style = doc.createElement("style");
+                        style.id = "mc-inner-fix";
+
+                        style.textContent = `
+                            html {
+                                overflow-x: hidden !important;
+                                width: 100% !important;
+                            }
+
+                            body {
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                width: 100% !important;
+                                min-width: 0 !important;
+                                overflow-x: hidden !important;
+                                background: transparent !important;
+                            }
+
+                            aside,
+                            header,
+                            .sidebar,
+                            .app-sidebar,
+                            .topbar,
+                            .app-header,
+                            .navbar-sidebar {
+                                display: none !important;
+                            }
+
+                            main,
+                            .main-content,
+                            .content-wrapper,
+                            .app-main,
+                            .page-content,
+                            .container,
+                            .container-fluid {
+                                box-sizing: border-box !important;
+                                margin-left: auto !important;
+                                margin-right: auto !important;
+                                width: 100% !important;
+                                max-width: 100% !important;
+                                min-width: 0 !important;
+                            }
+
+                            main,
+                            .main-content,
+                            .content-wrapper {
+                                padding: 12px !important;
+                            }
+
+                            input,
+                            select,
+                            textarea {
+                                max-width: 100%;
+                                box-sizing: border-box;
+                            }
+
+                            table {
+                                max-width: 100%;
+                            }
+
+                            .table-responsive {
+                                overflow-x: auto;
+                            }
+
+                            @@media (max-width: 768px) {
+                                main,
+                                .main-content,
+                                .content-wrapper {
+                                    padding: 8px !important;
+                                }
+
+                                input,
+                                select,
+                                textarea {
+                                    font-size: 16px !important;
+                                }
+                            }
+                        `.replaceAll("@@media", "@@media");
+
+                        doc.head.appendChild(style);
+                    }
+
+                    // ?? sayfanın kendi üst geri dönüş alan?n? gizle.
+                    const links = doc.querySelectorAll("a");
+
+                    links.forEach(function (link) {
+                        const label = (link.textContent || "")
+                            .trim()
+                            .toLocaleLowerCase("tr-TR");
+
+                        if (label.includes("Önceki sayfaya d?n")) {
+                            const wrapper = link.closest("div");
+                            if (wrapper) wrapper.style.display = "none";
+                        }
+                    });
+
+                    function resize() {
+                        const height = Math.max(
+                            doc.body.scrollHeight,
+                            doc.documentElement.scrollHeight,
+                            500
+                        );
+
+                        frame.style.height = height + 16 + "px";
+                    }
+
+                    resize();
+
+                    if (frame._mcResizeObserver) {
+                        frame._mcResizeObserver.disconnect();
+                    }
+
+                    if (typeof ResizeObserver !== "undefined") {
+                        const observer = new ResizeObserver(resize);
+
+                        observer.observe(doc.body);
+
+                        frame._mcResizeObserver = observer;
+                    }
+
+                    setTimeout(resize, 350);
+                    setTimeout(resize, 1200);
+
+                } catch (error) {
+                    console.warn("Icerik duzeni:", error);
+                }
+            }
+
+            frame.addEventListener("load", arrangeFrame);
+            arrangeFrame();
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener(
+                "DOMContentLoaded", initialize
+            );
+        } else {
+            initialize();
+        }
+    })();
+    </script>
+}
+
+<script src="/js/mc-cari-hub-fix.js?v=20261107-1"></script>

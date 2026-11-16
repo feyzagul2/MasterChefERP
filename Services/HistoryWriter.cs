@@ -472,14 +472,13 @@ if (shipment.ShippedAtUtc is DateTime shippedAt &&
             }
         }
 
+        var userIds = records.Where(r => !string.IsNullOrWhiteSpace(r.UserId)).Select(r => r.UserId!).Distinct().ToList();
+
+        var accounts = await db.Users.AsNoTracking().Where(u => userIds.Contains(u.Id)).Select(u => new { u.Id, u.FullName, u.Email }).ToDictionaryAsync(u => u.Id, cancellationToken);
+
         foreach (var row in records)
         {
-            var account = string.IsNullOrWhiteSpace(row.UserId)
-                ? null
-                : await db.Users.AsNoTracking()
-                    .SingleOrDefaultAsync(
-                        u => u.Id == row.UserId,
-                        cancellationToken);
+            accounts.TryGetValue(row.UserId ?? string.Empty, out var account);
 
             row.UserName = account is null
                 ? "Personel bilgisi bulunmuyor"

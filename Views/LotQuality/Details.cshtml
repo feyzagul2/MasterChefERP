@@ -1,0 +1,163 @@
+
+@model MasterChefTakip.Models.ProductLot
+@{
+    ViewData["Title"] = "Lot Detay";
+}
+
+<style>
+.mc-lot{max-width:1170px;margin:auto}
+.mc-lot h1{font-size:24px;color:#17365b}
+.mc-lot h2{font-size:17px;color:#17365b}
+.mc-lot-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.mc-lot-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:15px 0}
+.mc-lot-btn{display:inline-block;padding:9px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;color:#17406a;text-decoration:none;font-size:13px;cursor:pointer}
+.mc-lot-primary{background:#17406a;border-color:#17406a;color:#fff}
+.mc-lot-scroll{overflow-x:auto}
+.mc-lot-table{width:100%;min-width:760px;border-collapse:collapse}
+.mc-lot-table th{text-align:left;padding:11px;font-size:12px;background:#f8fafc;color:#475569}
+.mc-lot-table td{padding:11px;font-size:13px;border-bottom:1px solid #edf2f7}
+.mc-lot-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.mc-lot-field{display:flex;flex-direction:column;gap:6px}
+.mc-lot-field label{font-size:12px;font-weight:650;color:#475569}
+.mc-lot-field input,.mc-lot-field select,.mc-lot-field textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px}
+.mc-lot-muted{font-size:12px;color:#64748b}
+.mc-lot-alert{background:#fef2f2;color:#991b1b;padding:12px;border-radius:8px}
+.mc-lot-success{background:#dcfce7;color:#166534;padding:12px;border-radius:8px}
+@@media(max-width:700px){.mc-lot-grid{grid-template-columns:1fr}.mc-lot-card{padding:12px}}
+</style>
+
+<div class="mc-lot">
+    <div class="mc-lot-head">
+        <div>
+            <div class="mc-section-nav"><a href="/Pallets">Paletler</a><a href="/PalletTransfers">Palet Transferi</a><a href="/LotQuality">Lot / SKT</a><a href="/Shipments">Sevkiyat</a></div><h1>@Model.LotNumber</h1>
+            <div class="mc-lot-muted">@Model.Product.Name</div>
+        </div>
+        <a class="mc-lot-btn" asp-action="Index">
+            Listeye D&#246;n
+        </a>
+    </div>
+
+    @if (TempData["QualitySuccess"] is string success)
+    {
+        <div class="mc-lot-success">@success</div>
+    }
+
+    <div class="mc-lot-card">
+        <div><strong>&#220;r&#252;n:</strong> @Model.Product.Name</div>
+
+        <div>
+            <strong>&#220;retim Tarihi:</strong>
+            @Model.ProductionDate.ToString("dd.MM.yyyy")
+        </div>
+
+        <div>
+            <strong>Son Kullanma Tarihi:</strong>
+            @Model.ExpiryDate.ToString("dd.MM.yyyy")
+        </div>
+
+        <div>
+            <strong>Kalite Durumu:</strong> @Model.Status
+        </div>
+
+        @if (Model.ExpiryDate.Date < DateTime.Today)
+        {
+            <p style="color:#b91c1c">
+                Bu lotun son kullanma tarihi ge&#231;mi&#351;.
+            </p>
+        }
+
+        <p>@Model.Notes</p>
+    </div>
+
+    <div class="mc-lot-card">
+        <h2>Kalite Kontrol Kayd&#305;</h2>
+
+        <form asp-action="Inspect" method="post">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" name="lotId"
+                   value="@Model.Id" />
+
+            <div class="mc-lot-grid">
+                <div class="mc-lot-field">
+                    <label>Kontrol Ad&#305;</label>
+                    <input name="inspectionName"
+                           maxlength="200" required
+                           placeholder="&#214;rn: G&#246;rsel kontrol" />
+                </div>
+
+                <div class="mc-lot-field">
+                    <label>Sonu&#231;</label>
+                    <select name="result" required>
+                        <option value="Pending">
+                            Kontrol Bekliyor
+                        </option>
+                        <option value="Approved">
+                            Onayland&#305;
+                        </option>
+                        <option value="Rejected">
+                            Reddedildi
+                        </option>
+                    </select>
+                </div>
+
+                <div class="mc-lot-field">
+                    <label>A&#231;&#305;klama / Bulgular</label>
+                    <textarea name="notes"
+                              rows="3" maxlength="1000"></textarea>
+                </div>
+            </div>
+
+            <br />
+
+            <button class="mc-lot-btn mc-lot-primary">
+                Kontrol Sonucunu Kaydet
+            </button>
+        </form>
+    </div>
+
+    <div class="mc-lot-card mc-lot-scroll">
+        <h2>Kalite Kontrol Ge&#231;mi&#351;i</h2>
+
+        <table class="mc-lot-table">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Kontrol</th>
+                    <th>Sonu&#231;</th>
+                    <th>A&#231;&#305;klama</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var x in Model.Inspections
+                .OrderByDescending(x => x.InspectedAtUtc))
+            {
+                <tr>
+                    <td>
+                        @x.InspectedAtUtc.ToLocalTime()
+                            .ToString("dd.MM.yyyy HH:mm")
+                    </td>
+                    <td>@x.InspectionName</td>
+                    <td>@x.Result</td>
+                    <td>@x.Notes</td>
+                </tr>
+            }
+
+            @if (!Model.Inspections.Any())
+            {
+                <tr>
+                    <td colspan="4">
+                        Hen&#252;z kalite kontrol kayd&#305; yok.
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mc-lot-card mc-lot-muted">
+        Bu mod&#252;l lot ve kalite kontrol bilgilerini kaydeder.
+        Palet, sevkiyat ve stok hareketlerini hen&#252;z otomatik
+        olarak engellemez. Bu entegrasyon ayr&#305; kurulacakt&#305;r.
+    </div>
+</div>

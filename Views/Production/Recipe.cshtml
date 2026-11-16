@@ -1,0 +1,132 @@
+
+@model MasterChefTakip.Models.ProductionRecipe
+@{
+    ViewData["Title"] = "Recete Detayi";
+
+    var materials = (List<MasterChefTakip.Models.RawMaterial>)
+        ViewBag.Materials;
+}
+
+<style>
+.mc-prod{max-width:1180px;margin:auto}
+.mc-prod h1{font-size:24px;color:#17365b}
+.mc-prod h2{font-size:17px;color:#17365b}
+.mc-prod-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:15px 0}
+.mc-prod-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.mc-prod-btn{display:inline-block;padding:9px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;color:#17406a;text-decoration:none;font-size:13px;cursor:pointer}
+.mc-prod-primary{background:#17406a;color:#fff;border-color:#17406a}
+.mc-prod-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.mc-prod-field{display:flex;flex-direction:column;gap:6px}
+.mc-prod-field label{font-size:12px;font-weight:600;color:#475569}
+.mc-prod-field input,.mc-prod-field select,.mc-prod-field textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px}
+.mc-prod-tablewrap{overflow-x:auto}
+.mc-prod-table{width:100%;min-width:710px;border-collapse:collapse}
+.mc-prod-table th{text-align:left;padding:11px;font-size:12px;color:#475569;background:#f8fafc}
+.mc-prod-table td{padding:11px;font-size:13px;border-bottom:1px solid #edf2f7}
+.mc-prod-note{font-size:12px;color:#64748b}
+.mc-prod-error{padding:13px;background:#fef2f2;color:#991b1b;border-radius:8px}
+.mc-prod-success{padding:13px;background:#ecfdf5;color:#166534;border-radius:8px}
+@@media(max-width:700px){.mc-prod-grid{grid-template-columns:1fr}.mc-prod-card{padding:12px}}
+</style>
+
+<div class="mc-prod">
+    <div class="mc-prod-head">
+        <div>
+            <h1>@Model.Name</h1>
+            <div class="mc-prod-note">
+                @Model.Code |
+                @Model.BatchQuantityKg.ToString("N4") Kg standart parti
+            </div>
+        </div>
+
+        <a class="mc-prod-btn" asp-action="Index">
+            Re&#231;eteler
+        </a>
+    </div>
+
+    @if (TempData["ProductionError"] is string error)
+    {
+        <div class="mc-prod-error">@error</div>
+    }
+
+    <div class="mc-prod-card">
+        <h2>Hammadde Ekle</h2>
+
+        <form asp-action="AddLine" method="post">
+            @Html.AntiForgeryToken()
+
+            <input name="recipeId" value="@Model.Id" type="hidden" />
+
+            <div class="mc-prod-grid">
+                <div class="mc-prod-field">
+                    <label>Hammadde</label>
+                    <select name="rawMaterialId" required>
+                        <option value="">Hammadde Se&#231;iniz</option>
+                        @foreach (var x in materials)
+                        {
+                            <option value="@x.Id">
+                                @x.Code - @x.Name (@x.Unit)
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-prod-field">
+                    <label>Standart Partide Kullan&#305;lan Miktar</label>
+                    <input name="quantity" type="number"
+                           min="0.0001" step="0.0001" required />
+                </div>
+            </div>
+
+            <br />
+
+            <button class="mc-prod-btn mc-prod-primary">
+                Hammadde Ekle
+            </button>
+        </form>
+
+        <p class="mc-prod-note">
+            Hammadde miktar&#305;, hammadde kart&#305;n&#305;n
+            Kg veya L birimi &#252;zerinden hesaplan&#305;r.
+            &#220;retim emri a&#231;&#305;lan re&#231;eteler kilitlenir.
+        </p>
+    </div>
+
+    <div class="mc-prod-card mc-prod-tablewrap">
+        <h2>Re&#231;ete Kalemleri</h2>
+
+        <table class="mc-prod-table">
+            <thead>
+                <tr>
+                    <th>Hammadde</th>
+                    <th>Miktar</th>
+                    <th>Birim</th>
+                    <th>&#304;&#351;lem</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            @foreach (var x in Model.Lines.OrderBy(x => x.RawMaterial.Name))
+            {
+                <tr>
+                    <td>@x.RawMaterial.Name</td>
+                    <td>@x.Quantity.ToString("N4")</td>
+                    <td>@x.RawMaterial.Unit</td>
+                    <td>
+                        <form asp-action="RemoveLine" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <input name="id" type="hidden" value="@x.Id" />
+
+                            <button class="mc-prod-btn"
+                                    onclick="return confirm('Kalem silinsin mi?')">
+                                Sil
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

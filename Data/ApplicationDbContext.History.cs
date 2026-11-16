@@ -7,11 +7,35 @@ namespace MasterChefTakip.Data;
 
 public partial class ApplicationDbContext
 {
+    // MC_CENTRAL_SHIPMENT_GUARD_V4
+    // Senkron stok hareketi kayitlari icin ortak kontrol.
+    public override int SaveChanges(
+        bool acceptAllChangesOnSuccess)
+    {
+        global::MasterChefTakip.Controllers.MCShipmentStockGuard
+            .ValidateAsync(this)
+            .GetAwaiter()
+            .GetResult();
+
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override int SaveChanges()
+    {
+        return SaveChanges(true);
+    }
+
     public DbSet<HistoryEntry> HistoryEntries => Set<HistoryEntry>();
 
     public override async Task<int> SaveChangesAsync(
         CancellationToken cancellationToken = default)
     {
+        // MC_CENTRAL_SHIPMENT_GUARD_V4
+        // Mevcut SaveChangesAsync mantigini koru.
+        // Bekleyen sevkiyatlari kaydetmeden once kontrol et.
+        await global::MasterChefTakip.Controllers.MCShipmentStockGuard
+            .ValidateAsync(this);
+
         var actorId = _historyAccessor.HttpContext?.User
             .FindFirstValue(ClaimTypes.NameIdentifier);
 

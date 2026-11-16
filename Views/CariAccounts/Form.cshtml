@@ -1,0 +1,585 @@
+
+@model MasterChefTakip.Models.CariAccount
+@{
+    var edit = Model.Id > 0;
+    ViewData["Title"] = edit ? "Cari Kartı Düzenle" : "Yeni Cari Kartı";
+}
+
+<style>
+/* MC_CARI_LAYOUT_FINAL_2026 */
+
+.cf-wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+}
+
+.cf-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-top: 14px;
+}
+
+.cf-section {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 22px;
+    color: #10213d;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 9px;
+    margin: 22px 0 14px;
+}
+
+.cf-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 18px;
+    align-items: start;
+}
+
+.cf-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    margin: 0;
+}
+
+.cf-field > label {
+    display: block;
+    font-size: 12px;
+    line-height: 17px;
+    font-weight: 600;
+    color: #243550;
+    margin: 0;
+    padding: 0;
+}
+
+.cf-field > input:not([type="checkbox"]),
+.cf-field > select,
+.cf-field > textarea {
+    display: block;
+    width: 100%;
+    height: 38px;
+    min-height: 38px;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 7px 11px;
+    margin: 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #fff;
+    color: #0f172a;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 21px;
+    box-shadow: none;
+}
+
+.cf-field > textarea {
+    height: 42px;
+    min-height: 42px;
+    resize: vertical;
+    overflow-y: auto;
+}
+
+.cf-field > input:focus,
+.cf-field > select:focus,
+.cf-field > textarea:focus {
+    outline: none;
+    border-color: #7191bf;
+    box-shadow: 0 0 0 2px rgba(113,145,191,.12);
+}
+
+.cf-full {
+    grid-column: 1 / -1;
+}
+
+.cf-grid input[type="checkbox"] {
+    appearance: auto;
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+    padding: 0;
+    margin: 0;
+    accent-color: #17406a;
+}
+
+.cf-check-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.cf-check-control {
+    height: 38px;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-sizing: border-box;
+    padding: 0 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #f8fafc;
+}
+
+.cf-check-control span {
+    font-size: 12px;
+    color: #475569;
+}
+
+.cf-field .cf-errors {
+    font-size: 11px;
+    line-height: 15px;
+    color: #b91c1c;
+}
+
+.cf-btn {
+    display: inline-block;
+    padding: 9px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #fff;
+    color: #0f172a;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.cf-primary {
+    background: #17406a;
+    border-color: #17406a;
+    color: #fff;
+}
+
+.cf-errors {
+    color: #b91c1c;
+    font-size: 12px;
+}
+
+@@media (max-width: 700px) {
+    .cf-wrap {
+        max-width: 100%;
+    }
+
+    .cf-card {
+        padding: 15px;
+    }
+
+    .cf-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 11px;
+    }
+
+    .cf-full {
+        grid-column: 1;
+    }
+}
+
+/* MC_CARI_TABS_2026 */
+.mc-cari-tabs {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    padding: 5px;
+    margin: 13px 0 17px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    scrollbar-width: thin;
+}
+
+.mc-cari-tab {
+    flex: 1 0 auto;
+    min-height: 38px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    padding: 8px 12px;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 650;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.mc-cari-tab:hover {
+    background: #e2e8f0;
+}
+
+.mc-cari-tab[aria-selected="true"] {
+    background: #17406a;
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(15,23,42,.12);
+}
+
+.mc-cari-tab:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+.mc-cari-tab-panel[hidden] {
+    display: none !important;
+}
+
+.mc-cari-tab-heading {
+    margin: 6px 0 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #10213d;
+}
+
+.mc-cari-tab-note {
+    color: #64748b;
+    font-size: 12px;
+    margin: 0 0 12px;
+}
+
+@@media (max-width: 700px) {
+    .mc-cari-tabs {
+        gap: 4px;
+    }
+
+    .mc-cari-tab {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+}
+
+</style>
+
+
+<div class="cf-wrap">
+    <h1 style="font-size:26px;margin:0">@(edit ? "Cari Kartı Düzenle" : "Yeni Cari Kartı")</h1>
+    <div class="cf-card">
+        <form asp-controller="CariAccounts" asp-action="@(edit ? "Edit" : "Create")" asp-route-id="@(edit ? Model.Id : null)" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="ConcurrencyStamp" />
+            <div asp-validation-summary="All" class="cf-errors"></div>
+
+            <h2 class="cf-section">Firma Bilgileri</h2>
+
+            <div class="cf-grid">
+                <div class="cf-field">
+                    <label asp-for="Code">Cari Kodu *</label>
+                    <input asp-for="Code" maxlength="30" required />
+                </div>
+                <div class="cf-field">
+                    <label asp-for="CompanyName">Firma Unvanı *</label>
+                    <input asp-for="CompanyName" maxlength="250" required />
+                </div>
+                <div class="cf-field cf-full">
+                    <label>Cari Türü *</label>
+                    <div style="display:flex;gap:20px">
+                        <label><input asp-for="IsCustomer" /> Müşteri</label>
+                        <label><input asp-for="IsSupplier" /> Tedarikçi</label>
+                    </div>
+                </div>
+                <div class="cf-field">
+                    <label asp-for="TaxOffice">Vergi Dairesi</label>
+                    <input asp-for="TaxOffice" />
+                </div>
+                <div class="cf-field">
+                    <label asp-for="TaxNumber">Vergi No / TCKN</label>
+                    <input asp-for="TaxNumber" maxlength="11" />
+                </div>
+                <div class="cf-field">
+                    <label asp-for="ContactPerson">Yetkili Kişi</label>
+                    <input asp-for="ContactPerson" />
+                </div>
+                <div class="cf-field">
+                    <label asp-for="Phone">Telefon</label>
+                    <input asp-for="Phone" />
+                </div>
+                <div class="cf-field">
+                    <label asp-for="Email">E-posta</label>
+                    <input asp-for="Email" type="email" />
+                </div>
+                <div class="cf-field">
+                    <label asp-for="City">İl</label>
+                    <input asp-for="City" />
+                </div>
+                <div class="cf-field">
+                    <label asp-for="District">İlçe</label>
+                    <input asp-for="District" />
+                </div>
+                <div class="cf-field cf-full">
+                    <label asp-for="Address">Adres</label>
+                    <textarea asp-for="Address" rows="3"></textarea>
+                </div>
+            </div>
+
+            <h2 class="cf-section">Ticari Bilgiler</h2>
+<div class="cf-grid">
+<div class="cf-field"><label for="AccountGroup">Cari Grubu</label><select asp-for="AccountGroup"><option value="">Se&#231;iniz</option>
+<option value="Bayi">Bayi</option>
+<option value="Toptanci">Toptanc&#305;</option>
+<option value="ZincirMarket">Zincir Market</option>
+<option value="Ihracat">&#304;hracat M&#252;&#351;terisi</option>
+<option value="Tedarikci">Tedarik&#231;i</option>
+<option value="Diger">Di&#287;er</option></select><span asp-validation-for="AccountGroup" class="cf-errors"></span></div>
+<div class="cf-field"><label for="Currency">Para Birimi</label><select asp-for="Currency"><option value="TRY">TRY - T&#252;rk Liras&#305;</option>
+<option value="USD">USD - Amerikan Dolar&#305;</option>
+<option value="EUR">EUR - Euro</option>
+<option value="GBP">GBP - &#304;ngiliz Sterlini</option></select><span asp-validation-for="Currency" class="cf-errors"></span></div>
+<div class="cf-field"><label for="PaymentMethod">&#214;deme &#350;ekli</label><select asp-for="PaymentMethod"><option value="">Se&#231;iniz</option>
+<option value="Nakit">Nakit</option>
+<option value="HavaleEFT">Havale / EFT</option>
+<option value="Cek">&#199;ek</option>
+<option value="Senet">Senet</option>
+<option value="KrediKarti">Kredi Kart&#305;</option>
+<option value="Diger">Di&#287;er</option></select><span asp-validation-for="PaymentMethod" class="cf-errors"></span></div>
+<div class="cf-field"><label for="PaymentTermDays">&#214;deme Vadesi (G&#252;n)</label><input asp-for="PaymentTermDays" type="number" min="0" max="3650"/><span asp-validation-for="PaymentTermDays" class="cf-errors"></span></div>
+<div class="cf-field"><label for="PriceListName">Fiyat Listesi</label><input asp-for="PriceListName" type="text" /><span asp-validation-for="PriceListName" class="cf-errors"></span></div>
+<div class="cf-field"><label for="DefaultDiscountPercent">Varsay&#305;lan &#304;skonto (%)</label><input asp-for="DefaultDiscountPercent" type="number" min="0" max="100" step="0.01"/><span asp-validation-for="DefaultDiscountPercent" class="cf-errors"></span></div>
+<div class="cf-field"><label for="CreditLimit">Kredi Limiti</label><input asp-for="CreditLimit" type="number" min="0" step="0.01"/><span asp-validation-for="CreditLimit" class="cf-errors"></span></div>
+<div class="cf-field"><label for="RiskStatus">Risk Durumu</label><select asp-for="RiskStatus"><option value="Normal">Normal</option>
+<option value="Takipte">Takipte</option>
+<option value="Bloke">Bloke</option></select><span asp-validation-for="RiskStatus" class="cf-errors"></span></div>
+<div class="cf-field"><label for="SalesRepresentative">Sat&#305;&#351; Temsilcisi</label><input asp-for="SalesRepresentative" type="text" /><span asp-validation-for="SalesRepresentative" class="cf-errors"></span></div>
+<div class="cf-field"><label for="PaymentTerms">&#214;zel &#214;deme Ko&#351;ullar&#305;</label><textarea asp-for="PaymentTerms" rows="3"></textarea><span asp-validation-for="PaymentTerms" class="cf-errors"></span></div>
+</div>
+<h2 class="cf-section">Vergi ve Fatura Bilgileri</h2>
+<div class="cf-grid">
+<div class="cf-field"><label for="EDocumentType">E-Belge T&#252;r&#252;</label><select asp-for="EDocumentType"><option value="Unknown">Hen&#252;z Do&#287;rulanmad&#305;</option>
+<option value="EFatura">e-Fatura</option>
+<option value="EArsiv">e-Ar&#351;iv</option></select><span asp-validation-for="EDocumentType" class="cf-errors"></span></div>
+<div class="cf-field"><label for="InvoiceEmail">Fatura E-posta Adresi</label><input asp-for="InvoiceEmail" type="email" /><span asp-validation-for="InvoiceEmail" class="cf-errors"></span></div>
+<div class="cf-field cf-full"><label for="InvoiceAddress">Fatura Adresi</label><textarea asp-for="InvoiceAddress" rows="3"></textarea><span asp-validation-for="InvoiceAddress" class="cf-errors"></span></div>
+<div class="cf-field cf-check-field"><label for="IsVatExempt">KDV &#304;stisnas&#305; / Muafiyet</label><div class="cf-check-control"><input asp-for="IsVatExempt" type="checkbox" /><span>Uygula</span></div><span asp-validation-for="IsVatExempt" class="cf-errors"></span></div>
+<div class="cf-field"><label for="VatExemptionReason">&#304;stisna / Muafiyet A&#231;&#305;klamas&#305;</label><input asp-for="VatExemptionReason" type="text" /><span asp-validation-for="VatExemptionReason" class="cf-errors"></span></div>
+<div class="cf-field"><label for="DefaultInvoiceNote">Varsay&#305;lan Fatura Notu</label><textarea asp-for="DefaultInvoiceNote" rows="3"></textarea><span asp-validation-for="DefaultInvoiceNote" class="cf-errors"></span></div>
+<div class="cf-field"><label for="DefaultDispatchNote">Varsay&#305;lan &#304;rsaliye Notu</label><textarea asp-for="DefaultDispatchNote" rows="3"></textarea><span asp-validation-for="DefaultDispatchNote" class="cf-errors"></span></div>
+</div>
+
+<h2 class="cf-section">Teslimat ve Sevkiyat</h2>
+<div class="cf-grid">
+<div class="cf-field"><label for="PreferredCarrier">Tercih Edilen Nakliye Firmas&#305;</label><input asp-for="PreferredCarrier" type="text" /><span asp-validation-for="PreferredCarrier" class="cf-errors"></span></div>
+<div class="cf-field"><label for="DeliveryMethod">Teslimat &#350;ekli</label><input asp-for="DeliveryMethod" type="text" /><span asp-validation-for="DeliveryMethod" class="cf-errors"></span></div>
+<div class="cf-field"><label for="DefaultWarehouse">Varsay&#305;lan Depo</label><input asp-for="DefaultWarehouse" type="text" /><span asp-validation-for="DefaultWarehouse" class="cf-errors"></span></div>
+<div class="cf-field"><label for="DeliveryInstructions">Teslimat Talimatlar&#305;</label><textarea asp-for="DeliveryInstructions" rows="3"></textarea><span asp-validation-for="DeliveryInstructions" class="cf-errors"></span></div>
+</div>
+
+<h2 class="cf-section">Ek A&#231;&#305;klamalar</h2>
+<div class="cf-grid">
+    <div class="cf-field cf-full">
+        <label asp-for="Notes">Cari A&#231;&#305;klamalar&#305;</label>
+        <textarea asp-for="Notes" rows="4"></textarea>
+    </div>
+</div>
+
+<div style="display:flex;gap:10px;margin-top:25px">
+                <button class="cf-btn cf-primary" type="submit">Kaydet</button>
+                <a asp-action="Index" class="cf-btn">İptal</a>
+            </div>
+        </form>
+
+<!-- MC_CARI_TABS_2026 -->
+<script>
+(function () {
+    function initializeCariTabs() {
+        const form = document.querySelector(".cf-wrap form");
+
+        if (!form) return;
+
+        const headings = Array.from(
+            form.querySelectorAll("h2.cf-section")
+        );
+
+        const sections = [];
+
+        headings.forEach(function (heading) {
+            const grid = heading.nextElementSibling;
+
+            if (!grid || !grid.classList.contains("cf-grid")) {
+                return;
+            }
+
+            sections.push({
+                heading: heading,
+                grid: grid,
+                title: heading.textContent.trim()
+            });
+        });
+
+        if (sections.length < 4) return;
+
+        const navigation = document.createElement("div");
+        navigation.className = "mc-cari-tabs";
+        navigation.setAttribute("role", "tablist");
+        navigation.setAttribute(
+            "aria-label",
+            "Cari karti bolumleri"
+        );
+
+        const buttons = [];
+        const panels = [];
+
+        sections.forEach(function (section, index) {
+            const panel = document.createElement("section");
+            panel.className = "mc-cari-tab-panel";
+            panel.id = "mc-cari-panel-" + index;
+            panel.setAttribute("role", "tabpanel");
+
+            const title = document.createElement("h3");
+            title.className = "mc-cari-tab-heading";
+            title.textContent = section.title;
+
+            section.heading.parentNode.insertBefore(
+                panel,
+                section.heading
+            );
+
+            panel.appendChild(title);
+            panel.appendChild(section.grid);
+            section.heading.remove();
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "mc-cari-tab";
+            button.id = "mc-cari-tab-" + index;
+            button.textContent = section.title;
+            button.setAttribute("role", "tab");
+            button.setAttribute("aria-controls", panel.id);
+            button.setAttribute("aria-selected", "false");
+
+            panel.setAttribute("aria-labelledby", button.id);
+
+            navigation.appendChild(button);
+            buttons.push(button);
+            panels.push(panel);
+        });
+
+        panels[0].parentNode.insertBefore(
+            navigation,
+            panels[0]
+        );
+
+        function activate(index, focusButton) {
+            panels.forEach(function (panel, i) {
+                const selected = i === index;
+                panel.hidden = !selected;
+                buttons[i].setAttribute(
+                    "aria-selected",
+                    selected ? "true" : "false"
+                );
+                buttons[i].tabIndex = selected ? 0 : -1;
+            });
+
+            if (focusButton) buttons[index].focus();
+
+            try {
+                sessionStorage.setItem(
+                    "mcCariActiveTab",
+                    String(index)
+                );
+            } catch (e) {}
+        }
+
+        buttons.forEach(function (button, index) {
+            button.addEventListener("click", function () {
+                activate(index, false);
+            });
+
+            button.addEventListener("keydown", function (event) {
+                let next = index;
+
+                if (event.key === "ArrowRight") {
+                    next = (index + 1) % buttons.length;
+                } else if (event.key === "ArrowLeft") {
+                    next = (index - 1 + buttons.length)
+                        % buttons.length;
+                } else if (event.key === "Home") {
+                    next = 0;
+                } else if (event.key === "End") {
+                    next = buttons.length - 1;
+                } else {
+                    return;
+                }
+
+                event.preventDefault();
+                activate(next, true);
+            });
+        });
+
+        let initialIndex = 0;
+
+        try {
+            const stored = Number(
+                sessionStorage.getItem("mcCariActiveTab")
+            );
+
+            if (
+                Number.isInteger(stored) &&
+                stored >= 0 &&
+                stored < panels.length
+            ) {
+                initialIndex = stored;
+            }
+        } catch (e) {}
+
+        for (let i = 0; i < panels.length; i++) {
+            const error = panels[i].querySelector(
+                ".field-validation-error, " +
+                ".input-validation-error"
+            );
+
+            if (error) {
+                initialIndex = i;
+                break;
+            }
+        }
+
+        const summary = form.querySelector(
+            '[data-valmsg-summary="true"]'
+        );
+
+        if (
+            summary &&
+            summary.querySelector(".validation-summary-errors")
+        ) {
+            initialIndex = 0;
+        }
+
+        activate(initialIndex, false);
+
+        form.addEventListener("submit", function () {
+            panels.forEach(function (panel) {
+                panel.hidden = false;
+            });
+        });
+
+        document.addEventListener(
+            "invalid",
+            function (event) {
+                const index = panels.findIndex(
+                    function (panel) {
+                        return panel.contains(event.target);
+                    }
+                );
+
+                if (index >= 0) {
+                    activate(index, false);
+                }
+            },
+            true
+        );
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeCariTabs
+        );
+    } else {
+        initializeCariTabs();
+    }
+})();
+</script>
+
+    </div>
+</div>

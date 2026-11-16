@@ -1,0 +1,567 @@
+/* MC_PURCHASE_CLEAN_UI_V1 */
+
+/* =========================================================
+   DONEM SEC
+   ========================================================= */
+
+.mc-period-dropdown {
+    position: relative;
+    display: inline-block;
+    flex: 0 0 auto;
+    vertical-align: middle;
+}
+
+.mc-period-dropdown > summary {
+    box-sizing: border-box;
+    list-style: none;
+    cursor: pointer;
+
+    height: 42px;
+    min-width: 150px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 14px;
+    padding: 0 15px;
+
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    color: #153b5d;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+
+    user-select: none;
+}
+
+.mc-period-dropdown > summary::-webkit-details-marker {
+    display: none;
+}
+
+.mc-period-dropdown > summary::after {
+    content: "▾";
+    font-size: 11px;
+    color: #153b5d;
+}
+
+.mc-period-dropdown[open] > summary {
+    border-color: #285a83;
+    box-shadow: 0 0 0 2px rgba(40,90,131,.10);
+}
+
+.mc-period-dropdown[open] > summary::after {
+    transform: rotate(180deg);
+}
+
+/* Liste artik ekrani kaplamaz */
+.mc-period-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+
+    z-index: 9999;
+
+    width: 185px;
+    max-height: 215px;
+
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    padding: 5px;
+
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    box-shadow: 0 10px 24px rgba(15,23,42,.13);
+}
+
+/* Scroll daha ince */
+.mc-period-dropdown-menu::-webkit-scrollbar {
+    width: 7px;
+}
+
+.mc-period-dropdown-menu::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+
+.mc-period-dropdown-menu::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 8px;
+}
+
+.mc-period-dropdown-item {
+    box-sizing: border-box;
+
+    width: 100%;
+    min-height: 34px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 7px 10px;
+
+    border: 0;
+    border-radius: 6px;
+
+    background: transparent;
+
+    color: #153b5d;
+    font-size: 13px;
+    font-weight: 650;
+
+    text-align: left;
+    cursor: pointer;
+}
+
+.mc-period-dropdown-item + .mc-period-dropdown-item {
+    margin-top: 2px;
+}
+
+.mc-period-dropdown-item:hover,
+.mc-period-dropdown-item:focus-visible {
+    background: #edf4fa;
+    outline: none;
+}
+
+
+/* =========================================================
+   MCPurchaseEmbeddedPage - TEK TASARIM DILI
+   Yalniz bu view tarafindan yuklenir.
+   ========================================================= */
+
+main {
+    --mc-navy: #153b5d;
+    --mc-navy-2: #234f73;
+    --mc-text: #172033;
+    --mc-muted: #64748b;
+    --mc-border: #d5dee8;
+    --mc-soft: #f4f7fa;
+    --mc-soft-2: #e8eef5;
+    --mc-white: #ffffff;
+}
+
+/* Ana icerik */
+main h1,
+main h2,
+main h3 {
+    color: var(--mc-text);
+    font-family: inherit;
+    font-weight: 700;
+}
+
+main h1 {
+    letter-spacing: -0.02em;
+}
+
+main p,
+main label,
+main span,
+main td,
+main th {
+    font-family: inherit;
+}
+
+/* Kart / panel yapilari */
+main .card,
+main .panel,
+main .mc-card,
+main section,
+main fieldset {
+    border-color: var(--mc-border);
+}
+
+/* Form alanlari */
+main input[type="date"],
+main input[type="text"],
+main input[type="number"],
+main select {
+    border: 1px solid var(--mc-border);
+    border-radius: 8px;
+
+    background: var(--mc-white);
+    color: var(--mc-text);
+
+    min-height: 40px;
+}
+
+/* Genel buton standardi */
+main button,
+main .btn,
+main a.btn {
+    border-radius: 8px;
+    font-family: inherit;
+    font-weight: 650;
+}
+
+/* Ana aksiyonlar */
+main .btn-primary,
+main button.btn-primary,
+main a.btn-primary {
+    background: var(--mc-navy-2);
+    border-color: var(--mc-navy-2);
+    color: #ffffff;
+}
+
+main .btn-primary:hover,
+main button.btn-primary:hover,
+main a.btn-primary:hover {
+    background: var(--mc-navy);
+    border-color: var(--mc-navy);
+}
+
+/* Beyaz / ikincil butonlar */
+main .btn-outline-primary,
+main .btn-outline-secondary,
+main .btn-light {
+    background: #ffffff;
+    border-color: var(--mc-border);
+    color: var(--mc-navy);
+}
+
+main .btn-outline-primary:hover,
+main .btn-outline-secondary:hover,
+main .btn-light:hover {
+    background: var(--mc-soft);
+    border-color: #b9c7d6;
+    color: var(--mc-navy);
+}
+
+/* Üst navigasyon butonlarinda tek dil */
+main nav a,
+main nav button {
+    border-radius: 7px;
+}
+
+/* Tablo */
+main table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+
+    color: var(--mc-text);
+}
+
+main table thead th {
+    background: var(--mc-soft-2);
+    color: var(--mc-navy);
+
+    font-size: 13px;
+    font-weight: 700;
+
+    border-color: var(--mc-border);
+}
+
+main table tbody td {
+    background: #ffffff;
+    border-color: var(--mc-border);
+}
+
+/* Sert sarilar yerine daha yumusak bilgi bandi */
+main .alert-warning {
+    background: #fff8df;
+    border-color: #f1dfa0;
+    color: #554719;
+}
+
+/* Filtre alanlarinda boşluk standardi */
+main form,
+main .filter-bar,
+main [class*="filter"] {
+    gap: 8px;
+}
+
+/* Gereksiz sert golgeleri azalt */
+main .shadow,
+main .shadow-sm {
+    box-shadow: 0 3px 12px rgba(15,23,42,.06) !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+    .mc-period-dropdown-menu {
+        width: 175px;
+    }
+}
+
+@media (max-width: 768px) {
+    .mc-period-dropdown {
+        width: 100%;
+    }
+
+    .mc-period-dropdown > summary {
+        width: 100%;
+    }
+
+    .mc-period-dropdown-menu {
+        width: 100%;
+    }
+}
+
+/* MC_EXCEL_RIGHT_ALIGN_V1 */
+
+/* Filtre satirini yatay ve dengeli tut */
+main form:has(input[type="date"]) {
+    display: flex !important;
+    align-items: end !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+}
+
+/* Excel Raporu Al butonunu saga it */
+main form:has(input[type="date"]) button,
+main form:has(input[type="date"]) a {
+    flex: 0 0 auto;
+}
+
+main form:has(input[type="date"]) button:nth-of-type(1),
+main form:has(input[type="date"]) a:nth-of-type(1) {
+    margin-left: auto !important;
+}
+
+/* Raporu Kontrol Et onun hemen saginda kalsin */
+main form:has(input[type="date"]) button:last-child,
+main form:has(input[type="date"]) a:last-child {
+    margin-left: 0 !important;
+}
+
+/* Mobilde tekrar alt alta gelsin */
+@media (max-width: 900px) {
+    main form:has(input[type="date"]) button:nth-of-type(1),
+    main form:has(input[type="date"]) a:nth-of-type(1) {
+        margin-left: 0 !important;
+    }
+}
+
+/* MC_EXCEL_RIGHT_ALIGN_V1_END */
+
+/* MC_PURCHASE_COMPACT_UI_V3 */
+
+/* UST SEKME BUTONLARI */
+main nav a,
+main nav button,
+main .btn,
+main button {
+    min-height: 36px !important;
+    min-width: 0 !important;
+
+    padding: 7px 13px !important;
+
+    border-radius: 7px !important;
+
+    font-size: 13px !important;
+    font-weight: 650 !important;
+
+    line-height: 1.15 !important;
+}
+
+/* FILTRE SATIRI */
+main form:has(input[type="date"]) {
+    display: flex !important;
+    align-items: flex-end !important;
+    flex-wrap: wrap !important;
+
+    gap: 10px !important;
+
+    padding: 12px 14px !important;
+
+    background: #f4f7fa !important;
+    border: 1px solid #d5dee8 !important;
+    border-radius: 10px !important;
+}
+
+/* TARIH ALANLARI */
+main form:has(input[type="date"]) input[type="date"] {
+    height: 40px !important;
+    min-height: 40px !important;
+
+    padding: 0 10px !important;
+
+    border-radius: 7px !important;
+
+    font-size: 13px !important;
+    font-weight: 650 !important;
+}
+
+/* DONEM SEC */
+main form:has(input[type="date"]) .mc-period-dropdown {
+    margin: 0 !important;
+}
+
+main form:has(input[type="date"]) .mc-period-dropdown > summary {
+    height: 40px !important;
+    min-height: 40px !important;
+
+    min-width: 145px !important;
+
+    padding: 0 13px !important;
+
+    border-radius: 7px !important;
+
+    font-size: 13px !important;
+    font-weight: 650 !important;
+}
+
+/* EXCEL + RAPOR KONTROL */
+main form:has(input[type="date"]) button,
+main form:has(input[type="date"]) a.btn {
+    height: 40px !important;
+    min-height: 40px !important;
+
+    min-width: 145px !important;
+
+    padding: 0 16px !important;
+
+    font-size: 13px !important;
+    font-weight: 700 !important;
+
+    border-radius: 7px !important;
+
+    margin-left: 0 !important;
+
+    box-shadow: none !important;
+}
+
+/* EXCEL */
+main form:has(input[type="date"]) button:nth-of-type(1),
+main form:has(input[type="date"]) a:nth-of-type(1) {
+    background: #214f73 !important;
+    border: 1px solid #214f73 !important;
+    color: #ffffff !important;
+}
+
+/* RAPOR KONTROL */
+main form:has(input[type="date"]) button:last-child,
+main form:has(input[type="date"]) a:last-child {
+    background: #ffffff !important;
+    border: 1px solid #214f73 !important;
+    color: #214f73 !important;
+}
+
+/* BUTONLAR ARASINDA NORMAL BOSLUK */
+main form:has(input[type="date"]) > * {
+    margin-right: 0 !important;
+}
+
+/* DONEM LISTESI DE KOMPAKT */
+.mc-period-dropdown-menu {
+    width: 170px !important;
+    max-height: 190px !important;
+
+    padding: 4px !important;
+}
+
+.mc-period-dropdown-item {
+    min-height: 30px !important;
+
+    padding: 6px 9px !important;
+
+    font-size: 12.5px !important;
+
+    border-radius: 5px !important;
+}
+
+/* USTTEKI BUYUK GERI / YARDIM BUTONLARI DA KUCUK */
+main a[href*="return"],
+main a[href*="help"],
+main button {
+    max-width: none;
+}
+
+/* MC_PURCHASE_COMPACT_UI_V3_END */
+
+/* MC_PURCHASE_CONTENT_CLEAN_V4 */
+
+/* Ana baslik daha dengeli */
+main h1 {
+    font-size: 30px !important;
+    line-height: 1.18 !important;
+    margin-top: 6px !important;
+    margin-bottom: 12px !important;
+    letter-spacing: -0.02em !important;
+}
+
+/* Geri linki daha hafif */
+main h1 + *,
+main a[href*="Invoice"] {
+    font-size: 14px;
+}
+
+/* Sari uyariyi daha sakin hale getir */
+main .alert-warning {
+    min-height: auto !important;
+
+    padding: 10px 14px !important;
+    margin: 10px 0 16px 0 !important;
+
+    background: #fffaf0 !important;
+    border: 1px solid #eadfbe !important;
+    border-left: 3px solid #c8aa63 !important;
+
+    border-radius: 7px !important;
+
+    color: #4f4631 !important;
+
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 1.35 !important;
+
+    box-shadow: none !important;
+}
+
+/* Uyari icindeki metin gereksiz buyumesin */
+main .alert-warning p,
+main .alert-warning span,
+main .alert-warning div {
+    margin: 0 !important;
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+}
+
+/* Tabloyu daha ince ve sade yap */
+main table {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+main table thead th {
+    height: 44px !important;
+    padding: 10px 14px !important;
+
+    background: #eef3f8 !important;
+    color: #173b5b !important;
+
+    border-top: 1px solid #d3dde7 !important;
+    border-bottom: 1px solid #c7d2de !important;
+
+    font-size: 13px !important;
+    font-weight: 700 !important;
+}
+
+main table tbody td {
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+}
+
+/* Alt beyaz kartta bos alanlari azalt */
+main .card,
+main section {
+    padding-top: 14px;
+}
+
+/* Baslik - uyari - tablo arasi dikey bosluklari azalt */
+main h1 + .alert-warning,
+main .alert-warning + table {
+    margin-top: 10px !important;
+}
+
+/* MC_PURCHASE_CONTENT_CLEAN_V4_END */

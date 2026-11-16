@@ -1,0 +1,186 @@
+
+@model MasterChefTakip.Controllers.RawMaterialDetailsPage
+@{
+    ViewData["Title"] = "Hammadde Detay";
+}
+
+<style>
+.mc-raw{max-width:1180px;margin:0 auto}
+.mc-raw-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.mc-raw h1{font-size:24px;color:#17365b;margin:0}
+.mc-raw h2{font-size:17px;color:#17365b}
+.mc-raw-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:14px 0}
+.mc-raw-btn{display:inline-block;background:#fff;color:#17406a;text-decoration:none;padding:10px 15px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;cursor:pointer}
+.mc-raw-primary{background:#17406a;border-color:#17406a;color:#fff}
+.mc-raw-tablewrap{overflow-x:auto}
+.mc-raw-table{width:100%;min-width:690px;border-collapse:collapse}
+.mc-raw-table th{text-align:left;padding:12px;background:#f8fafc;color:#475569;font-size:12px}
+.mc-raw-table td{padding:12px;border-bottom:1px solid #e2e8f0;font-size:13px}
+.mc-raw-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.mc-raw-field{display:flex;flex-direction:column;gap:6px}
+.mc-raw-field label{font-size:12px;font-weight:600;color:#475569}
+.mc-raw-field input,.mc-raw-field select,.mc-raw-field textarea{padding:10px;border:1px solid #cbd5e1;border-radius:8px;max-width:100%;width:100%;box-sizing:border-box}
+.mc-raw-note{color:#64748b;font-size:12px}
+.mc-raw-alert{padding:12px;border-radius:8px;background:#fef2f2;color:#991b1b;margin:12px 0}
+.mc-raw-success{padding:12px;border-radius:8px;background:#ecfdf5;color:#166534;margin:12px 0}
+@@media(max-width:700px){.mc-raw-grid{grid-template-columns:1fr}.mc-raw-card{padding:12px}}
+</style>
+
+<div class="mc-raw">
+    <div class="mc-raw-header">
+        <div>
+            <h1>@Model.Material.Name</h1>
+            <div class="mc-raw-note">
+                @Model.Material.Code | @Model.Material.Unit
+            </div>
+        </div>
+        <a class="mc-raw-btn" asp-action="Index">
+            Listeye D&#246;n
+        </a>
+    </div>
+
+    @if (TempData["RawError"] is string error)
+    {
+        <div class="mc-raw-alert">@error</div>
+    }
+    @if (TempData["RawSuccess"] is string success)
+    {
+        <div class="mc-raw-success">@success</div>
+    }
+
+    <div class="mc-raw-card">
+        <div class="mc-raw-note">Toplam Mevcut Stok</div>
+        <div style="font-size:30px;font-weight:750;color:#17365b">
+            @Model.TotalQuantity.ToString("N4")
+            @Model.Material.Unit
+        </div>
+        <div class="mc-raw-note">
+            Minimum:
+            @Model.Material.MinimumStock.ToString("N4")
+            @Model.Material.Unit
+        </div>
+    </div>
+
+    <div class="mc-raw-card">
+        <h2>Stok Giri&#351;i / &#199;&#305;k&#305;&#351;&#305;</h2>
+
+        <form asp-action="Stock" method="post">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" name="MaterialId"
+                   value="@Model.Material.Id" />
+
+            <div class="mc-raw-grid">
+                <div class="mc-raw-field">
+                    <label>Depo</label>
+                    <select name="WarehouseId" required>
+                        <option value="">Depo Se&#231;iniz</option>
+                        @foreach (var w in Model.Warehouses)
+                        {
+                            <option value="@w.Id">
+                                @w.Code - @w.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-raw-field">
+                    <label>&#304;&#351;lem T&#252;r&#252;</label>
+                    <select name="MovementType" required>
+                        <option value="IN">Stok Giri&#351;i</option>
+                        <option value="OUT">Stok &#199;&#305;k&#305;&#351;&#305;</option>
+                    </select>
+                </div>
+
+                <div class="mc-raw-field">
+                    <label>Miktar (@Model.Material.Unit)</label>
+                    <input name="Quantity" type="number"
+                           min="0.0001" step="0.0001" required />
+                </div>
+
+                <div class="mc-raw-field">
+                    <label>Referans / Belge Numaras&#305;</label>
+                    <input name="ReferenceNumber" maxlength="100" />
+                </div>
+
+                <div class="mc-raw-field">
+                    <label>A&#231;&#305;klama</label>
+                    <textarea name="Notes"
+                              maxlength="500" rows="2"></textarea>
+                </div>
+            </div>
+
+            <p class="mc-raw-note">
+                Stok &#231;&#305;k&#305;&#351;&#305;nda eksi
+                sto&#287;a izin verilmez.
+                &#304;&#351;lemler ge&#231;mi&#351;te saklan&#305;r.
+            </p>
+
+            <button class="mc-raw-btn mc-raw-primary">
+                Stok Hareketini Kaydet
+            </button>
+        </form>
+    </div>
+
+    <div class="mc-raw-card mc-raw-tablewrap">
+        <h2>Depo Bazl&#305; Stoklar</h2>
+        <table class="mc-raw-table">
+            <thead>
+                <tr>
+                    <th>Depo</th>
+                    <th>Miktar</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var b in Model.Balances)
+            {
+                <tr>
+                    <td>@b.WarehouseName</td>
+                    <td>
+                        @b.Quantity.ToString("N4")
+                        @Model.Material.Unit
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mc-raw-card mc-raw-tablewrap">
+        <h2>Stok Hareket Ge&#231;mi&#351;i</h2>
+        <table class="mc-raw-table">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Depo</th>
+                    <th>&#304;&#351;lem</th>
+                    <th>Miktar</th>
+                    <th>Belge</th>
+                    <th>A&#231;&#305;klama</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var m in Model.Movements)
+            {
+                <tr>
+                    <td>
+                        @m.CreatedAtUtc.ToLocalTime()
+                            .ToString("dd.MM.yyyy HH:mm")
+                    </td>
+                    <td>@m.Warehouse.Name</td>
+                    <td>
+                        @(m.MovementType == "IN"
+                            ? "Giri?" : "??k??")
+                    </td>
+                    <td>
+                        @(m.MovementType == "IN" ? "+" : "-")
+                        @m.Quantity.ToString("N4")
+                    </td>
+                    <td>@m.ReferenceNumber</td>
+                    <td>@m.Notes</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

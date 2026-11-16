@@ -1,0 +1,268 @@
+@model MasterChefTakip.Controllers.MCBankCashPage
+@using System.Globalization
+@using System.Linq
+
+@{
+    ViewData["Title"] = "Kasa ve Banka Yönetimi";
+    var tr = CultureInfo.GetCultureInfo("tr-TR");
+}
+
+<style>
+.mc-cash{max-width:1450px;margin:0 auto;padding:24px;color:#193047}
+.mc-cash *{box-sizing:border-box}
+.mc-cash h1{font-size:29px;font-weight:800;margin:0 0 8px}
+.mc-cash h2{font-size:19px;font-weight:750;margin:0 0 18px}
+.mc-cash .muted{color:#71859a;font-size:13px}
+.mc-cash .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin:24px 0}
+.mc-cash .card,.mc-cash .panel{background:white;border:1px solid #e0e7ef;border-radius:15px;padding:22px}
+.mc-cash .card strong{display:block;font-size:25px;margin-top:12px;overflow-wrap:anywhere}
+.mc-cash .green{color:#15865c}.mc-cash .red{color:#bc4343}.mc-cash .blue{color:#225f99}
+.mc-cash .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;align-items:start}
+.mc-cash .panel{margin-bottom:20px}
+.mc-cash label{display:block;font-size:13px;font-weight:650;margin-bottom:14px}
+.mc-cash input,.mc-cash select{display:block;width:100%;padding:12px;margin-top:6px;border:1px solid #d5e0eb;border-radius:9px}
+.mc-cash button{background:#193752;color:white;border:0;border-radius:9px;padding:13px 20px;cursor:pointer}
+.mc-cash .back{display:inline-block;text-decoration:none;background:#edf3f8;border-radius:9px;padding:11px 16px;color:#24445f}
+.mc-cash .tablewrap{overflow-x:auto}
+.mc-cash table{width:100%;border-collapse:collapse}
+.mc-cash th,.mc-cash td{text-align:left;padding:13px;border-bottom:1px solid #e6edf3;font-size:13px}
+.mc-cash th{background:#f7f9fc;color:#60758a}
+.mc-cash .empty{padding:25px;text-align:center;background:#f8fafc;border-radius:10px;color:#708398}
+.mc-cash .notice{padding:15px;background:#eff6ff;border-radius:10px;color:#385e7e;margin:20px 0;font-size:13px}
+@@media(max-width:1000px){.mc-cash .cards{grid-template-columns:repeat(2,1fr)}.mc-cash .grid{grid-template-columns:1fr}}
+@@media(max-width:600px){.mc-cash .cards{grid-template-columns:1fr}}
+</style>
+
+<div class="mc-cash">
+
+    <h1>MASTER CHEF – Kasa ve Banka Yönetimi</h1>
+    <p class="muted">Hesaplar, para girişleri, ödemeler ve bakiyeler</p>
+
+    <a class="back" href="/MCFinance">Finans Paneline Dön</a>
+
+    <div class="notice">
+        Bakiyeler yalnızca bu modülde kaydedilen işlemlerden hesaplanır.
+        Bankalardan otomatik veri çekilmez. Başlangıç bakiyesi
+        girilecekse gerçek tutar kullanılmalıdır.
+    </div>
+
+    <div class="cards">
+
+        <div class="card">
+            <div class="muted">Toplam Hesap Bakiyesi</div>
+            <strong class="blue">@Model.TotalBalance.ToString("N2",tr) ₺</strong>
+        </div>
+
+        <div class="card">
+            <div class="muted">Toplam Para Girişi</div>
+            <strong class="green">@Model.TotalIn.ToString("N2",tr) ₺</strong>
+        </div>
+
+        <div class="card">
+            <div class="muted">Toplam Para Çıkışı</div>
+            <strong class="red">@Model.TotalOut.ToString("N2",tr) ₺</strong>
+        </div>
+
+        <div class="card">
+            <div class="muted">Hesap Sayısı</div>
+            <strong>@Model.Accounts.Count</strong>
+        </div>
+
+    </div>
+
+    <div class="grid">
+
+        <section class="panel">
+            <h2>Yeni Kasa veya Banka Hesabı</h2>
+
+            <form method="post" action="/MCBankCash/CreateAccount">
+                @Html.AntiForgeryToken()
+
+                <label>
+                    Hesap Türü
+                    <select name="accountType" required>
+                        <option value="Bank">Banka</option>
+                        <option value="Cash">Nakit Kasa</option>
+                    </select>
+                </label>
+
+                <label>
+                    Hesap Kodu
+                    <input name="code" maxlength="30"
+                           pattern="[A-Za-z0-9_-]{2,30}"
+                           placeholder="Örnek: BANKA01" required />
+                </label>
+
+                <label>
+                    Hesap Adı
+                    <input name="name" maxlength="120"
+                           placeholder="Örnek: İş Bankası TL" required />
+                </label>
+
+                <button type="submit">Hesap Oluştur</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Para Girişi / Para Çıkışı</h2>
+
+            @if (!Model.Accounts.Any(x => x.Active))
+            {
+                <div class="empty">Önce bir kasa veya banka hesabı oluşturun.</div>
+            }
+            else
+            {
+                <form method="post" action="/MCBankCash/CreateMovement">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" name="requestToken"
+                           value="@Guid.NewGuid().ToString("N")" />
+
+                    <label>
+                        Hesap
+                        <select name="accountId" required>
+                            @foreach (var account in Model.Accounts.Where(x => x.Active))
+                            {
+                                <option value="@account.Id">@account.Name (@account.Code)</option>
+                            }
+                        </select>
+                    </label>
+
+                    <label>
+                        İşlem Türü
+                        <select name="direction" required>
+                            <option value="In">Para Girişi</option>
+                            <option value="Out">Para Çıkışı</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        İşlem Tarihi
+                        <input type="date" name="movementDate"
+                               value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                    </label>
+
+                    <label>
+                        Tutar (TL)
+                        <input type="number" name="amount"
+                               min="0.01" step="0.01"
+                               max="100000000000" required />
+                    </label>
+
+                    <label>
+                        Açıklama
+                        <input name="description" maxlength="500"
+                               placeholder="İşlem açıklaması" />
+                    </label>
+
+                    <label>
+                        Belge / Referans
+                        <input name="referenceNumber" maxlength="100"
+                               placeholder="İsteğe bağlı" />
+                    </label>
+
+                    <button type="submit">Hareketi Kaydet</button>
+                </form>
+            }
+        </section>
+
+    </div>
+
+    <section class="panel">
+        <h2>Hesaplar ve Bakiyeler</h2>
+
+        @if (Model.Accounts.Count == 0)
+        {
+            <div class="empty">Henüz hesap oluşturulmadı.</div>
+        }
+        else
+        {
+            <div class="tablewrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kod</th><th>Hesap</th><th>Tür</th>
+                            <th>Bakiye</th><th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model.Accounts)
+                        {
+                            <tr>
+                                <td>@a.Code</td>
+                                <td>@a.Name</td>
+                                <td>@(a.Type == "Bank" ? "Banka" : "Nakit Kasa")</td>
+                                <td class="@(a.Balance >= 0 ? "green" : "red")">
+                                    <strong>@a.Balance.ToString("N2",tr) ₺</strong>
+                                </td>
+                                <td>@(a.Active ? "Aktif" : "Pasif")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <section class="panel">
+        <h2>Son 100 Hesap Hareketi</h2>
+
+        @if (Model.Movements.Count == 0)
+        {
+            <div class="empty">Henüz hesap hareketi bulunmuyor.</div>
+        }
+        else
+        {
+            <div class="tablewrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tarih</th><th>Hesap</th><th>İşlem</th>
+                            <th>Açıklama</th><th>Belge</th><th>Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in Model.Movements.Take(100))
+                        {
+                            var incoming = m.Direction == "In";
+
+                            <tr>
+                                <td>@m.Date</td>
+                                <td>@m.AccountName</td>
+                                <td>@(incoming ? "Para Girişi" : "Para Çıkışı")</td>
+                                <td>@m.Description</td>
+                                <td>@m.Reference</td>
+                                <td class="@(incoming ? "green" : "red")">
+                                    <strong>
+                                        @(incoming ? "+" : "-")@m.Amount.ToString("N2",tr) ₺
+                                    </strong>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <p class="muted">
+        Bu modül mevcut gelir-gider tablosundan bağımsızdır.
+        Otomatik muhasebe bağlantısı ve hesaplar arası virman
+        henüz eklenmemiştir.
+    </p>
+
+<div style="margin:14px 0">
+    <a href="/MCBankCashTransfer"
+       style="display:inline-block;padding:12px 18px;
+              background:#193752;color:white;
+              border-radius:9px;text-decoration:none">
+        Hesaplar Arası Virman
+    </a>
+</div><div style="margin:14px 0">
+    <a href="/MCBankCashReport"
+       style="display:inline-block;padding:12px 18px;
+              background:#235f98;color:white;
+              border-radius:9px;text-decoration:none">
+        Hesap Hareketleri Raporu
+    </a>
+</div></div>

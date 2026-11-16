@@ -22,6 +22,13 @@ public static class AppPermissions
 
     public const string StockManage = "stock.manage";
 
+    public const string PurchaseManage = "purchase.manage";
+    public const string ProductionManage = "production.manage";
+    public const string CariManage = "cari.manage";
+    public const string FinanceManage = "finance.manage";
+    public const string QualityManage = "quality.manage";
+    public const string RawMaterialManage = "rawmaterial.manage";
+
     public const string ShipmentsView = "shipments.view";
     public const string ShipmentsManage = "shipments.manage";
     public const string ShipmentsLabels = "shipments.labels";
@@ -60,6 +67,13 @@ public static class AppPermissions
         (PalletsTransfer, "Ürünleri başka palete taşıma"),
         (PalletsManage, "Palet oluşturma ve aktif/pasif yapma"),
         (StockManage, "Doğrudan stok girişi ve gerekçeli giriş düzeltme"),
+        (PurchaseManage, "Satın alma ve mal kabul yönetimi"),
+        (ProductionManage, "Üretim yönetimi"),
+        (CariManage, "Cari hesap yönetimi"),
+        (FinanceManage, "Banka, kasa ve finans yönetimi"),
+        (QualityManage, "Lot ve kalite yönetimi"),
+        (RawMaterialManage, "Hammadde yönetimi"),
+
 
         (ShipmentsView, "Sevkiyatları görüntüleme"),
         (ShipmentsManage, "Sevkiyat hazırlama, onaylama, gönderim ve teslim"),
@@ -92,6 +106,14 @@ public static class AppPermissions
         PackagingManage or PalletsView or
         PalletsTransfer or PalletsLocation or PalletsManage or StockManage =>
             "Üretim ve depo",
+
+        PurchaseManage => "Satın Alma",
+
+        ProductionManage or RawMaterialManage => "Üretim ve depo",
+
+        CariManage or FinanceManage => "Finans",
+
+        QualityManage => "Kalite",
 
         ShipmentsView or ShipmentsManage or
         ShipmentsLabels or ShipmentsCancel =>

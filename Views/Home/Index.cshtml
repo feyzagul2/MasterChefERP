@@ -507,10 +507,7 @@
         {
             <details class="pd-panel" open>
                 <summary>
-                    Ürün ve stok özeti
-                    <span class="pd-count">
-                        @Model.Products.Count ürün
-                    </span>
+                    Ürün / Stok
                 </summary>
 
                 <div class="pd-tools">
@@ -689,11 +686,6 @@
                         <strong>@Model.DeliveredShipments.ToString("N0", culture)</strong>
                     </div>
                 </div>
-
-                <div class="pd-footer">
-                    Sayılar tüm kayıtların güncel durumunu gösterir.
-                    İptal edilen sevkiyatlar dahil değildir.
-                </div>
             </details>
         }
 
@@ -763,7 +755,7 @@
             {
                 <details class="pd-panel" open>
                     <summary>
-                        Kontrol ve yerleştirme bekleyen iadeler
+                        Bekleyen İadeler
                         <span class="pd-count">
                             @Model.PendingReturnLines satır
                         </span>
@@ -808,10 +800,6 @@
                             </div>
                         }
                     }
-
-                    <div class="pd-footer">
-                        En eski 10 bekleyen ürün satırı gösterilir.
-                    </div>
                 </details>
             }
         </div>
@@ -819,7 +807,7 @@
         @if (Model.CanViewReturns)
         {
             <details class="pd-panel">
-                <summary>Bugünkü hasar özeti</summary>
+                <summary>Bugünkü Hasar</summary>
 
                 <div class="pd-damage-row">
                     <span>Depoda hasar nedeniyle stoktan düşülen</span>
@@ -980,3 +968,38 @@
         })();
     </script>
 }
+<!-- MC_HOME_PREMIUM_V1 -->
+<style>
+body.mc-app main{background:#f5f7fa}
+body.mc-app main h1{font-size:30px;font-weight:800;letter-spacing:-.6px;color:#12263f;margin-bottom:6px}
+body.mc-app .pd-stat-grid{gap:16px;margin:18px 0 22px}
+body.mc-app .pd-stat-card{background:linear-gradient(145deg,#fff,#f8fafc);border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 6px 20px rgba(15,23,42,.055);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+body.mc-app .pd-stat-card:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(15,23,42,.09);border-color:#cbd5e1}
+body.mc-app .pd-stat-label{font-size:12px;font-weight:750;letter-spacing:.05em;text-transform:uppercase;color:#64748b}
+body.mc-app .pd-stat-value{font-size:28px;font-weight:850;color:#102a43;letter-spacing:-.5px}
+body.mc-app .pd-panel{background:#fff;border:1px solid #e1e7ef;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 3px 14px rgba(15,23,42,.04)}
+body.mc-app .pd-panel>summary{padding:16px 18px;font-size:15px;font-weight:800;color:#18365f;background:linear-gradient(180deg,#fff,#fafbfd);cursor:pointer;border-bottom:1px solid transparent}
+body.mc-app .pd-panel[open]>summary{border-bottom-color:#e8edf3}
+body.mc-app .pd-count{background:#eef3f8;color:#26496e;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800}
+body.mc-app .pd-tools{padding:14px 18px;gap:10px;background:#fbfcfe;border-bottom:1px solid #edf1f5}
+body.mc-app .pd-search{border:1px solid #d7e0ea;border-radius:10px;padding:10px 12px;background:#fff;min-height:40px}
+body.mc-app .pd-search:focus{outline:none;border-color:#7891ad;box-shadow:0 0 0 3px rgba(24,54,95,.08)}
+body.mc-app .pd-link{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 13px;border-radius:9px;background:#18365f;color:#fff!important;text-decoration:none;font-weight:700;font-size:13px;border:1px solid #18365f}
+body.mc-app .pd-link:hover{background:#102a49;border-color:#102a49;color:#fff!important}
+body.mc-app .pd-product-head{background:#f6f8fb;color:#52667d;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.035em;padding:10px 16px}
+body.mc-app .pd-product-row{padding:13px 16px;border-bottom:1px solid #edf1f5;transition:background .15s ease}
+body.mc-app .pd-product-row:hover{background:#fafbfd}
+body.mc-app .pd-name{font-weight:800;color:#1d3553}
+body.mc-app .pd-small{color:#718096;font-size:12px}
+body.mc-app .pd-work-row{padding:14px 18px;border-bottom:1px solid #edf1f5}
+body.mc-app .pd-work-row:hover{background:#fafbfd}
+body.mc-app .pd-badge{border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;background:#eef3f8;color:#345575}
+body.mc-app .pd-empty{padding:26px 18px;text-align:center;color:#718096;background:#fbfcfd}
+body.mc-app .pd-footer{padding:10px 18px;background:#fafbfd;border-top:1px solid #edf1f5;color:#7b8794;font-size:11px}
+body.mc-app .pd-damage-row{padding:13px 18px;border-bottom:1px solid #edf1f5}
+body.mc-app .pd-damage-row strong{color:#18365f;font-size:16px}
+body.mc-app details summary::marker{color:#7891ad}
+@@media(max-width:900px){body.mc-app .pd-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}body.mc-app .pd-product-head{display:none}}
+@@media(max-width:600px){body.mc-app main h1{font-size:25px}body.mc-app .pd-stat-grid{grid-template-columns:1fr;gap:10px}body.mc-app .pd-stat-card{padding:16px}body.mc-app .pd-panel>summary{padding:14px}body.mc-app .pd-tools{padding:12px;align-items:stretch}body.mc-app .pd-link{width:100%}body.mc-app .pd-product-row,body.mc-app .pd-work-row{padding:12px 14px}}
+</style>
+<!-- /MC_HOME_PREMIUM_V1 -->

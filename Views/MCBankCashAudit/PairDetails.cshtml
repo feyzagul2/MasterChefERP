@@ -1,0 +1,395 @@
+@model MasterChefTakip.Controllers.MCVirmanPairDetailsPage
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Hesaplar Arası Virman Detayları";
+    var tr = CultureInfo.GetCultureInfo("tr-TR");
+}
+
+<style>
+.mc-pair-detail {
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 24px;
+    color: #193047;
+}
+
+.mc-pair-detail * {
+    box-sizing: border-box;
+}
+
+.mc-pair-detail h1 {
+    font-size: 27px;
+    font-weight: 800;
+}
+
+.mc-pair-detail .back {
+    display: inline-block;
+    margin-bottom: 15px;
+    color: #235f98;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.mc-pair-detail .cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.mc-pair-detail .card,
+.mc-pair-detail .panel {
+    background: white;
+    border: 1px solid #e0e7ef;
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.mc-pair-detail .panel {
+    margin: 20px 0;
+}
+
+.mc-pair-detail .label {
+    color: #708398;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.mc-pair-detail .value {
+    font-size: 21px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.mc-pair-detail .green {
+    color: #16865d;
+}
+
+.mc-pair-detail .red {
+    color: #bd4545;
+}
+
+.mc-pair-detail .blue {
+    color: #235f98;
+}
+
+.mc-pair-detail .accounts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.mc-pair-detail .account-box {
+    background: #f3f7fb;
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.mc-pair-detail .table-wrap {
+    overflow-x: auto;
+}
+
+.mc-pair-detail table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mc-pair-detail th,
+.mc-pair-detail td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e6edf3;
+    font-size: 13px;
+}
+
+.mc-pair-detail th {
+    background: #f7f9fc;
+    color: #60758a;
+}
+
+.mc-pair-detail .issue-row td {
+    background: #fff1ef;
+}
+
+.mc-pair-detail .badge {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 7px 11px;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.mc-pair-detail .badge-ok {
+    background: #e2f6ec;
+    color: #16865d;
+}
+
+.mc-pair-detail .badge-issue {
+    background: #fde8e8;
+    color: #bd4545;
+}
+
+.mc-pair-detail .muted {
+    color: #708398;
+    font-size: 13px;
+}
+
+.mc-pair-detail .detail-link {
+    color: #235f98;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+@@media(max-width:900px) {
+    .mc-pair-detail .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@@media(max-width:600px) {
+    .mc-pair-detail {
+        padding: 14px;
+    }
+
+    .mc-pair-detail .cards,
+    .mc-pair-detail .accounts {
+        grid-template-columns: 1fr;
+    }
+}
+
+@@media print {
+    @@page {
+        size: A4 landscape;
+        margin: 12mm;
+    }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    .mc-pair-detail,
+    .mc-pair-detail * {
+        visibility: visible !important;
+    }
+
+    .mc-pair-detail {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        max-width: none;
+        padding: 0;
+    }
+
+    .mc-pair-detail .back,
+    .mc-pair-detail .detail-link,
+    .mc-pair-detail .print-btn {
+        display: none !important;
+    }
+
+    .mc-pair-detail .cards {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .mc-pair-detail th,
+    .mc-pair-detail td {
+        font-size: 9px;
+        padding: 5px;
+    }
+
+    .mc-pair-detail thead {
+        display: table-header-group;
+    }
+
+    .mc-pair-detail tr {
+        break-inside: avoid;
+    }
+}
+/* MC_PAIR_DETAILS_EXCEL_V1 */
+@@media print {
+    .mc-pair-detail .excel-btn {
+        display: none !important;
+    }
+}
+</style>
+
+<div class="mc-pair-detail">
+
+    <a class="back"
+       href="/MCBankCashAuditüstart=@Model.Start&amp;end=@Model.End&amp;status=@Model.Status&amp;q=@Uri.EscapeDataString(Model.Search)">
+        ← Hesaplar Arası Virman Analizine Dön
+    </a>
+
+    <h1>Hesaplar Arası Virman Detayları</h1>
+
+    <p class="muted">
+        Dönem: @Model.Start - @Model.End
+    </p>
+
+    <div class="accounts">
+
+        <div class="account-box">
+            <div class="label">Para Çıkış Hesabı</div>
+            <div class="value">@Model.Source</div>
+        </div>
+
+        <div class="account-box">
+            <div class="label">Para Giriş Hesabı</div>
+            <div class="value">@Model.Target</div>
+        </div>
+
+    </div>
+
+    <div class="cards">
+
+        <div class="card">
+            <div class="label">Toplam Virman</div>
+            <div class="value blue">@Model.Rows.Count</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Eşleşen Virman</div>
+            <div class="value green">@Model.Matched</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Sorunlu Virman</div>
+            <div class="value red">@Model.Issues</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Toplam Para Çıkışı</div>
+            <div class="value red">
+                @Model.TotalOut.ToString("N2", tr) ₺
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="label">Toplam Para Girişi</div>
+            <div class="value green">
+                @Model.TotalIn.ToString("N2", tr) ₺
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="label">Net Tutar Farkı</div>
+            <div class="value blue">
+                @Model.Difference.ToString("N2", tr) ₺
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="label">Mutlak Tutar Farkı</div>
+            <div class="value red">
+                @Model.AbsoluteDifference.ToString("N2", tr) ₺
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MC_PAIR_DETAILS_EXCEL_V1 -->
+    <a class="excel-btn"
+       href="/MCBankCashAudit/PairDetailsExport?source=@Uri.EscapeDataString(Model.Source)&amp;target=@Uri.EscapeDataString(Model.Target)&amp;start=@Model.Start&amp;end=@Model.End&amp;status=@Model.Status&amp;q=@Uri.EscapeDataString(Model.Search)"
+       style="display:inline-block;
+              background:#16865d;
+              color:white;
+              border-radius:9px;
+              padding:12px 20px;
+              text-decoration:none;
+              font-weight:750;
+              margin-right:10px">
+        Hesap Çifti Excel İndir
+    </a>
+
+    <button class="print-btn"
+            type="button"
+            onclick="window.print()"
+            style="background:#235f98;
+                   color:white;
+                   border:0;
+                   border-radius:9px;
+                   padding:12px 20px;
+                   cursor:pointer">
+        Yazdır / PDF Kaydet
+    </button>
+
+    <div class="panel">
+
+        <h2>Virman Hareketleri</h2>
+
+        <div class="table-wrap">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Virman Kodu</th>
+                        <th>Para Çıkışı</th>
+                        <th>Para Girişi</th>
+                        <th>Tutar Farkı</th>
+                        <th>Durum</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr class="@(row.IsMatched ? "" : "issue-row")">
+
+                            <td>@row.Date</td>
+
+                            <td>@row.Token</td>
+
+                            <td>
+                                @row.TotalOut.ToString("N2", tr) ₺
+                            </td>
+
+                            <td>
+                                @row.TotalIn.ToString("N2", tr) ₺
+                            </td>
+
+                            <td class="@(row.TotalIn == row.TotalOut ? "green" : "red")">
+                                @((row.TotalIn - row.TotalOut).ToString("N2", tr)) ₺
+                            </td>
+
+                            <td>
+                                @if (row.IsMatched)
+                                {
+                                    <span class="badge badge-ok">
+                                        Eşleşti
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-issue">
+                                        @row.Issue
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                <a class="detail-link"
+                                   href="/MCBankCashAudit/Details?token=@Uri.EscapeDataString(row.Token)&amp;start=@Model.Start&amp;end=@Model.End&amp;status=@Model.Status&amp;q=@Uri.EscapeDataString(Model.Search)">
+                                    Detay →
+                                </a>
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+    <p class="muted">
+        Bu rapor seçilen kaynak ve hedef hesap arasındaki
+        virmanları gösterir. Virmanlar şirket geliri veya gideri
+        değildir. Finans kayıtları değiştirilmez.
+    </p>
+
+</div>

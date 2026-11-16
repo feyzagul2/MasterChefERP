@@ -1,0 +1,332 @@
+/* MC_EXECUTIVE_DASHBOARD_V1 */
+
+.mc-exec-dashboard{
+    max-width:1280px;
+    margin:0 auto 28px;
+    color:#172033;
+}
+
+.mc-exec-topline{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:24px;
+    padding:20px 22px;
+    margin:0 0 16px;
+    background:#fff;
+    border:1px solid #dce4ec;
+    border-radius:14px;
+}
+
+.mc-exec-eyebrow{
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.12em;
+    color:#6b7d90;
+    margin-bottom:5px;
+}
+
+.mc-exec-topline h2,
+.mc-exec-finance-head h3{
+    margin:0;
+    color:#173b60;
+}
+
+.mc-exec-topline h2{
+    font-size:25px;
+}
+
+.mc-exec-topline p{
+    margin:7px 0 0;
+    color:#64748b;
+    font-size:13px;
+}
+
+.mc-exec-actions,
+.mc-exec-finance-links{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.mc-exec-actions a,
+.mc-exec-finance-links a{
+    display:inline-flex;
+    align-items:center;
+    min-height:36px;
+    padding:0 13px;
+    border:1px solid #cbd7e3;
+    border-radius:7px;
+    background:#f8fafc;
+    color:#24486d !important;
+    font-size:12px;
+    font-weight:700;
+    text-decoration:none;
+}
+
+.mc-exec-kpis{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;
+    margin-bottom:14px;
+}
+
+.mc-exec-kpi{
+    background:#fff;
+    border:1px solid #dce4ec;
+    border-radius:12px;
+    padding:15px 16px;
+}
+
+.mc-exec-kpi-label{
+    font-size:12px;
+    color:#64748b;
+    margin-bottom:7px;
+}
+
+.mc-exec-kpi-value{
+    font-size:27px;
+    line-height:1;
+    font-weight:800;
+    color:#173b60;
+}
+
+.mc-exec-chart-grid{
+    display:grid;
+    grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+    gap:14px;
+    margin-bottom:20px;
+}
+
+.mc-exec-panel{
+    background:#fff;
+    border:1px solid #dce4ec;
+    border-radius:14px;
+    padding:18px;
+    min-height:310px;
+}
+
+.mc-exec-panel-head{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:18px;
+}
+
+.mc-exec-panel-head strong{
+    display:block;
+    color:#173b60;
+    font-size:15px;
+}
+
+.mc-exec-panel-head span{
+    display:block;
+    color:#718096;
+    font-size:11px;
+    margin-top:3px;
+}
+
+/* DONUT */
+
+.mc-exec-donut-layout{
+    display:grid;
+    grid-template-columns:210px 1fr;
+    align-items:center;
+    gap:24px;
+}
+
+.mc-exec-donut-wrap{
+    width:200px;
+    height:200px;
+    position:relative;
+    margin:auto;
+}
+
+.mc-exec-donut-svg{
+    width:200px;
+    height:200px;
+    transform:rotate(-90deg);
+}
+
+.mc-exec-donut-bg{
+    fill:none;
+    stroke:#edf2f7;
+    stroke-width:22;
+}
+
+.mc-exec-donut-segment{
+    fill:none;
+    stroke-width:22;
+    stroke-linecap:butt;
+}
+
+.mc-exec-donut-center{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none;
+}
+
+.mc-exec-donut-center strong{
+    font-size:29px;
+    color:#173b60;
+}
+
+.mc-exec-donut-center span{
+    font-size:11px;
+    color:#718096;
+}
+
+.mc-exec-legend{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.mc-exec-legend-row{
+    display:grid;
+    grid-template-columns:12px 1fr auto;
+    align-items:center;
+    gap:8px;
+    padding-bottom:8px;
+    border-bottom:1px solid #eef2f6;
+    font-size:12px;
+}
+
+.mc-exec-legend-dot{
+    width:9px;
+    height:9px;
+    border-radius:50%;
+}
+
+.mc-exec-legend-name{
+    color:#475569;
+}
+
+.mc-exec-legend-value{
+    color:#173b60;
+    font-weight:800;
+}
+
+/* BAR */
+
+.mc-exec-bars{
+    display:flex;
+    flex-direction:column;
+    gap:11px;
+}
+
+.mc-exec-bar-row{
+    display:grid;
+    grid-template-columns:150px 1fr 46px;
+    gap:10px;
+    align-items:center;
+}
+
+.mc-exec-bar-label{
+    font-size:11px;
+    color:#526176;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.mc-exec-bar-track{
+    height:12px;
+    border-radius:10px;
+    background:#edf2f7;
+    overflow:hidden;
+}
+
+.mc-exec-bar-fill{
+    height:100%;
+    min-width:2px;
+    border-radius:10px;
+    background:#315d87;
+}
+
+.mc-exec-bar-value{
+    text-align:right;
+    font-size:12px;
+    font-weight:800;
+    color:#173b60;
+}
+
+/* FINANCE */
+
+.mc-exec-finance-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:20px;
+    padding:2px 2px 10px;
+}
+
+.mc-exec-finance-head h3{
+    font-size:20px;
+}
+
+.mc-exec-finance-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+}
+
+.mc-exec-finance-card{
+    min-width:0;
+    background:#fff;
+    border:1px solid #dce4ec;
+    border-radius:14px;
+    padding:17px;
+    overflow:auto;
+}
+
+.mc-exec-section-title{
+    font-size:14px;
+    font-weight:800;
+    color:#173b60;
+    margin-bottom:12px;
+}
+
+/*
+ Eski operasyon kartlari JS tarafindan gizlenecek.
+ Veri silinmeyecek, sadece ekran kalabaligi kaldirilacak.
+*/
+.mc-exec-original-hidden{
+    display:none !important;
+}
+
+@media(max-width:1000px){
+    .mc-exec-kpis{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .mc-exec-chart-grid,
+    .mc-exec-finance-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:700px){
+    .mc-exec-topline,
+    .mc-exec-finance-head{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .mc-exec-kpis{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .mc-exec-donut-layout{
+        grid-template-columns:1fr;
+    }
+
+    .mc-exec-bar-row{
+        grid-template-columns:110px 1fr 38px;
+    }
+}
+
+/* MC_EXECUTIVE_DASHBOARD_V1_END */

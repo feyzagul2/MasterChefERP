@@ -1,0 +1,88 @@
+@model MasterChefTakip.Controllers.MCTransferIntegrityPage
+
+@{
+    ViewData["Title"] = "Stok Aktarım Tutarlılık Kontrol?";
+}
+
+<div style="max-width:1100px;margin:24px auto;padding:20px">
+
+    <h2>MASTER CHEF ? Stok Aktarım Tutarlılık Kontrol?</h2>
+
+    <p>
+        Mal kabul aktarım kayıtları ile gerçek hammadde stok
+        hareketleri karşılaştırılır. Bu ekran kayıtları değiştirmez.
+    </p>
+
+    <section style="display:grid;
+                    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+                    gap:12px;margin:20px 0">
+
+        <div style="padding:18px;background:#f1f5f9;border-radius:9px">
+            <div>Toplam Aktarım</div>
+            <strong style="font-size:27px">@Model.TotalTransfers</strong>
+        </div>
+
+        <div style="padding:18px;background:#f0fdf4;border-radius:9px">
+            <div>Tutarlı Kay?t</div>
+            <strong style="font-size:27px">@Model.ConsistentTransfers</strong>
+        </div>
+
+        <div style="padding:18px;background:#fef2f2;border-radius:9px">
+            <div>Eksik Stok Hareketi</div>
+            <strong style="font-size:27px">@Model.MissingMovements</strong>
+        </div>
+
+        <div style="padding:18px;background:#fff7ed;border-radius:9px">
+            <div>Uyuşmayan Kay?t</div>
+            <strong style="font-size:27px">@Model.MismatchedMovements</strong>
+        </div>
+
+    </section>
+
+    @if (Model.Problems.Count > 0)
+    {
+        <h3>Kontrol Gerektiren Kay?tlar</h3>
+
+        <table style="width:100%;border-collapse:collapse">
+            <thead style="background:#f1f5f9">
+                <tr>
+                    <th style="padding:12px;text-align:left">Aktarım No</th>
+                    <th style="padding:12px;text-align:left">Stok Hareket No</th>
+                    <th style="padding:12px;text-align:left">Sorun</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var row in Model.Problems)
+                {
+                    <tr style="border-bottom:1px solid #e2e8f0">
+                        <td style="padding:12px">@row.TransferId</td>
+                        <td style="padding:12px">
+                            @(row.MovementId > 0 ? row.MovementId.ToString() : "Yok")
+                        </td>
+                        <td style="padding:12px">@row.Problem</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (Model.MissingMovements + Model.MismatchedMovements > Model.Problems.Count)
+        {
+            <p>İlk 500 sorun gösteriliyor.</p>
+        }
+    }
+    else
+    {
+        <div style="padding:18px;background:#f0fdf4;
+                    border:1px solid #86efac;border-radius:9px">
+            İncelenen aktarım kayıtlarında tutarsızlık bulunmadı.
+        </div>
+    }
+
+    <p style="margin-top:22px">
+        <a href="/MCReceiptTransferHistory">
+            Stok Aktarım Geçmişine Dön
+        </a>
+    </p>
+
+</div>

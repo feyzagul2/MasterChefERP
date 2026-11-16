@@ -1,0 +1,930 @@
+
+@model MasterChefTakip.Models.ProductionOrder
+@{
+    ViewData["Title"] = "Uretim Emri";
+
+    var balances = (Dictionary<int, decimal>)
+        ViewBag.Balances;
+}
+
+<style>
+.mc-prod{max-width:1180px;margin:auto}
+.mc-prod h1{font-size:24px;color:#17365b}
+.mc-prod h2{font-size:17px;color:#17365b}
+.mc-prod-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:15px 0}
+.mc-prod-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.mc-prod-btn{display:inline-block;padding:9px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;color:#17406a;text-decoration:none;font-size:13px;cursor:pointer}
+.mc-prod-primary{background:#17406a;color:#fff;border-color:#17406a}
+.mc-prod-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.mc-prod-field{display:flex;flex-direction:column;gap:6px}
+.mc-prod-field label{font-size:12px;font-weight:600;color:#475569}
+.mc-prod-field input,.mc-prod-field select,.mc-prod-field textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px}
+.mc-prod-tablewrap{overflow-x:auto}
+.mc-prod-table{width:100%;min-width:710px;border-collapse:collapse}
+.mc-prod-table th{text-align:left;padding:11px;font-size:12px;color:#475569;background:#f8fafc}
+.mc-prod-table td{padding:11px;font-size:13px;border-bottom:1px solid #edf2f7}
+.mc-prod-note{font-size:12px;color:#64748b}
+.mc-prod-error{padding:13px;background:#fef2f2;color:#991b1b;border-radius:8px}
+.mc-prod-success{padding:13px;background:#ecfdf5;color:#166534;border-radius:8px}
+@@media(max-width:700px){.mc-prod-grid{grid-template-columns:1fr}.mc-prod-card{padding:12px}}
+</style>
+
+<div class="mc-prod">
+    <div class="mc-prod-head">
+        <div>
+            <div class="mc-section-nav"><a href="/Production">Reçeteler</a><a href="/Production/Orders">Üretim Emirleri</a><a href="/ProductionPackaging">Ambalajlama</a><a href="/mc-production-pallet-transfer-screen">Palet</a></div><h1>@Model.OrderNumber</h1>
+            <div class="mc-prod-note">
+                @Model.Recipe.Name |
+                @Model.PlannedQuantityKg.ToString("N4") Kg
+            </div>
+        </div>
+
+        <a class="mc-prod-btn" asp-action="Orders">
+            &#220;retim Emirleri
+        </a>
+    </div>
+
+    @if (TempData["ProductionError"] is string error)
+    {
+        <div class="mc-prod-error">@error</div>
+    }
+
+    @if (TempData["ProductionSuccess"] is string success)
+    {
+        <div class="mc-prod-success">@success</div>
+    }
+
+    <div class="mc-prod-card">
+        <div><strong>Re&#231;ete:</strong> @Model.Recipe.Name</div>
+        <div><strong>Depo:</strong> @Model.Warehouse.Name</div>
+        <div>
+            <strong>Planlanan &#220;retim:</strong>
+            @Model.PlannedQuantityKg.ToString("N4") Kg
+        </div>
+        <div>
+            <strong>Durum:</strong>
+            @(Model.Status == "Completed"
+                ? "Tamamland&#305;"
+                : "Planland&#305;")
+        </div>
+    </div>
+
+    <div class="mc-prod-card mc-prod-tablewrap">
+        <h2>Hammadde &#304;htiyac&#305;</h2>
+
+        <table class="mc-prod-table">
+            <thead>
+                <tr>
+                    <th>Hammadde</th>
+                    <th>Gerekli</th>
+                    <th>Mevcut</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            @foreach (var x in Model.Recipe.Lines.OrderBy(x => x.RawMaterial.Name))
+            {
+                var needed = Model.Recipe.BatchQuantityKg > 0
+                    ? decimal.Round(
+                        x.Quantity * Model.PlannedQuantityKg /
+                        Model.Recipe.BatchQuantityKg,
+                        4,
+                        MidpointRounding.AwayFromZero)
+                    : 0m;
+
+                var balance = balances.GetValueOrDefault(x.RawMaterialId);
+
+                <tr>
+                    <td>@x.RawMaterial.Name</td>
+                    <td>@needed.ToString("N4") @x.RawMaterial.Unit</td>
+                    <td>@balance.ToString("N4") @x.RawMaterial.Unit</td>
+                    <td>
+                        @if (Model.Status == "Completed")
+                        {
+                            <span style="color:#166534">
+                                T&#252;ketim Kaydedildi
+                            </span>
+                        }
+                        else if (balance >= needed)
+                        {
+                            <span style="color:#166534">Yeterli</span>
+                        }
+                        else
+                        {
+                            <span style="color:#b91c1c">
+                                Yetersiz
+                            </span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.Status == "Planned")
+    {
+        <div class="mc-prod-card">
+            <form asp-action="Complete" method="post">
+                @Html.AntiForgeryToken()
+                <input name="id" type="hidden" value="@Model.Id" />
+
+                <button class="mc-prod-btn mc-prod-primary"
+                        onclick="return confirm('Uretimi tamamlayip hammaddeleri stoktan dusmek istiyor musunuz?')">
+                    &#220;retimi Tamamla / Hammaddeleri Stoktan D&#252;&#351;
+                </button>
+            </form>
+
+            <p class="mc-prod-note">
+                &#304;&#351;lem, hammadde sto&#287;unu azalt&#305;r.
+                Mamul palet sto&#287;u paketleme a&#351;amas&#305;nda olu&#351;turulur.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="mc-prod-card">
+            <strong>&#220;retim tamamland&#305;.</strong><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px"><a class="mc-prod-btn" href="/ProductionPackaging">Ambalajlamaya Geç →</a><a class="mc-prod-btn" href="/Pallets">Paletleri Aç →</a></div>
+            <p class="mc-prod-note">
+                Hammadde t&#252;ketim hareketleri kaydedildi.
+                Mamul paketleme ba&#287;lant&#305;s&#305; sonraki a&#351;amad&#305;r.
+            </p>
+        </div>
+    }
+</div>
+
+<!-- MC_RAW_REQUIREMENTS_V1_START -->
+@{
+    var mcOrder = Model;
+    var mcLines = mcOrder.Recipe.Lines.ToList();
+    var mcValidBatch = mcOrder.Recipe.BatchQuantityKg > 0;
+    var mcBalances = ViewData["Balances"];
+
+    var mcStockMap = new Dictionary<int, decimal>();
+
+    if (mcBalances is IDictionary<int, decimal> mcDictionary)
+    {
+        foreach (var mcEntry in mcDictionary)
+        {
+            mcStockMap[mcEntry.Key] = mcEntry.Value;
+        }
+    }
+    else if (mcBalances is System.Collections.IEnumerable mcItems)
+    {
+        foreach (var mcItem in mcItems)
+        {
+            if (mcItem == null) continue;
+
+            var mcType = mcItem.GetType();
+            var mcKey = mcType.GetProperty("Key")?.GetValue(mcItem);
+            var mcValue = mcType.GetProperty("Value")?.GetValue(mcItem);
+
+            if (mcKey == null || mcValue == null) continue;
+
+            try
+            {
+                mcStockMap[Convert.ToInt32(mcKey)] =
+                    Convert.ToDecimal(mcValue);
+            }
+            catch
+            {
+                // Gecersiz veri stok miktari kabul edilmez.
+            }
+        }
+    }
+}
+
+<style>
+.mc-raw-check {
+    margin:18px 0;
+    padding:18px;
+    background:#fff;
+    border:1px solid #dce5ed;
+    border-radius:12px;
+}
+.mc-raw-check h2 {
+    margin:0 0 6px;
+    color:#183b59;
+    font-size:20px;
+}
+.mc-raw-check p {
+    margin:0 0 15px;
+    color:#64748b;
+}
+.mc-raw-scroll {
+    overflow-x:auto;
+}
+.mc-raw-table {
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+}
+.mc-raw-table th {
+    background:#edf3f8;
+    text-align:left;
+    color:#193e5d;
+    padding:12px;
+    white-space:nowrap;
+}
+.mc-raw-table td {
+    padding:12px;
+    border-bottom:1px solid #e7edf3;
+}
+.mc-raw-ok {
+    color:#087a45;
+    font-weight:700;
+}
+.mc-raw-bad {
+    color:#bc3333;
+    font-weight:700;
+}
+.mc-raw-unknown {
+    color:#9a6700;
+    font-weight:700;
+}
+</style>
+
+<section class="mc-raw-check">
+    <h2>Hammadde İhtiyaç ve Stok Kontrolü</h2>
+    <p>
+        Üretim emrindeki planlanan miktara göre hesaplanır.
+        Bu tablo stok hareketi oluşturmaz.
+    </p>
+
+    <div class="mc-raw-scroll">
+        <table class="mc-raw-table">
+            <thead>
+                <tr>
+                    <th>Hammadde</th>
+                    <th>Gereken Miktar</th>
+                    <th>Mevcut Stok</th>
+                    <th>Eksik Miktar</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!mcValidBatch || mcLines.Count == 0)
+                {
+                    <tr>
+                        <td colspan="5">
+                            Reçete miktarları kontrol edilmeli.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var mcLine in mcLines)
+                    {
+                        decimal mcRequired = 0;
+                        bool mcCalculationValid = true;
+
+                        try
+                        {
+                            mcRequired = decimal.Round(
+                                mcLine.Quantity *
+                                mcOrder.PlannedQuantityKg /
+                                mcOrder.Recipe.BatchQuantityKg,
+                                4,
+                                MidpointRounding.AwayFromZero
+                            );
+                        }
+                        catch (OverflowException)
+                        {
+                            mcCalculationValid = false;
+                        }
+
+                        var mcMaterial = mcLine.RawMaterial;
+
+                        var mcName = Convert.ToString(
+                            mcMaterial?.GetType()
+                                .GetProperty("Name")
+                                ?.GetValue(mcMaterial)
+                        ) ?? "Hammadde";
+
+                        var mcHasStock = mcStockMap.TryGetValue(
+                            mcLine.RawMaterialId,
+                            out decimal mcAvailable
+                        );
+
+                        var mcMissing =
+                            mcHasStock && mcCalculationValid
+                            ? Math.Max(0, mcRequired - mcAvailable)
+                            : 0;
+
+                        <tr>
+                            <td><strong>@mcName</strong></td>
+                            <td>
+                                @(mcCalculationValid
+                                    ? mcRequired.ToString("N4")
+                                    : "Hesaplanamadı")
+                            </td>
+                            <td>
+                                @(mcHasStock
+                                    ? mcAvailable.ToString("N4")
+                                    : "Doğrulanamadı")
+                            </td>
+                            <td>
+                                @(mcHasStock && mcCalculationValid
+                                    ? mcMissing.ToString("N4")
+                                    : "—")
+                            </td>
+                            <td>
+                                @if (!mcHasStock || !mcCalculationValid)
+                                {
+                                    <span class="mc-raw-unknown">
+                                        Kontrol gerekli
+                                    </span>
+                                }
+                                else if (mcMissing > 0)
+                                {
+                                    <span class="mc-raw-bad">
+                                        Stok yetersiz
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="mc-raw-ok">
+                                        Stok yeterli
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+<!-- MC_RAW_REQUIREMENTS_V1_END -->
+<!-- MC_PRODUCTION_READINESS_V1_START -->
+@{
+    bool mcReadyValid =
+        mcValidBatch &&
+        mcLines.Count > 0 &&
+        mcOrder.PlannedQuantityKg > 0;
+
+    bool mcReadyUnknown = false;
+    bool mcReadyShortage = false;
+    int mcReadyMissingCount = 0;
+
+    if (mcReadyValid)
+    {
+        foreach (var item in mcLines)
+        {
+            decimal needed = 0;
+
+            try
+            {
+                needed = decimal.Round(
+                    item.Quantity *
+                    mcOrder.PlannedQuantityKg /
+                    mcOrder.Recipe.BatchQuantityKg,
+                    4,
+                    MidpointRounding.AwayFromZero
+                );
+            }
+            catch (OverflowException)
+            {
+                mcReadyUnknown = true;
+                continue;
+            }
+
+            if (needed <= 0 || item.RawMaterial == null ||
+                !item.RawMaterial.IsActive)
+            {
+                mcReadyUnknown = true;
+                continue;
+            }
+
+            if (!mcStockMap.TryGetValue(
+                item.RawMaterialId,
+                out decimal available))
+            {
+                mcReadyUnknown = true;
+                continue;
+            }
+
+            if (available < needed)
+            {
+                mcReadyShortage = true;
+                mcReadyMissingCount++;
+            }
+        }
+    }
+}
+
+<style>
+.mc-ready-box {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 18px;
+    margin:16px 0;
+    border-radius:11px;
+    border:1px solid #dce5ed;
+    font-weight:700;
+    font-size:16px;
+}
+.mc-ready-good {
+    background:#e8f7ee;
+    border-color:#b7e3c5;
+    color:#12633b;
+}
+.mc-ready-bad {
+    background:#fff0ef;
+    border-color:#f1c1bd;
+    color:#a62929;
+}
+.mc-ready-check {
+    background:#fff7e5;
+    border-color:#ead59b;
+    color:#8a5a00;
+}
+</style>
+
+<div class="mc-ready-box @(mcReadyValid && !mcReadyUnknown && !mcReadyShortage ? "mc-ready-good" : mcReadyShortage && !mcReadyUnknown ? "mc-ready-bad" : "mc-ready-check")">
+    @if (!mcReadyValid || mcReadyUnknown)
+    {
+        <span>⚠ Stok Kontrolü Gerekli</span>
+    }
+    else if (mcReadyShortage)
+    {
+        <span>⛔ Eksik Hammadde Var (@mcReadyMissingCount kalem)</span>
+    }
+    else
+    {
+        <span>✓ Üretime Hazır — Hammadde Stokları Yeterli</span>
+    }
+</div>
+<!-- MC_PRODUCTION_READINESS_V1_END -->
+<!-- MC_PRODUCTION_COST_V1_START -->
+<style>
+.mc-cost-v2{background:#fff;border:1px solid #dce5ed;border-radius:12px;padding:18px;margin:16px 0}
+.mc-cost-v2 h2{margin:0 0 8px;color:#193d5b;font-size:20px}
+.mc-cost-v2 .note{color:#65768a;font-size:13px;margin-bottom:15px}
+.mc-cost-v2 .scroll{overflow-x:auto}
+.mc-cost-v2 table{width:100%;border-collapse:collapse;font-size:14px}
+.mc-cost-v2 th{background:#edf3f8;color:#193d5b;text-align:left;padding:11px;white-space:nowrap}
+.mc-cost-v2 td{padding:10px;border-bottom:1px solid #e7edf3}
+.mc-cost-v2 input,.mc-cost-v2 select{padding:9px;border:1px solid #ccd9e5;border-radius:7px;max-width:140px;width:100%}
+.mc-cost-v2 .totals{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+.mc-cost-v2 .total{padding:13px 17px;background:#edf4f9;border-radius:9px;min-width:170px}
+.mc-cost-v2 .total small{display:block;color:#627487;margin-bottom:6px}
+.mc-cost-v2 .total strong{font-size:19px;color:#193d5b}
+.mc-cost-v2 .warn{background:#fff7e6;border:1px solid #ead69e;padding:12px;border-radius:8px;margin-top:14px;color:#815800}
+</style>
+
+<section class="mc-cost-v2" id="mc-production-cost-v2">
+    <h2>Üretim Maliyet Analizi</h2>
+    <div class="note">
+        Fiyatları kilogram başına girin. Hesaplama anlık yapılır.
+        Bu ekran fiyat veya stok kaydı oluşturmaz.
+    </div>
+
+    <div class="scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Hammadde</th>
+                    <th>Gereken (kg)</th>
+                    <th>Kg Alış Fiyatı</th>
+                    <th>Para Birimi</th>
+                    <th>Hammadde Maliyeti</th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (!mcValidBatch || mcOrder.PlannedQuantityKg <= 0 || mcLines.Count == 0)
+            {
+                <tr><td colspan="5">Geçerli reçete ve üretim miktarı bulunamadı.</td></tr>
+            }
+            else
+            {
+                foreach (var line in mcLines)
+                {
+                    decimal needed = 0;
+                    bool valid = true;
+
+                    try
+                    {
+                        needed = decimal.Round(
+                            line.Quantity * mcOrder.PlannedQuantityKg /
+                            mcOrder.Recipe.BatchQuantityKg,
+                            4,
+                            MidpointRounding.AwayFromZero);
+                        valid = needed > 0;
+                    }
+                    catch (OverflowException)
+                    {
+                        valid = false;
+                    }
+
+                    var materialName = Convert.ToString(
+                        line.RawMaterial?.GetType().GetProperty("Name")
+                            ?.GetValue(line.RawMaterial)) ?? "Hammadde";
+
+                    <tr class="mc-cost-row"
+                        data-quantity="@(valid ? needed.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")">
+                        <td><strong>@materialName</strong></td>
+                        <td>@(valid ? needed.ToString("N4") : "Hesaplanamadı")</td>
+                        <td>
+                            <input type="number" class="mc-cost-price"
+                                   min="0" step="any"
+                                   placeholder="Fiyat girin"
+                                   aria-label="@materialName kg alış fiyatı"
+                                   disabled="@(!valid)" />
+                        </td>
+                        <td>
+                            <select class="mc-cost-currency" disabled="@(!valid)">
+                                <option value="TRY">TL</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                            </select>
+                        </td>
+                        <td class="mc-cost-line-total">—</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="totals" id="mc-cost-totals"></div>
+    <div class="warn" id="mc-cost-warning">
+        Tüm hammaddelerin kilogram fiyatlarını girin.
+    </div>
+</section>
+
+<script>
+(function () {
+    function init() {
+        const box = document.getElementById("mc-production-cost-v2");
+        if (!box) return;
+
+        const rows = Array.from(box.querySelectorAll(".mc-cost-row"));
+        const totals = box.querySelector("#mc-cost-totals");
+        const warning = box.querySelector("#mc-cost-warning");
+        const productionKg = Number("@(mcOrder.PlannedQuantityKg.ToString(System.Globalization.CultureInfo.InvariantCulture))");
+
+        const formatter = function(currency) {
+            return new Intl.NumberFormat("tr-TR", {
+                style:"currency",
+                currency:currency,
+                minimumFractionDigits:2,
+                maximumFractionDigits:4
+            });
+        };
+
+        function calculate() {
+            const sums = {TRY:0, USD:0, EUR:0};
+            const used = new Set();
+            let missing = 0;
+
+            rows.forEach(function(row) {
+                const quantity = Number(row.dataset.quantity);
+                const input = row.querySelector(".mc-cost-price");
+                const currency = row.querySelector(".mc-cost-currency").value;
+                const output = row.querySelector(".mc-cost-line-total");
+
+                if (!Number.isFinite(quantity) || quantity <= 0 ||
+                    input.value.trim() === "") {
+                    output.textContent = "—";
+                    missing++;
+                    return;
+                }
+
+                const price = Number(input.value);
+
+                if (!Number.isFinite(price) || price < 0) {
+                    output.textContent = "Geçersiz fiyat";
+                    missing++;
+                    return;
+                }
+
+                const value = quantity * price;
+
+                if (!Number.isFinite(value)) {
+                    output.textContent = "Hesaplanamadı";
+                    missing++;
+                    return;
+                }
+
+                sums[currency] += value;
+                used.add(currency);
+                output.textContent = formatter(currency).format(value);
+            });
+
+            totals.replaceChildren();
+
+            ["TRY","USD","EUR"].forEach(function(currency) {
+                if (!used.has(currency)) return;
+
+                const card = document.createElement("div");
+                card.className = "total";
+
+                const label = document.createElement("small");
+                label.textContent = currency + " Toplam Maliyet";
+
+                const amount = document.createElement("strong");
+                amount.textContent = formatter(currency).format(sums[currency]);
+
+                card.append(label,amount);
+
+                if (productionKg > 0) {
+                    const perKg = document.createElement("div");
+                    perKg.style.marginTop = "8px";
+                    perKg.textContent = "Üretim kg maliyeti: " +
+                        formatter(currency).format(sums[currency] / productionKg);
+                    card.appendChild(perKg);
+                }
+
+                totals.appendChild(card);
+            });
+
+            if (missing > 0) {
+                warning.textContent = missing +
+                    " hammadde için geçerli fiyat veya miktar eksik. " +
+                    "Gösterilen toplamlar kısmi maliyettir.";
+                warning.style.display = "block";
+            } else if (rows.length === 0) {
+                warning.textContent = "Hesaplanacak reçete satırı yok.";
+                warning.style.display = "block";
+            } else {
+                warning.textContent =
+                    "Tüm fiyatlar girildi. Sonuçlar bu ekrana ait maliyet senaryosudur; onaylı alış maliyeti değildir.";
+                warning.style.display = "block";
+            }
+        }
+
+        box.addEventListener("input", calculate);
+        box.addEventListener("change", calculate);
+        calculate();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded",init);
+    } else {
+        init();
+    }
+})();
+</script>
+<!-- MC_PRODUCTION_COST_V1_END -->
+<!-- MC_PRODUCTION_EXTRA_COST_V1_START -->
+<style>
+.mc-extra-cost{background:#fff;border:1px solid #dce5ed;border-radius:12px;padding:18px;margin:16px 0}
+.mc-extra-cost h2{margin:0 0 8px;color:#193d5b;font-size:20px}
+.mc-extra-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:15px 0}
+.mc-extra-field{display:flex;flex-direction:column;gap:6px;color:#475569;font-size:13px}
+.mc-extra-field input,.mc-extra-field select{border:1px solid #cbd5e1;border-radius:8px;padding:10px;width:100%;background:#fff}
+.mc-extra-result{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.mc-extra-card{background:#edf4f9;border-radius:9px;padding:15px}
+.mc-extra-card small{display:block;color:#64748b;margin-bottom:7px}
+.mc-extra-card strong{font-size:19px;color:#173b59}
+.mc-extra-note{font-size:13px;color:#8a5a00;background:#fff7e6;border:1px solid #ead69e;border-radius:8px;padding:12px;margin-top:14px}
+@@media(max-width:800px){.mc-extra-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mc-extra-result{grid-template-columns:1fr}}
+</style>
+
+<section class="mc-extra-cost" id="mc-production-extra-cost">
+    <h2>Ek Gider ve Satış Fiyatı Hesaplama</h2>
+    <p style="color:#64748b;font-size:13px">
+        Bu hesap yalnızca senaryo içindir. Veritabanına kaydedilmez.
+    </p>
+
+    <div class="mc-extra-grid">
+        <label class="mc-extra-field">
+            İşçilik (%)
+            <input id="mc-extra-labor" type="number" min="0" max="1000" step="0.1" value="25">
+        </label>
+        <label class="mc-extra-field">
+            Genel Gider (%)
+            <input id="mc-extra-overhead" type="number" min="0" max="1000" step="0.1" value="0">
+        </label>
+        <label class="mc-extra-field">
+            Ambalaj (toplam)
+            <input id="mc-extra-package" type="number" min="0" step="0.01" value="0">
+        </label>
+        <label class="mc-extra-field">
+            Hedef Kâr (%)
+            <input id="mc-extra-profit" type="number" min="0" max="99.99" step="0.1" value="25">
+        </label>
+    </div>
+
+    <div class="mc-extra-grid">
+        <label class="mc-extra-field">
+            Hesaplama Para Birimi
+            <select id="mc-extra-currency">
+                <option value="TRY">TL</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+            </select>
+        </label>
+        <label class="mc-extra-field">
+            Hammadde Toplamı
+            <input id="mc-extra-material" type="text" readonly>
+        </label>
+    </div>
+
+    <div class="mc-extra-result">
+        <div class="mc-extra-card">
+            <small>Toplam Üretim Maliyeti</small>
+            <strong id="mc-extra-total">—</strong>
+        </div>
+        <div class="mc-extra-card">
+            <small>Kg Başına Maliyet</small>
+            <strong id="mc-extra-perkg">—</strong>
+        </div>
+        <div class="mc-extra-card">
+            <small>Önerilen Kg Satış Fiyatı</small>
+            <strong id="mc-extra-selling">—</strong>
+        </div>
+    </div>
+
+    <div class="mc-extra-note" id="mc-extra-warning">
+        Hammadde fiyatlarını girerek hesaplamayı başlatın.
+    </div>
+</section>
+
+<script>
+(function(){
+    function init(){
+        const box=document.getElementById("mc-production-extra-cost");
+        const source=document.getElementById("mc-production-cost-v2");
+        if(!box || !source)return;
+
+        const get=id=>document.getElementById(id);
+        const kg=Number("@(mcOrder.PlannedQuantityKg.ToString(System.Globalization.CultureInfo.InvariantCulture))");
+        const money=(n,c)=>new Intl.NumberFormat("tr-TR",{style:"currency",currency:c}).format(n);
+
+        function calculate(){
+            const currency=get("mc-extra-currency").value;
+            const rows=Array.from(source.querySelectorAll(".mc-cost-row"));
+            const values={
+                labor:Number(get("mc-extra-labor").value),
+                overhead:Number(get("mc-extra-overhead").value),
+                package:Number(get("mc-extra-package").value),
+                profit:Number(get("mc-extra-profit").value)
+            };
+
+            let material=0;
+            let missing=0;
+            let otherCurrencies=0;
+
+            rows.forEach(row=>{
+                const quantity=Number(row.dataset.quantity);
+                const priceInput=row.querySelector(".mc-cost-price");
+                const price=Number(priceInput.value);
+                const rowCurrency=row.querySelector(".mc-cost-currency").value;
+
+                if(!priceInput.value.trim() || !Number.isFinite(quantity) ||
+                   quantity<=0 || !Number.isFinite(price) || price<0){
+                    missing++;
+                    return;
+                }
+
+                if(rowCurrency!==currency){
+                    otherCurrencies++;
+                    return;
+                }
+
+                material+=quantity*price;
+            });
+
+            const valid=rows.length>0 && missing===0 &&
+                otherCurrencies===0 && kg>0 &&
+                Object.values(values).every(Number.isFinite) &&
+                values.labor>=0 && values.overhead>=0 &&
+                values.package>=0 && values.profit>=0 &&
+                values.profit<100;
+
+            get("mc-extra-material").value=money(material,currency);
+
+            if(!valid){
+                ["mc-extra-total","mc-extra-perkg","mc-extra-selling"]
+                    .forEach(id=>get(id).textContent="—");
+
+                get("mc-extra-warning").textContent=
+                    "Hesap tamamlanamadı. Eksik fiyat: "+missing+
+                    ", farklı para birimi: "+otherCurrencies+
+                    ". Bütün fiyatlar aynı para biriminde olmalıdır.";
+                return;
+            }
+
+            const total=material*(1+values.labor/100+values.overhead/100)+values.package;
+            const perKg=total/kg;
+            const selling=perKg/(1-values.profit/100);
+
+            get("mc-extra-total").textContent=money(total,currency);
+            get("mc-extra-perkg").textContent=money(perKg,currency);
+            get("mc-extra-selling").textContent=money(selling,currency);
+            get("mc-extra-warning").textContent=
+                "Hedef kâr, satış fiyatı üzerinden brüt kâr marjı olarak hesaplanmıştır. Vergi ve diğer satış giderleri dahil değildir.";
+        }
+
+        box.addEventListener("input",calculate);
+        box.addEventListener("change",calculate);
+        source.addEventListener("input",calculate);
+        source.addEventListener("change",calculate);
+        calculate();
+    }
+
+    if(document.readyState==="loading")
+        document.addEventListener("DOMContentLoaded",init);
+    else init();
+})();
+</script>
+<!-- MC_PRODUCTION_EXTRA_COST_V1_END -->
+<!-- MC_PRODUCTION_COST_SAVE_V1_START -->
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin:15px 0">
+    <button type="button" id="mc-cost-save-button"
+            style="border:0;border-radius:9px;background:#087e70;color:white;padding:12px 18px;font-weight:700;cursor:pointer">
+        Maliyeti Kaydet
+    </button>
+    <a href="/MCProductionCostHistory/@mcOrder.Id"
+       style="background:#193e5d;color:white;padding:12px 18px;border-radius:9px;text-decoration:none;font-weight:700">
+        Maliyet Geçmişi
+    </a>
+</div>
+
+<form id="mc-cost-save-form"
+      method="post"
+      action="/MCProductionCostHistory/Save"
+      style="display:none">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="ProductionOrderId" value="@mcOrder.Id" />
+    <input type="hidden" name="Currency" />
+    <input type="hidden" name="PlannedQuantityKg" />
+    <input type="hidden" name="MaterialCost" />
+    <input type="hidden" name="LaborRate" />
+    <input type="hidden" name="OverheadRate" />
+    <input type="hidden" name="PackagingCost" />
+    <input type="hidden" name="ProfitRate" />
+    <input type="hidden" name="MaterialsJson" />
+</form>
+
+<script>
+(function(){
+    const button=document.getElementById("mc-cost-save-button");
+    const form=document.getElementById("mc-cost-save-form");
+    const source=document.getElementById("mc-production-cost-v2");
+
+    if(!button||!form||!source)return;
+
+    button.addEventListener("click",function(){
+        const get=id=>document.getElementById(id);
+        const rows=Array.from(source.querySelectorAll(".mc-cost-row"));
+        const currency=get("mc-extra-currency").value;
+        const quantity=Number("@(mcOrder.PlannedQuantityKg.ToString(System.Globalization.CultureInfo.InvariantCulture))");
+
+        let total=0;
+        let valid=rows.length>0 && quantity>0;
+        const materials=[];
+
+        rows.forEach(function(row){
+            const q=Number(row.dataset.quantity);
+            const input=row.querySelector(".mc-cost-price");
+            const price=Number(input.value);
+            const c=row.querySelector(".mc-cost-currency").value;
+
+            if(!input.value.trim()||!Number.isFinite(q)||q<=0||
+               !Number.isFinite(price)||price<0||c!==currency){
+                valid=false;
+                return;
+            }
+
+            total+=q*price;
+            materials.push({
+                name:row.cells[0].textContent.trim(),
+                quantity:q,
+                unitPrice:price,
+                currency:c
+            });
+        });
+
+        const values={
+            ProductionOrderId:"@mcOrder.Id",
+            Currency:currency,
+            PlannedQuantityKg:String(quantity),
+            MaterialCost:String(total),
+            LaborRate:get("mc-extra-labor").value,
+            OverheadRate:get("mc-extra-overhead").value,
+            PackagingCost:get("mc-extra-package").value,
+            ProfitRate:get("mc-extra-profit").value,
+            MaterialsJson:JSON.stringify(materials)
+        };
+
+        if(!valid || Object.values(values).some(v=>v==="") ||
+           get("mc-extra-total").textContent.trim()==="—"){
+            alert("Maliyet kaydedilemedi. Tüm hammadde fiyatlarını ve para birimlerini kontrol edin.");
+            return;
+        }
+
+        Object.keys(values).forEach(function(key){
+            const field=form.elements.namedItem(key);
+            if(field)field.value=values[key];
+        });
+
+        form.submit();
+    });
+})();
+</script>
+<!-- MC_PRODUCTION_COST_SAVE_V1_END -->

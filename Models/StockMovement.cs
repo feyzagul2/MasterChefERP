@@ -14,6 +14,7 @@ public enum StockMovementType
 }
 [Index(nameof(ReversesMovementId), IsUnique = true)]
 [Index(nameof(CorrectsMovementId), IsUnique = true)]
+[StockMovementPositiveQuantity]
 public class StockMovement
 {
         // Hareketin bağlı olduğu sevkiyat.

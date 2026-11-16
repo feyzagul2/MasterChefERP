@@ -1,0 +1,83 @@
+
+@model MasterChefTakip.Models.PurchaseOrder
+@{
+    ViewData["Title"] = "Sat&#305;n Alma Sipari&#351;i";
+    var net = Model.Lines.Sum(x => x.Quantity * x.UnitPrice);
+    var vat = Model.Lines.Sum(x =>
+        x.Quantity * x.UnitPrice * x.VatRate / 100m);
+}
+
+<style>
+.mc-purchase{max-width:1150px;margin:auto}
+.mc-purchase-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin:16px 0}
+.mc-purchase-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.mc-purchase-btn{display:inline-block;padding:9px 14px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#17365b;text-decoration:none;cursor:pointer;font-size:13px}
+.mc-purchase-primary{background:#17406a;border-color:#17406a;color:white}
+.mc-purchase-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.mc-purchase-field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.mc-purchase-field label{font-size:12px;font-weight:650}
+.mc-purchase-field input,.mc-purchase-field select,.mc-purchase-field textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:7px;padding:9px;font-size:13px;background:#fff}
+.mc-purchase-table-wrap{overflow-x:auto}
+.mc-purchase-table{width:100%;min-width:780px;border-collapse:collapse}
+.mc-purchase-table th{text-align:left;background:#f8fafc;padding:11px;font-size:12px}
+.mc-purchase-table td{padding:9px;border-bottom:1px solid #edf2f7;font-size:13px}
+.mc-purchase-table input{width:100%;min-width:75px;padding:8px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box}
+.mc-purchase-errors{color:#b91c1c;font-size:13px;margin:12px 0}
+@@media(max-width:700px){.mc-purchase-grid{grid-template-columns:1fr}.mc-purchase-card{padding:13px}}
+</style>
+
+<div class="mc-purchase">
+    <div class="mc-purchase-head">
+        <div>
+            <h1>@Model.OrderNumber</h1>
+            <div>@Model.Supplier.CompanyName</div>
+        </div>
+        <a class="mc-purchase-btn" asp-action="Index">Listeye D&#246;n</a>
+    </div>
+
+    <div class="mc-purchase-card">
+        <strong>Durum:</strong> Taslak
+        &nbsp; | &nbsp;
+        <strong>Tarih:</strong> @Model.OrderDate.ToString("dd.MM.yyyy")
+        &nbsp; | &nbsp;
+        <strong>Para Birimi:</strong> @Model.Currency
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <p>@Model.Notes</p>
+        }
+    </div>
+
+    <div class="mc-purchase-card mc-purchase-table-wrap">
+        <table class="mc-purchase-table">
+            <thead><tr>
+                <th>#</th><th>&#220;r&#252;n / Malzeme</th>
+                <th>Birim</th><th>Miktar</th>
+                <th>Birim Fiyat</th><th>KDV %</th><th>Net Tutar</th>
+            </tr></thead>
+            <tbody>
+            @foreach (var line in Model.Lines.OrderBy(x => x.LineNumber))
+            {
+                <tr>
+                    <td>@line.LineNumber</td>
+                    <td>@line.ProductDescription</td>
+                    <td>@line.Unit</td>
+                    <td>@line.Quantity.ToString("N4")</td>
+                    <td>@line.UnitPrice.ToString("N4")</td>
+                    <td>@line.VatRate.ToString("N2")</td>
+                    <td>@((line.Quantity * line.UnitPrice).ToString("N2"))</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mc-purchase-card" style="text-align:right">
+        <div>Net Toplam: <strong>@net.ToString("N2") @Model.Currency</strong></div>
+        <div>KDV Toplam: <strong>@vat.ToString("N2") @Model.Currency</strong></div>
+        <h2>Genel Toplam: @((net + vat).ToString("N2")) @Model.Currency</h2>
+    </div>
+
+    <div style="color:#64748b;font-size:12px">
+        Bu taslak sipari&#351; stok, irsaliye veya cari bor&#231; hareketi olu&#351;turmaz.
+    </div>
+</div>
